@@ -1,0 +1,9 @@
+nbproject
+.nbproject_*
+.project
+.cproject
+build
+mapper
+libstreetmap.a
+test_libstreetmap
+**/.nfs*
