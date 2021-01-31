@@ -57,3 +57,111 @@ void closeMap() {
     //Clean-up your map related data structures here
     
 }
+// Returns the distance between two (lattitude,longitude) coordinates in meters
+// Speed Requirement --> moderate
+double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
+    return 0;
+}
+
+// Returns the length of the given street segment in meters
+// Speed Requirement --> moderate
+double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
+    return 0;
+}
+
+// Returns the travel time to drive from one end of a street segment in
+// to the other, in seconds, when driving at the speed limit
+// Note: (time = distance/speed_limit)
+// Speed Requirement --> high
+double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
+    return 0;
+}
+
+// Returns the nearest intersection to the given position
+// Speed Requirement --> none
+IntersectionIdx findClosestIntersection(LatLon my_position){
+    return 0;
+}
+
+// Returns the street segments that connect to the given intersection
+// Speed Requirement --> high
+std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id){
+    return {};
+}
+
+// Returns the street names at the given intersection (includes duplicate
+// street names in the returned vector)
+// Speed Requirement --> high
+std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
+    return {};
+}
+
+// Returns all intersections reachable by traveling down one street segment
+// from the given intersection (hint: you can't travel the wrong way on a
+// 1-way street)
+// the returned vector should NOT contain duplicate intersections
+// Speed Requirement --> high
+std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
+    return {};
+}
+
+// Returns all intersections along the a given street
+// Speed Requirement --> high
+std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
+    return {};
+}
+
+// Return all intersection ids at which the two given streets intersect
+// This function will typically return one intersection id for streets
+// that intersect and a length 0 vector for streets that do not. For unusual
+// curved streets it is possible to have more than one intersection at which
+// two streets cross.
+// Speed Requirement --> high
+std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
+    return {};
+}
+
+// Returns all street ids corresponding to street names that start with the
+// given prefix
+// The function should be case-insensitive to the street prefix.
+// The function should ignore spaces.
+//  For example, both "bloor " and "BloOrst" are prefixes to
+// "Bloor Street East".
+// If no street names match the given prefix, this routine returns an empty
+// (length 0) vector.
+// You can choose what to return if the street prefix passed in is an empty
+// (length 0) string, but your program must not crash if street_prefix is a
+// length 0 string.
+// Speed Requirement --> high
+std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
+    return {};
+}
+
+// Returns the length of a given street in meters
+// Speed Requirement --> high
+double findStreetLength(StreetIdx street_id){
+    return 0;
+}
+
+// Return the smallest rectangle that contains all the intersections and
+// curve points of the given street (i.e. the min,max lattitude
+// and longitude bounds that can just contain all points of the street).
+// Speed Requirement --> none
+LatLonBounds findStreetBoundingBox(StreetIdx street_id){
+    LatLonBounds empty;
+    return empty;
+}
+
+// Returns the nearest point of interest of the given name to the given position
+// Speed Requirement --> none
+POIIdx findClosestPOI(LatLon my_position, std::string POIname){
+    return 0;
+}
+
+// Returns the area of the given closed feature in square meters
+// Assume a non self-intersecting polygon (i.e. no holes)
+// Return 0 if this feature is not a closed polygon.
+// Speed Requirement --> moderate
+double findFeatureArea(FeatureIdx feature_id){
+    return 0;
+}
