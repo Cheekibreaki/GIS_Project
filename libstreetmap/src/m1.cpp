@@ -107,16 +107,16 @@ struct CharNode{
     std::vector<StreetIdx> curPrefixStreetsList;
     CharNode* nextChar[256];
 };
-struct StreetNameTree{
+struct CharTree{
     CharNode* root;
-}StNameListForPrefix;
+}StNameTreeForPrefix;
 
 int CharToInt(char c){
-    return ((unsigned)c&0xff);
+    return (((unsigned)c)&0xff);
 }
 
 void insertName(std::string curStName, StreetIdx street_id){
-    CharNode* cptr = StNameListForPrefix.root;
+    CharNode* cptr = StNameTreeForPrefix.root;
     for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
         int charDec = CharToInt(curStName[charIdx]);
         if(cptr->nextChar[charDec] == nullptr){
@@ -125,19 +125,39 @@ void insertName(std::string curStName, StreetIdx street_id){
         cptr = cptr -> nextChar[charDec];
         cptr ->curPrefixStreetsList.push_back(street_id);
     }
-};
+}
+
 bool LoadHelperStructure4(){
-    StNameListForPrefix.root = new CharNode();
+    StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
     for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
         std::string stName = getStreetName(curStIdx);
+        // remove spaces and covert all letter to lower case before storing
+        xxx
+        xxx
+
         insertName(stName, curStIdx);
     }
-    return true;
+    //Check Structure Created
+    if(StNameTreeForPrefix.root == nullptr) {
+        return false;
+    }
+    else{
+        return true;
+    }
 }
-bool CloseHelperStructure4(){
-    return false;
+
+void CloseHelperStructure4(CharNode* myRoot){
+    if(myRoot == nullptr){
+        return;
+    }
+    for(int i=0; i<256; i++){
+        CloseHelperStructure4(myRoot->nextChar[i]);
+    }
+    delete myRoot;
+    myRoot = nullptr;
 }
+
 /*Global Structure Define End*/
 
 /*Global Structure Load Helper Begin*/
@@ -211,10 +231,10 @@ bool loadMap(std::string map_streets_database_filename) {
     // Load IntersectListOfStreetSegs
     load_successful = LoadHelperStructure1();
     if(!load_successful) return false;
-    load_successful = LoadHelperStructure2();
+    /*load_successful = LoadHelperStructure2();
     if(!load_successful) return false;
     load_successful = LoadHelperStructure3();
-    if(!load_successful) return false;
+    if(!load_successful) return false;*/
     load_successful = LoadHelperStructure4();
     if(!load_successful) return false;
 
@@ -226,7 +246,12 @@ bool loadMap(std::string map_streets_database_filename) {
 
 void closeMap() {
     //Clean-up your map related data structures here
-    
+
+    // call this API to close the currently opened map
+    closeStreetDatabase();
+
+    // clear the data structure for searching street names
+    CloseHelperStructure4(StNameTreeForPrefix.root);
 }
 /**
  * Function 1.1: <br>
@@ -361,7 +386,16 @@ std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
  * @return
  */
 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
-    return {};
+
+    CharNode* cptr = StNameTreeForPrefix.root;
+    for(int charIdx = 0; charIdx < street_prefix.length(); charIdx++){
+        int charDec = CharToInt(street_prefix[charIdx]);
+        if(cptr->nextChar[charDec] == nullptr) {
+            return {};
+        }
+        cptr = cptr -> nextChar[charDec];
+    }
+    return cptr -> curPrefixStreetsList;
 }
 
 /**
