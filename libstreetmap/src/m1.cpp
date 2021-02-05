@@ -21,6 +21,44 @@
 #include <iostream>
 #include "m1.h"
 #include "StreetsDatabaseAPI.h"
+#include <vector>
+#include <set>
+
+/***** Function Naming Begin *****/
+/*
+Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
+            1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
+            1.3: std::vector<std::string> findStreetNamesOfIntersection();
+
+            2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
+            2.2: std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids);
+            2.3: std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
+            2.4 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix);
+
+            3.1: double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points);
+            3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
+            3.3: double findStreetLength (StreetIdx street_id);
+            3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
+            3.5: double findFeatureArea (FeatureIdx feature_id);
+
+            4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
+            4.2:POIIdx findClosestPOI(LatLon my_position, std::string POIname);
+ */
+/***** Function Naming End *****/
+
+
+/***** Global Structure Define Begin   *****/
+
+//Structure 1: IntersectionIndex -> StreetSegmentIndex[Func: 1.1]
+
+
+//Structure 2: StreetIndex -> IntersectionIndex & StreetSegmentIndex [Func: 2.3 & 3.3]
+
+//Structure 3: StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
+
+//Structure 4: 256CharNodeTree(Special) [Func: 2.4]
+
+/***** Global Structure Define End     *****/
 
 
 // loadMap will be called with the name of the file that stores the "layer-2"
