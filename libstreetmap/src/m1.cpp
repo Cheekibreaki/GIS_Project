@@ -146,39 +146,55 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
 
     std::vector<IntersectionIdx> adjIntersectList;
 
-    if(intersectListOfStreetSegs[intersection_id].size() == 0) return adjIntersectList;
+    int SegsNum = intersectListOfStreetSegs[intersection_id].size();
 
     //Loop through StreetSeg of specific intersection
-    for(int curSegNum=0; curSegNum < intersectListOfStreetSegs[intersection_id].size(); curSegNum++) {
+    for(int curSegNum=0; curSegNum < SegsNum; curSegNum++) {
 
         //Save current SegInfo
-        StreetSegmentInfo curSegInfo = getStreetSegmentInfo(intersectListOfStreetSegs[intersection_id][curSegNum]);
+        int curSegIdx = intersectListOfStreetSegs[intersection_id][curSegNum];
+        StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
         IntersectionIdx idFrom = curSegInfo.from;
         IntersectionIdx idTo = curSegInfo.to;
 
-        IntersectionIdx save;
+        //IntersectionIdx save;
         if(curSegInfo.oneWay == false){
             if(intersection_id == idFrom){
+                adjIntersectList.push_back(idTo);
+            }else if(intersection_id == idTo){
+                adjIntersectList.push_back(idFrom);
+            }else if(idTo == idFrom && idFrom == intersection_id){
+                adjIntersectList.push_back(-1);
+            }
+        }else{
+            if(intersection_id == idFrom){
+                adjIntersectList.push_back(idTo);
+            }
+        }
+
+
+        /*if(curSegInfo.oneWay == false){
+            if(intersection_id == idFrom){
                 save = idTo;
-            }else {
+            }else if(intersection_id == idTo){
                 save = idFrom;
             }
         }else{
             if(intersection_id == idFrom){
                 save = idTo;
             }
-        }
-        adjIntersectList.push_back(save);
-        bool needSaved = true;
+        }*/
+        /*bool needSaved = true;
         for(auto itr = adjIntersectList.begin(); itr != adjIntersectList.end(); itr++){
             if(adjIntersectList[*itr] == save) {
                 needSaved = false;
             }
         }
 
-        if(needSaved){
+        if(needSaved == true && save != -1){
             adjIntersectList.push_back(save);
-        }
+        }*/
+        //adjIntersectList.push_back(save);
     }
     return adjIntersectList;
 }
