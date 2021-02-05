@@ -208,7 +208,7 @@ void closeMap() {
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
 
     //Declare AdjIntersection List
-    std::set<IntersectionIdx> adjIntersectList;
+    std::set<IntersectionIdx> adjIntersectVec;
 
     //Find SegmentNumber Exist in current intersection
     int SegsNum = intersectListOfStreetSegs[intersection_id].size();
@@ -226,19 +226,19 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
         if(curSegInfo.oneWay == false) {
             //Save id Differ of current intersection
             if (intersection_id == idFrom) {
-                adjIntersectList.insert(idTo);
+                adjIntersectVec.insert(idTo);
             } else if (intersection_id == idTo) {
-                adjIntersectList.insert(idFrom);
+                adjIntersectVec.insert(idFrom);
             }
         }
         else{
             //Save if idFrom is current intersection
             if(intersection_id == idFrom){
-                adjIntersectList.insert(idTo);
+                adjIntersectVec.insert(idTo);
             }
         }
     }
-    return SetToVecTransferHelper(adjIntersectList);
+    return SetToVecTransferHelper(adjIntersectVec);
 }
 
 /**
