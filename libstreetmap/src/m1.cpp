@@ -144,7 +144,7 @@ void closeMap() {
  */
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
 
-    std::vector<IntersectionIdx> adjIntersectList;
+    std::set<IntersectionIdx> adjIntersectList;
 
     int SegsNum = intersectListOfStreetSegs[intersection_id].size();
 
@@ -160,18 +160,17 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
         //IntersectionIdx save;
         if(curSegInfo.oneWay == false){
             if(intersection_id == idFrom){
-                adjIntersectList.push_back(idTo);
+                adjIntersectList.insert(idTo);
             }else if(intersection_id == idTo){
-                adjIntersectList.push_back(idFrom);
+                adjIntersectList.insert(idFrom);
             }else if(idTo == idFrom && idFrom == intersection_id){
-                adjIntersectList.push_back(-1);
+                adjIntersectList.insert(-1);
             }
         }else{
             if(intersection_id == idFrom){
-                adjIntersectList.push_back(idTo);
+                adjIntersectList.insert(idTo);
             }
         }
-
 
         /*if(curSegInfo.oneWay == false){
             if(intersection_id == idFrom){
@@ -196,7 +195,9 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
         }*/
         //adjIntersectList.push_back(save);
     }
-    return adjIntersectList;
+    std::vector<IntersectionIdx> output(adjIntersectList.size());
+    std::copy(adjIntersectList.begin(),adjIntersectList.end(),output.begin());
+    return output;
 }
 
 /**
