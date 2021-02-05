@@ -50,7 +50,26 @@ Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx
 /***** Global Structure Define Begin   *****/
 
 //Structure 1: IntersectionIndex -> StreetSegmentIndex[Func: 1.1]
+std::vector <std::vector<StreetSegmentIdx>> intersectionStreetSegments;
 
+bool IntersectonToMultiseg(bool load_successful){
+if(load_successful==true) {
+
+    load_successful=false;
+    intersectionStreetSegments.resize(getNumIntersections());
+
+    for (int curSegmentNumber = 0; curSegmentNumber < getNumIntersections(); curSegmentNumber++) {
+        for (int curSegmentNumber = 0;
+             curSegmentNumber < getNumIntersectionStreetSegment(curSegmentNumber); curSegmentNumber++) {
+            StreetSegmentIdx streetSegmentIdx = getIntersectionStreetSegment(curSegmentNumber, curSegmentNumber);
+            intersectionStreetSegments[curSegmentNumber].push_back(streetSegmentIdx);
+        }
+
+    }
+    load_successful=true;
+}
+return load_successful;
+}
 
 //Structure 2: StreetIndex -> IntersectionIndex & StreetSegmentIndex [Func: 2.3 & 3.3]
 
@@ -82,7 +101,7 @@ bool loadMap(std::string map_streets_database_filename) {
     //
     // Load your map related data structures here.
     //
-
+    load_successful=IntersectonToMultiseg( load_successful);
     
 
     load_successful = true; //Make sure this is updated to reflect whether
