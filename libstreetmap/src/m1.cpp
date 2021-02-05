@@ -86,14 +86,18 @@ struct StreetInfo{
  * <br> StreetInformation Vector of all streets [Func: 2.3 & 3.3]
  */
 std::vector<StreetInfo> StreetInfoList;
-
+bool LoadHelperStructure2(){
+    return false;
+}
 //streetTreeOfStreetName
 /**
  * Structure 3
  * <br> StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
  */
 std::vector<std::vector<std::vector<IntersectionIdx>>> StreetXStreetIntersectsList;
-
+bool LoadHelperStructure3(){
+    return false;
+}
 //
 /**
  * Structure 4: 256CharNodeTree (Special) [Func: 2.4]
@@ -106,15 +110,16 @@ struct CharNode{
 struct StreetNameTree{
     CharNode root;
 };
+bool LoadHelperStructure4(){
+    return false;
+}
+bool CloseHelperStructure4(){
+    return false;
+}
 /*Global Structure Define End*/
 
 /*Global Structure Load Helper Begin*/
-/**
- * Load Map Helper
- * <br> Construct DataStructure 1 IntersectionList of StreetSegments
- * @return build Successful boolean type, false if empty List
- */
-bool LoadHelperIntersectListOfStreetSegs(){
+bool LoadHelperStructure1(){
 
     //Set Size of intersectList
     IntersectListOfStreetSegs.resize(getNumIntersections());
@@ -182,9 +187,14 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     // Load IntersectListOfStreetSegs
-    load_successful = LoadHelperIntersectListOfStreetSegs();
+    load_successful = LoadHelperStructure1();
     if(!load_successful) return false;
-
+    load_successful = LoadHelperStructure2();
+    if(!load_successful) return false;
+    load_successful = LoadHelperStructure3();
+    if(!load_successful) return false;
+    load_successful = LoadHelperStructure4();
+    if(!load_successful) return false;
 
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
