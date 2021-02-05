@@ -44,19 +44,19 @@
  *          4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
  *          4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
  * DataStructure
- *      Structure 1: vector <vector<StreetSegmentIdx>> intersectListOfStreetSegs;
+ *      Structure 1: vector <vector<StreetSegmentIdx>> intersectListOfStreetSegs; (Func 1.2)
  *
  *      Structure 2: vector<StreetInfo> StreetInfoList;
  *                      struct StreetInfo{
- *                          vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;
- *                          set<IntersectionIdx> StreetInfoOfIntersectsList;
+ *                          vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;            (Func 2.3)
+ *                          set<IntersectionIdx> StreetInfoOfIntersectsList;                (Func 3.3)
  *                      };
  *
- *      Structure 3: vector<vector<vector<IntersectionIdx>>> StreetXStreetIntersectsList;
+ *      Structure 3: vector<vector<vector<IntersectionIdx>>> StreetXStreetIntersectsList;   (Func 2.2)
  *
- *      Structure 4: struct StreetNameTree{CharNode root;};
+ *      Structure 4: struct StreetNameTree{CharNode root;};                                 (Func 2.4)
  *                      struct CharNode{
- *                          std::vector<StreetIdx> curPrefixStreetsList;
+ *                          vector<StreetIdx> curPrefixStreetsList;
  *                          CharNode* nextChar[256];
  *                      };
  */
@@ -140,7 +140,7 @@ bool LoadHelperIntersectListOfStreetSegs(){
     }
 }
 
-/*Global Structure Load Helper End*/
+/* Global Structure Load Helper End */
 
 /* Other Helper Begin */
 template<typename Type>
