@@ -123,11 +123,11 @@ bool LoadHelperIntersectListOfStreetSegs(){
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
 
         //Loop through individual intersection's all connected StreetSegs
-        for (int curSegNum = 0; curSegNum < getNumIntersectionStreetSegment(curIntersect); curSegNum++) {
+        for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
 
             //Using DataBaseAPI func getIntersectStreetSeg(IntersectIdx, SegNum)
             //push into intersectionListOfStreetSegs
-            IntersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, curSegNum));
+            IntersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
         }
     }
 
@@ -151,7 +151,7 @@ template<typename Type>
  * @param source Set<Type>
  * @return destination Vector<Type>
  */
-std::vector<Type> SetToVecTransferHelper(const std::set<Type> & srcSet){
+std::vector<Type> SetToVec(const std::set<Type> & srcSet){
     std::vector<Type> destVec(srcSet.size());
     std::copy(srcSet.begin(), srcSet.end(), destVec.begin());
     return destVec;
@@ -208,37 +208,35 @@ void closeMap() {
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
 
     //Declare AdjIntersection List
-    std::set<IntersectionIdx> adjIntersectVec;
-
-    //Find SegmentNumber Exist in current intersection
-    int SegsNum = IntersectListOfStreetSegs[intersection_id].size();
+    std::set<IntersectionIdx> adjIntersectSet;
+    int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
 
     //Loop through StreetSegs of current intersection
-    for(int curSegNum=0; curSegNum < SegsNum; curSegNum++) {
+    for(int segNum=0; segNum < segsTotal; segNum++) {
 
         //Save current SegInfo
-        int curSegIdx = IntersectListOfStreetSegs[intersection_id][curSegNum];
+        int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
         StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
         IntersectionIdx idFrom = curSegInfo.from;
         IntersectionIdx idTo = curSegInfo.to;
 
         //Determine Segment OneWay
-        if(curSegInfo.oneWay == false) {
+        if(!curSegInfo.oneWay) {
             //Save id Differ of current intersection
             if (intersection_id == idFrom) {
-                adjIntersectVec.insert(idTo);
+                adjIntersectSet.insert(idTo);
             } else if (intersection_id == idTo) {
-                adjIntersectVec.insert(idFrom);
+                adjIntersectSet.insert(idFrom);
             }
         }
         else{
             //Save if idFrom is current intersection
             if(intersection_id == idFrom){
-                adjIntersectVec.insert(idTo);
+                adjIntersectSet.insert(idTo);
             }
         }
     }
-    return SetToVecTransferHelper(adjIntersectVec);
+    return SetToVec<IntersectionIdx>(adjIntersectSet);
 }
 
 /**
@@ -252,19 +250,25 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
     return IntersectListOfStreetSegs[intersection_id];
 }
 
-
 /**
  * Function 1.3: <br>
  * Returns the street names at the given intersection (includes duplicate
  * street names in the returned vector) <br>
  * <br> Speed Requirement --> high
  * @param intersection_id
- * @return
+ * @return Vector of StreetNames
  */
 std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
-    
+    std::vector<std::string> StreetNameVec;
+    int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
+    for(int segNum = 0; segNum < segsTotal; segNum++){
+        int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
+        StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
 
-    return {};
+        std::string tempName = getStreetName(curSegInfo.streetID);
+        StreetNameVec.push_back(tempName);
+    }
+    return StreetNameVec;
 }
 
 /**
