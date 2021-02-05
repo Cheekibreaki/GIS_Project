@@ -143,7 +143,44 @@ void closeMap() {
  * @return
  */
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
-    return {};
+
+    std::vector<IntersectionIdx> adjIntersectList;
+
+    if(intersectListOfStreetSegs[intersection_id].size() == 0) return adjIntersectList;
+
+    //Loop through StreetSeg of specific intersection
+    for(int curSegNum=0; curSegNum < intersectListOfStreetSegs[intersection_id].size(); curSegNum++) {
+
+        //Save current SegInfo
+        StreetSegmentInfo curSegInfo = getStreetSegmentInfo(intersectListOfStreetSegs[intersection_id][curSegNum]);
+        IntersectionIdx idFrom = curSegInfo.from;
+        IntersectionIdx idTo = curSegInfo.to;
+
+        IntersectionIdx save;
+        if(curSegInfo.oneWay == false){
+            if(intersection_id == idFrom){
+                save = idTo;
+            }else {
+                save = idFrom;
+            }
+        }else{
+            if(intersection_id == idFrom){
+                save = idTo;
+            }
+        }
+        adjIntersectList.push_back(save);
+        bool needSaved = true;
+        for(auto itr = adjIntersectList.begin(); itr != adjIntersectList.end(); itr++){
+            if(adjIntersectList[*itr] == save) {
+                needSaved = false;
+            }
+        }
+
+        if(needSaved){
+            adjIntersectList.push_back(save);
+        }
+    }
+    return adjIntersectList;
 }
 
 /**
