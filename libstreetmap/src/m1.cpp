@@ -108,10 +108,32 @@ struct CharNode{
     CharNode* nextChar[256];
 };
 struct StreetNameTree{
-    CharNode root;
+    CharNode* root;
+}StNameListForPrefix;
+
+int CharToInt(char c){
+    return ((unsigned)c&0xff);
+}
+
+void insertName(std::string curStName, StreetIdx street_id){
+    CharNode* cptr = StNameListForPrefix.root;
+    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
+        int charDec = CharToInt(curStName[charIdx]);
+        if(cptr->nextChar[charDec] == nullptr){
+            cptr->nextChar[charDec] = new CharNode();
+        }
+        cptr = cptr -> nextChar[charDec];
+        cptr ->curPrefixStreetsList.push_back(street_id);
+    }
 };
 bool LoadHelperStructure4(){
-    return false;
+    StNameListForPrefix.root = new CharNode();
+    int totalStNum = getNumStreets();
+    for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
+        std::string stName = getStreetName(curStIdx);
+        insertName(stName, curStIdx);
+    }
+    return true;
 }
 bool CloseHelperStructure4(){
     return false;
