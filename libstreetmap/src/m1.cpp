@@ -80,13 +80,14 @@ std::vector <std::vector<StreetSegmentIdx>> IntersectListOfStreetSegs;
 struct StreetInfo{
     std::vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;
     std::set<IntersectionIdx> StreetInfoOfIntersectsList;
+
 };
 /**
  * Structure 2
  * <br> StreetInformation Vector of all streets [Func: 2.3 & 3.3]
  */
 std::vector<StreetInfo> StreetInfoList;
-bool LoadHelperStructure2(){
+bool LoadStructure2(){
     return false;
 }
 //streetTreeOfStreetName
@@ -95,7 +96,7 @@ bool LoadHelperStructure2(){
  * <br> StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
  */
 std::vector<std::vector<std::vector<IntersectionIdx>>> StreetXStreetIntersectsList;
-bool LoadHelperStructure3(){
+bool LoadStructure3(){
     return false;
 }
 //
@@ -127,7 +128,7 @@ void insertName(std::string curStName, StreetIdx street_id){
     }
 }
 
-bool LoadHelperStructure4(){
+bool LoadStructure4(){
     StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
     for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
@@ -161,7 +162,7 @@ void CloseHelperStructure4(CharNode* myRoot){
 /*Global Structure Define End*/
 
 /*Global Structure Load Helper Begin*/
-bool LoadHelperStructure1(){
+bool LoadStructure1(){
 
     //Set Size of intersectList
     IntersectListOfStreetSegs.resize(getNumIntersections());
@@ -229,13 +230,13 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     // Load IntersectListOfStreetSegs
-    load_successful = LoadHelperStructure1();
+    load_successful = LoadStructure1();
     if(!load_successful) return false;
-    /*load_successful = LoadHelperStructure2();
+    /*load_successful = LoadStructure2();
     if(!load_successful) return false;
-    load_successful = LoadHelperStructure3();
+    load_successful = LoadStructure3();
     if(!load_successful) return false;*/
-    load_successful = LoadHelperStructure4();
+    load_successful = LoadStructure4();
     if(!load_successful) return false;
 
     load_successful = true; //Make sure this is updated to reflect whether
