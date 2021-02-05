@@ -25,40 +25,38 @@
 #include <set>
 
 /*
-* Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
-*             1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
-*             1.3: std::vector<std::string> findStreetNamesOfIntersection();
+* Function  1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
+*           1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
+*           1.3: std::vector<std::string> findStreetNamesOfIntersection();
 *
-*             2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
-*             2.2: std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids);
-*             2.3: std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
-*             2.4 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix);
+*           2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
+*           2.2: std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids);
+*           2.3: std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
+*           2.4 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix);
 *
-*             3.1: double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points);
-*             3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
-*             3.3: double findStreetLength (StreetIdx street_id);
-*             3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
-*             3.5: double findFeatureArea (FeatureIdx feature_id);
+*           3.1: double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points);
+*           3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
+*           3.3: double findStreetLength (StreetIdx street_id);
+*           3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
+*           3.5: double findFeatureArea (FeatureIdx feature_id);
 *
-*             4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
-*             4.2:POIIdx findClosestPOI(LatLon my_position, std::string POIname);
+*           4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
+*           4.2:POIIdx findClosestPOI(LatLon my_position, std::string POIname);
  */
 
 
-//Global Structure Define Begin
+/*Global Structure Define Begin*/
 
 /**
- * Description: DataStructure 1 IntersectionList of StreetSegments [Direct Func: 1.1]
+ * DataStructure 1
+ * <br> IntersectionList of StreetSegments [Direct Func: 1.1]
  */
 std::vector <std::vector<StreetSegmentIdx>> intersectListOfStreetSegs;
 
-//intersectListOfStreetSegs
-//streetListOfStreetSegs
-//StreetListOfIntersects
-//streetXStreetOfIntersects
-//streetTreeOfStreetName
+
 /**
- * Load Map Helper Construct DataStructure 1 IntersectionList of StreetSegments
+ * Load Map Helper
+ * <br> Construct DataStructure 1 IntersectionList of StreetSegments
  * @return build Successful boolean type, false if empty List
  */
 bool LoadHelperIntersectListOfStreetSegs(){
@@ -87,13 +85,38 @@ bool LoadHelperIntersectListOfStreetSegs(){
     }
 }
 
-//Structure 2: StreetIndex -> IntersectionIndex & StreetSegmentIndex [Func: 2.3 & 3.3]
+/**
+ * Sub Structure 2
+ * <br> StreetInformation contains Segment vector & Intersection Set
+ */
+struct StreetInfo{
+    std::vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;
+    std::set<IntersectionIdx> StreetInfoOfIntersectsList;
+};
+/**
+ * Structure 2
+ * <br> StreetInformation Vector of all streets [Func: 2.3 & 3.3]
+ */
+std::vector<StreetInfo> StreetInfoList;
 
-//Structure 3: StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
+//streetTreeOfStreetName
+/**
+ * Structure 3
+ * <br> StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
+ */
+std::vector<std::vector<std::vector<IntersectionIdx>>> StreetXStreetIntersectsList;
 
-//Structure 4: 256CharNodeTree(Special) [Func: 2.4]
+//
+/**
+ * Structure 4: 256CharNodeTree (Special) [Func: 2.4]
+ * <br> Freed during Close Map
+ */
+struct CharNode{
+    std::vector<StreetIdx> curPrefixStreetsList;
+    CharNode* nextChar[256];
+};
 
-//Global Structure Define End
+/*Global Structure Define End*/
 
 
 template<typename Type>
