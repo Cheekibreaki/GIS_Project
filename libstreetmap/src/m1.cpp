@@ -44,7 +44,7 @@
  *          4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
  *          4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
  * DataStructure
- *      Structure 1: vector <vector<StreetSegmentIdx>> intersectListOfStreetSegs; (Func 1.2)
+ *      Structure 1: vector <vector<StreetSegmentIdx>> IntersectListOfStreetSegs; (Func 1.2)
  *
  *      Structure 2: vector<StreetInfo> StreetInfoList;
  *                      struct StreetInfo{
@@ -68,7 +68,7 @@
  * Structure 1
  * <br> IntersectionList of StreetSegments [Direct Func: 1.1]
  */
-std::vector <std::vector<StreetSegmentIdx>> intersectListOfStreetSegs;
+std::vector <std::vector<StreetSegmentIdx>> IntersectListOfStreetSegs;
 
 
 
@@ -117,7 +117,7 @@ struct StreetNameTree{
 bool LoadHelperIntersectListOfStreetSegs(){
 
     //Set Size of intersectList
-    intersectListOfStreetSegs.resize(getNumIntersections());
+    IntersectListOfStreetSegs.resize(getNumIntersections());
 
     //Loop through All intersections (column)
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
@@ -127,12 +127,12 @@ bool LoadHelperIntersectListOfStreetSegs(){
 
             //Using DataBaseAPI func getIntersectStreetSeg(IntersectIdx, SegNum)
             //push into intersectionListOfStreetSegs
-            intersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, curSegNum));
+            IntersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, curSegNum));
         }
     }
 
     //Check Structure Created
-    if(intersectListOfStreetSegs.empty()) {
+    if(IntersectListOfStreetSegs.empty()) {
         return false;
     }
     else{
@@ -211,13 +211,13 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
     std::set<IntersectionIdx> adjIntersectVec;
 
     //Find SegmentNumber Exist in current intersection
-    int SegsNum = intersectListOfStreetSegs[intersection_id].size();
+    int SegsNum = IntersectListOfStreetSegs[intersection_id].size();
 
     //Loop through StreetSegs of current intersection
     for(int curSegNum=0; curSegNum < SegsNum; curSegNum++) {
 
         //Save current SegInfo
-        int curSegIdx = intersectListOfStreetSegs[intersection_id][curSegNum];
+        int curSegIdx = IntersectListOfStreetSegs[intersection_id][curSegNum];
         StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
         IntersectionIdx idFrom = curSegInfo.from;
         IntersectionIdx idTo = curSegInfo.to;
@@ -249,7 +249,7 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
  * @return List Of StreetSegmentIndex of Specific Intersection
  */
 std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id){
-    return intersectListOfStreetSegs[intersection_id];
+    return IntersectListOfStreetSegs[intersection_id];
 }
 
 
@@ -262,6 +262,8 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
  * @return
  */
 std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
+    
+
     return {};
 }
 
