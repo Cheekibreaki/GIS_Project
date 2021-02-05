@@ -24,32 +24,32 @@
 #include <vector>
 #include <set>
 
-/***** Function Naming Begin *****/
-/**
-Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
-            1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
-            1.3: std::vector<std::string> findStreetNamesOfIntersection();
-
-            2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
-            2.2: std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids);
-            2.3: std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
-            2.4 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix);
-
-            3.1: double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points);
-            3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
-            3.3: double findStreetLength (StreetIdx street_id);
-            3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
-            3.5: double findFeatureArea (FeatureIdx feature_id);
-
-            4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
-            4.2:POIIdx findClosestPOI(LatLon my_position, std::string POIname);
+/*
+* Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
+*             1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
+*             1.3: std::vector<std::string> findStreetNamesOfIntersection();
+*
+*             2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
+*             2.2: std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids);
+*             2.3: std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
+*             2.4 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix);
+*
+*             3.1: double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points);
+*             3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
+*             3.3: double findStreetLength (StreetIdx street_id);
+*             3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
+*             3.5: double findFeatureArea (FeatureIdx feature_id);
+*
+*             4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
+*             4.2:POIIdx findClosestPOI(LatLon my_position, std::string POIname);
  */
-/***** Function Naming End *****/
 
 
-/***** Global Structure Define Begin   *****/
+//Global Structure Define Begin
 
-//Structure 1: IntersectionIndex -> StreetSegmentIndex[Func: 1.1]
+/**
+ * Description: DataStructure 1 IntersectionList of StreetSegments [Direct Func: 1.1]
+ */
 std::vector <std::vector<StreetSegmentIdx>> intersectListOfStreetSegs;
 
 //intersectListOfStreetSegs
@@ -57,7 +57,10 @@ std::vector <std::vector<StreetSegmentIdx>> intersectListOfStreetSegs;
 //StreetListOfIntersects
 //streetXStreetOfIntersects
 //streetTreeOfStreetName
-
+/**
+ * Load Map Helper Construct DataStructure 1 IntersectionList of StreetSegments
+ * @return build Successful boolean type, false if empty List
+ */
 bool LoadHelperIntersectListOfStreetSegs(){
 
     //Set Size of intersectList
@@ -90,28 +93,40 @@ bool LoadHelperIntersectListOfStreetSegs(){
 
 //Structure 4: 256CharNodeTree(Special) [Func: 2.4]
 
-/***** Global Structure Define End     *****/
+//Global Structure Define End
 
 
-// loadMap will be called with the name of the file that stores the "layer-2"
-// map data accessed through StreetsDatabaseAPI: the street and intersection 
-// data that is higher-level than the raw OSM data). 
-// This file name will always end in ".streets.bin" and you 
-// can call loadStreetsDatabaseBIN with this filename to initialize the
-// layer 2 (StreetsDatabase) API.
-// If you need data from the lower level, layer 1, API that provides raw OSM
-// data (nodes, ways, etc.) you will also need to initialize the layer 1 
-// OSMDatabaseAPI by calling loadOSMDatabaseBIN. That function needs the 
-// name of the ".osm.bin" file that matches your map -- just change 
-// ".streets" to ".osm" in the map_streets_database_filename to get the proper
-// name.
+template<typename Type>
+/**
+ * DataStructure Helper Function:<br>
+ * Transfer Set into vector using copy
+ * @tparam Type
+ * @param source Set<Type>
+ * @return destination Vector<Type>
+ */
+std::vector<Type> SetToVecTransferHelper(const std::set<Type> & srcSet){
+    std::vector<Type> destVec(srcSet.size());
+    std::copy(srcSet.begin(), srcSet.end(), destVec.begin());
+    return destVec;
+}
+
+/**
+ * LoadMap Function: <br>
+ * loadMap will be called with the name of the file that stores the "layer-2"
+ * map data accessed through StreetsDatabaseAPI.
+ * Call loadStreetsDatabaseBIN with this filename to initialize the
+ * layer 2 (StreetsDatabase) API.<br>
+ * <br> If need data from the lower layer 1 (OSM Data) you will also need to
+ * initialize the layer 1 OSMDatabaseAPI by calling loadOSMDatabaseBIN.
+ * @param map_streets_database_filename (string)
+ * @return loadMap Successful (bool)
+ */
 bool loadMap(std::string map_streets_database_filename) {
     bool load_successful = false; //Indicates whether the map has loaded 
                                   //successfully
 
     std::cout << "loadMap: " << map_streets_database_filename << std::endl;
 
-    //
     // Load your map related data structures here.
     // Load StreetDataBase Structure from BIN
     load_successful = loadStreetsDatabaseBIN(map_streets_database_filename);
@@ -133,22 +148,23 @@ void closeMap() {
     
 }
 /**
- * Function 1.1
- * <br> Returns all intersections reachable by traveling down one street segment
- * <br> from the given intersection (hint: you can't travel the wrong way on a
- * <br> 1-way street)
- * <br> the returned vector should NOT contain duplicate intersections
+ * Function 1.1: <br>
+ * Returns all intersections reachable by traveling down one street segment
+ * from the given intersection (hint: you can't travel the wrong way on a
+ * 1-way street) <br>
  * <br> Speed Requirement --> high
  * @param intersection_id
- * @return
+ * @return List Of Adjacent IntersectionIndex
  */
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
 
+    //Declare AdjIntersection List
     std::set<IntersectionIdx> adjIntersectList;
 
+    //Find SegmentNumber Exist in current intersection
     int SegsNum = intersectListOfStreetSegs[intersection_id].size();
 
-    //Loop through StreetSeg of specific intersection
+    //Loop through StreetSegs of current intersection
     for(int curSegNum=0; curSegNum < SegsNum; curSegNum++) {
 
         //Save current SegInfo
@@ -157,55 +173,31 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
         IntersectionIdx idFrom = curSegInfo.from;
         IntersectionIdx idTo = curSegInfo.to;
 
-        //IntersectionIdx save;
-        if(curSegInfo.oneWay == false){
-            if(intersection_id == idFrom){
+        //Determine Segment OneWay
+        if(curSegInfo.oneWay == false) {
+            //Save id Differ of current intersection
+            if (intersection_id == idFrom) {
                 adjIntersectList.insert(idTo);
-            }else if(intersection_id == idTo){
+            } else if (intersection_id == idTo) {
                 adjIntersectList.insert(idFrom);
-            }else if(idTo == idFrom && idFrom == intersection_id){
-                adjIntersectList.insert(-1);
             }
-        }else{
+        }
+        else{
+            //Save if idFrom is current intersection
             if(intersection_id == idFrom){
                 adjIntersectList.insert(idTo);
             }
         }
-
-        /*if(curSegInfo.oneWay == false){
-            if(intersection_id == idFrom){
-                save = idTo;
-            }else if(intersection_id == idTo){
-                save = idFrom;
-            }
-        }else{
-            if(intersection_id == idFrom){
-                save = idTo;
-            }
-        }*/
-        /*bool needSaved = true;
-        for(auto itr = adjIntersectList.begin(); itr != adjIntersectList.end(); itr++){
-            if(adjIntersectList[*itr] == save) {
-                needSaved = false;
-            }
-        }
-
-        if(needSaved == true && save != -1){
-            adjIntersectList.push_back(save);
-        }*/
-        //adjIntersectList.push_back(save);
     }
-    std::vector<IntersectionIdx> output(adjIntersectList.size());
-    std::copy(adjIntersectList.begin(),adjIntersectList.end(),output.begin());
-    return output;
+    return SetToVecTransferHelper(adjIntersectList);
 }
 
 /**
- * Function 1.2
- * <br> Returns the street segments that connect to the given intersection
+ * Function 1.2: <br>
+ * Returns the street segments that connect to the given intersection <br>
  * <br> Speed Requirement --> high
- * @param intersection_id
- * @return
+ * @param checking specific intersection_id
+ * @return List Of StreetSegmentIndex of Specific Intersection
  */
 std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id){
     return intersectListOfStreetSegs[intersection_id];
@@ -213,9 +205,9 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
 
 
 /**
- * Function 1.3
- * <br> Returns the street names at the given intersection (includes duplicate
- * <br> street names in the returned vector)
+ * Function 1.3: <br>
+ * Returns the street names at the given intersection (includes duplicate
+ * street names in the returned vector) <br>
  * <br> Speed Requirement --> high
  * @param intersection_id
  * @return
@@ -225,13 +217,13 @@ std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersect
 }
 
 /**
- * Function 2.1
- * <br> Return the smallest rectangle that contains all the intersections and
- * <br> curve points of the given street (i.e. the min,max lattitude
- * <br> and longitude bounds that can just contain all points of the street).
+ * Function 2.1:
+ * Tranverse Through Intersection Belong to Specific Street and Save
+ * MaxLat, MaxLon, MinLat, MinLon value into data Type LatLonBounds.<br>
  * <br> Speed Requirement --> none
  * @param street_id
- * @return
+ * @return Return an Retangular Area LatLonBounds that consist of
+ * MinLatLon & MaxLatLon
  */
 LatLonBounds findStreetBoundingBox(StreetIdx street_id){
     LatLonBounds empty;
