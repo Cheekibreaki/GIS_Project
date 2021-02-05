@@ -25,7 +25,7 @@
 #include <set>
 
 /***** Function Naming Begin *****/
-/*
+/**
 Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
             1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
             1.3: std::vector<std::string> findStreetNamesOfIntersection();
@@ -50,25 +50,38 @@ Function    1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx
 /***** Global Structure Define Begin   *****/
 
 //Structure 1: IntersectionIndex -> StreetSegmentIndex[Func: 1.1]
-std::vector <std::vector<StreetSegmentIdx>> intersectionStreetSegments;
+std::vector <std::vector<StreetSegmentIdx>> intersectListOfStreetSegs;
 
-bool IntersectonToMultiseg(bool load_successful){
-if(load_successful==true) {
+//intersectListOfStreetSegs
+//streetListOfStreetSegs
+//StreetListOfIntersects
+//streetXStreetOfIntersects
+//streetTreeOfStreetName
 
-    load_successful=false;
-    intersectionStreetSegments.resize(getNumIntersections());
+bool LoadHelperIntersectListOfStreetSegs(){
 
-    for (int curSegmentNumber = 0; curSegmentNumber < getNumIntersections(); curSegmentNumber++) {
-        for (int curSegmentNumber = 0;
-             curSegmentNumber < getNumIntersectionStreetSegment(curSegmentNumber); curSegmentNumber++) {
-            StreetSegmentIdx streetSegmentIdx = getIntersectionStreetSegment(curSegmentNumber, curSegmentNumber);
-            intersectionStreetSegments[curSegmentNumber].push_back(streetSegmentIdx);
+    //Set Size of intersectList
+    intersectListOfStreetSegs.resize(getNumIntersections());
+
+    //Loop through All intersections (column)
+    for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
+
+        //Loop through individual intersection's all connected StreetSegs
+        for (int curSegNum = 0; curSegNum < getNumIntersectionStreetSegment(curIntersect); curSegNum++) {
+
+            //Using DataBaseAPI func getIntersectStreetSeg(IntersectIdx, SegNum)
+            //push into intersectionListOfStreetSegs
+            intersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, curSegNum));
         }
-
     }
-    load_successful=true;
-}
-return load_successful;
+
+    //Check Structure Created
+    if(intersectListOfStreetSegs.empty()) {
+        return false;
+    }
+    else{
+        return true;
+    }
 }
 
 //Structure 2: StreetIndex -> IntersectionIndex & StreetSegmentIndex [Func: 2.3 & 3.3]
@@ -100,9 +113,14 @@ bool loadMap(std::string map_streets_database_filename) {
 
     //
     // Load your map related data structures here.
-    //
-    load_successful=IntersectonToMultiseg( load_successful);
-    
+    // Load StreetDataBase Structure from BIN
+    load_successful = loadStreetsDatabaseBIN(map_streets_database_filename);
+    if(!load_successful) return false;
+
+    // Load IntersectListOfStreetSegs
+    load_successful = LoadHelperIntersectListOfStreetSegs();
+    if(!load_successful) return false;
+
 
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
@@ -114,111 +132,184 @@ void closeMap() {
     //Clean-up your map related data structures here
     
 }
-// Returns the distance between two (lattitude,longitude) coordinates in meters
-// Speed Requirement --> moderate
-double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
-    return 0;
-}
-
-// Returns the length of the given street segment in meters
-// Speed Requirement --> moderate
-double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
-    return 0;
-}
-
-// Returns the travel time to drive from one end of a street segment in
-// to the other, in seconds, when driving at the speed limit
-// Note: (time = distance/speed_limit)
-// Speed Requirement --> high
-double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    return 0;
-}
-
-// Returns the nearest intersection to the given position
-// Speed Requirement --> none
-IntersectionIdx findClosestIntersection(LatLon my_position){
-    return 0;
-}
-
-// Returns the street segments that connect to the given intersection
-// Speed Requirement --> high
-std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id){
-    return {};
-}
-
-// Returns the street names at the given intersection (includes duplicate
-// street names in the returned vector)
-// Speed Requirement --> high
-std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
-    return {};
-}
-
-// Returns all intersections reachable by traveling down one street segment
-// from the given intersection (hint: you can't travel the wrong way on a
-// 1-way street)
-// the returned vector should NOT contain duplicate intersections
-// Speed Requirement --> high
+/**
+ * Function 1.1
+ * <br> Returns all intersections reachable by traveling down one street segment
+ * <br> from the given intersection (hint: you can't travel the wrong way on a
+ * <br> 1-way street)
+ * <br> the returned vector should NOT contain duplicate intersections
+ * <br> Speed Requirement --> high
+ * @param intersection_id
+ * @return
+ */
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
     return {};
 }
 
-// Returns all intersections along the a given street
-// Speed Requirement --> high
-std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
+/**
+ * Function 1.2
+ * <br> Returns the street segments that connect to the given intersection
+ * <br> Speed Requirement --> high
+ * @param intersection_id
+ * @return
+ */
+std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id){
+    return intersectListOfStreetSegs[intersection_id];
+}
+
+
+/**
+ * Function 1.3
+ * <br> Returns the street names at the given intersection (includes duplicate
+ * <br> street names in the returned vector)
+ * <br> Speed Requirement --> high
+ * @param intersection_id
+ * @return
+ */
+std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
     return {};
 }
 
-// Return all intersection ids at which the two given streets intersect
-// This function will typically return one intersection id for streets
-// that intersect and a length 0 vector for streets that do not. For unusual
-// curved streets it is possible to have more than one intersection at which
-// two streets cross.
-// Speed Requirement --> high
-std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
-    return {};
-}
-
-// Returns all street ids corresponding to street names that start with the
-// given prefix
-// The function should be case-insensitive to the street prefix.
-// The function should ignore spaces.
-//  For example, both "bloor " and "BloOrst" are prefixes to
-// "Bloor Street East".
-// If no street names match the given prefix, this routine returns an empty
-// (length 0) vector.
-// You can choose what to return if the street prefix passed in is an empty
-// (length 0) string, but your program must not crash if street_prefix is a
-// length 0 string.
-// Speed Requirement --> high
-std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
-    return {};
-}
-
-// Returns the length of a given street in meters
-// Speed Requirement --> high
-double findStreetLength(StreetIdx street_id){
-    return 0;
-}
-
-// Return the smallest rectangle that contains all the intersections and
-// curve points of the given street (i.e. the min,max lattitude
-// and longitude bounds that can just contain all points of the street).
-// Speed Requirement --> none
+/**
+ * Function 2.1
+ * <br> Return the smallest rectangle that contains all the intersections and
+ * <br> curve points of the given street (i.e. the min,max lattitude
+ * <br> and longitude bounds that can just contain all points of the street).
+ * <br> Speed Requirement --> none
+ * @param street_id
+ * @return
+ */
 LatLonBounds findStreetBoundingBox(StreetIdx street_id){
     LatLonBounds empty;
     return empty;
 }
 
-// Returns the nearest point of interest of the given name to the given position
-// Speed Requirement --> none
+/**
+ * Function 2.2
+ * <br> Return all intersection ids at which the two given streets intersect
+ * <br> This function will typically return one intersection id for streets
+ * <br> that intersect and a length 0 vector for streets that do not. For unusual
+ * <br> curved streets it is possible to have more than one intersection at which
+ * <br> two streets cross.
+ * <br> Speed Requirement --> high
+ * @param street_ids
+ * @return
+ */
+std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
+    return {};
+}
+
+/**
+ * Function 2.3
+ * <br> Returns all intersections along the a given street
+ * <br> Speed Requirement --> high
+ * @param street_id
+ * @return
+ */
+std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
+    return {};
+}
+
+/**
+ * Function 2.4
+ * <br> Returns all street ids corresponding to street names that start with the
+ * <br> given prefix
+ * <br> The function should be case-insensitive to the street prefix.
+ * <br> The function should ignore spaces.
+ * <br> For example, both "bloor " and "BloOrst" are prefixes to
+ * <br> "Bloor Street East".
+ * <br> If no street names match the given prefix, this routine returns an empty
+ * <br> (length 0) vector.
+ * <br> You can choose what to return if the street prefix passed in is an empty
+ * <br> (length 0) string, but your program must not crash if street_prefix is a
+ * <br> length 0 string.
+ * <br> Speed Requirement --> high
+ * @param street_prefix
+ * @return
+ */
+std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
+    return {};
+}
+
+/**
+ * Function: 3.1
+ * <br> Returns the distance between two (lattitude,longitude) coordinates in meters
+ * <br> Speed Requirement --> Moderate
+ * @param Pass in "From, To" position in LatLon pair
+ * @return Distance in double
+*/
+double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
+    return 0;
+}
+/**
+ * Function 3.2
+ * <br> Returns the length of the given street segment in meters Speed Requirement --> moderate
+ * <br> Speed Requirement -->Moderate
+ * <br> @param street_segment_id
+ * @return SegmentLength
+ */
+double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
+    return 0;
+}
+
+/**
+ * Function 3.3
+ * <br> Returns the length of a given street in meters
+ * <br> Speed Requirement --> high
+ * @param street_id
+ * @return
+ */
+double findStreetLength(StreetIdx street_id){
+    return 0;
+}
+
+/**
+ * Function 3.4
+ * <br> Returns the travel time to drive from one end of a street segment in
+ * <br> to the other, in seconds, when driving at the speed limit
+ * <br> Note: (time = distance/speed_limit)
+ * <br> Speed Requirement --> high
+ * @param street_segment_id
+ * @return
+ */
+double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
+    return 0;
+}
+
+/**
+ * Function 3.5
+ * <br> Returns the area of the given closed feature in square meters
+ * <br> Assume a non self-intersecting polygon (i.e. no holes)
+ * <br> Return 0 if this feature is not a closed polygon.
+ * <br> Speed Requirement --> moderate
+ * @param feature_id
+ * @return AreaSize in double
+ */
+double findFeatureArea(FeatureIdx feature_id){
+    return 0;
+}
+
+/**
+ * Function 4.1
+ * <br> Returns the nearest intersection to the given position
+ * <br> Speed Requirement --> none
+ * @param my_position
+ * @return
+ */
+IntersectionIdx findClosestIntersection(LatLon my_position){
+    return 0;
+}
+
+/**
+ * Function 4.2
+ * <br> Returns the nearest point of interest of the given name to the given position
+ * <br> Speed Requirement --> none
+ * @param my_position
+ * @param POIname
+ * @return closest POIIdx
+ */
 POIIdx findClosestPOI(LatLon my_position, std::string POIname){
     return 0;
 }
 
-// Returns the area of the given closed feature in square meters
-// Assume a non self-intersecting polygon (i.e. no holes)
-// Return 0 if this feature is not a closed polygon.
-// Speed Requirement --> moderate
-double findFeatureArea(FeatureIdx feature_id){
-    return 0;
-}
+
