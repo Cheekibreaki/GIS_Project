@@ -25,65 +25,53 @@
 #include <set>
 
 /*
-* Function  1.1: std::vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
-*           1.2: std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
-*           1.3: std::vector<std::string> findStreetNamesOfIntersection();
-*
-*           2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
-*           2.2: std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids);
-*           2.3: std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
-*           2.4 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix);
-*
-*           3.1: double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points);
-*           3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
-*           3.3: double findStreetLength (StreetIdx street_id);
-*           3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
-*           3.5: double findFeatureArea (FeatureIdx feature_id);
-*
-*           4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
-*           4.2:POIIdx findClosestPOI(LatLon my_position, std::string POIname);
+ * m1.cpp Declaration Menu
+ * Function  1.1: vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
+ *          1.2: vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
+ *          1.3: vector<string> findStreetNamesOfIntersection();
+ *
+ *          2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
+ *          2.2: vector<IntersectionIdx> findIntersectionsOfTwoStreets(pair<StreetIdx,StreetIdx> street_ids);
+ *          2.3: vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
+ *          2.4  vector<StreetIdx> findStreetIdsFromPartialStreetName(string street_prefix);
+ *
+ *          3.1: double findDistanceBetweenTwoPoints(pair<LatLon, LatLon> points);
+ *          3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
+ *          3.3: double findStreetLength (StreetIdx street_id);
+ *          3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
+ *          3.5: double findFeatureArea (FeatureIdx feature_id);
+ *
+ *          4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
+ *          4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
+ * DataStructure
+ *      Structure 1: vector <vector<StreetSegmentIdx>> intersectListOfStreetSegs;
+ *
+ *      Structure 2: vector<StreetInfo> StreetInfoList;
+ *                      struct StreetInfo{
+ *                          vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;
+ *                          set<IntersectionIdx> StreetInfoOfIntersectsList;
+ *                      };
+ *
+ *      Structure 3: vector<vector<vector<IntersectionIdx>>> StreetXStreetIntersectsList;
+ *
+ *      Structure 4: struct StreetNameTree{CharNode root;};
+ *                      struct CharNode{
+ *                          std::vector<StreetIdx> curPrefixStreetsList;
+ *                          CharNode* nextChar[256];
+ *                      };
  */
 
 
 /*Global Structure Define Begin*/
 
 /**
- * DataStructure 1
+ * Structure 1
  * <br> IntersectionList of StreetSegments [Direct Func: 1.1]
  */
 std::vector <std::vector<StreetSegmentIdx>> intersectListOfStreetSegs;
 
 
-/**
- * Load Map Helper
- * <br> Construct DataStructure 1 IntersectionList of StreetSegments
- * @return build Successful boolean type, false if empty List
- */
-bool LoadHelperIntersectListOfStreetSegs(){
 
-    //Set Size of intersectList
-    intersectListOfStreetSegs.resize(getNumIntersections());
-
-    //Loop through All intersections (column)
-    for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
-
-        //Loop through individual intersection's all connected StreetSegs
-        for (int curSegNum = 0; curSegNum < getNumIntersectionStreetSegment(curIntersect); curSegNum++) {
-
-            //Using DataBaseAPI func getIntersectStreetSeg(IntersectIdx, SegNum)
-            //push into intersectionListOfStreetSegs
-            intersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, curSegNum));
-        }
-    }
-
-    //Check Structure Created
-    if(intersectListOfStreetSegs.empty()) {
-        return false;
-    }
-    else{
-        return true;
-    }
-}
 
 /**
  * Sub Structure 2
@@ -115,10 +103,46 @@ struct CharNode{
     std::vector<StreetIdx> curPrefixStreetsList;
     CharNode* nextChar[256];
 };
-
+struct StreetNameTree{
+    CharNode root;
+};
 /*Global Structure Define End*/
 
+/*Global Structure Load Helper Begin*/
+/**
+ * Load Map Helper
+ * <br> Construct DataStructure 1 IntersectionList of StreetSegments
+ * @return build Successful boolean type, false if empty List
+ */
+bool LoadHelperIntersectListOfStreetSegs(){
 
+    //Set Size of intersectList
+    intersectListOfStreetSegs.resize(getNumIntersections());
+
+    //Loop through All intersections (column)
+    for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
+
+        //Loop through individual intersection's all connected StreetSegs
+        for (int curSegNum = 0; curSegNum < getNumIntersectionStreetSegment(curIntersect); curSegNum++) {
+
+            //Using DataBaseAPI func getIntersectStreetSeg(IntersectIdx, SegNum)
+            //push into intersectionListOfStreetSegs
+            intersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, curSegNum));
+        }
+    }
+
+    //Check Structure Created
+    if(intersectListOfStreetSegs.empty()) {
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+
+/*Global Structure Load Helper End*/
+
+/* Other Helper Begin */
 template<typename Type>
 /**
  * DataStructure Helper Function:<br>
@@ -132,6 +156,8 @@ std::vector<Type> SetToVecTransferHelper(const std::set<Type> & srcSet){
     std::copy(srcSet.begin(), srcSet.end(), destVec.begin());
     return destVec;
 }
+
+/* Other Helper End */
 
 /**
  * LoadMap Function: <br>
