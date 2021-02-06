@@ -101,8 +101,8 @@ struct StreetInfo{
  */
 std::vector<StreetInfo> StreetInfoList;
 void LoadStructure2(){
-    /*StreetInfoList.resize(getNumStreets());
-    for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
+    StreetInfoList.resize(getNumStreets());
+    /*for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
         StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
         StreetInfoList[curStreetIdx].StreetInfoOfStreetSegsList.push_back(curSegIdx);
     }*/
@@ -252,6 +252,25 @@ bool loadMap(std::string map_streets_database_filename) {
 
     // Load IntersectListOfStreetSegs
     LoadStructure1();
+
+
+    //load Structure 2
+    StreetInfoList.resize(getNumStreets());
+    StreetSegmentInfo segInfo;
+    StreetIdx curStreetIdx;
+    for(int curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++){
+        std::vector<StreetSegmentIdx> segsIdxList = IntersectListOfStreetSegs[curIntersectIdx];
+        for(StreetSegmentIdx curSegIdx : segsIdxList){
+             segInfo = getStreetSegmentInfo(curIntersectIdx);
+             curStreetIdx = segInfo.streetID;
+            StreetInfoList[curStreetIdx].StreetInfoOfIntersectsList.insert(segInfo.from);
+            StreetInfoList[curStreetIdx].StreetInfoOfIntersectsList.insert(segInfo.to);
+        }
+    }
+    //
+
+
+    //LoadStructure2();
     /*load_successful = LoadStructure2();
     if(!load_successful) return false;
     load_successful = LoadStructure3();
