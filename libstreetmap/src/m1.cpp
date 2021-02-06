@@ -409,13 +409,12 @@ std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_pre
  * @return Distance in double
 */
 double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
-    //(x,y) =(lon*cos(latavg))
-    /*double y1 = points.first.latitude();
-    double y2 = points.second.latitude();
+    double y1 = points.first.latitude()*kDegreeToRadian;
+    double y2 = points.second.latitude()*kDegreeToRadian;
     double latAvg=(y1+y2)/2;
-    double x1 =points.first.longitude() * cos(kDegreeToRadiammn*latAvg);
-    double x2 =points.second.longitude()* cos(kDegreeToRadian*latAvg);
-    return (kEarthRadiusInMeters*sqrt(pow(y2-y1,2.0) + pow(x2-x1,2.0)));*/
+    double x1 =points.first.longitude() * cos(latAvg)*kDegreeToRadian;
+    double x2 =points.second.longitude()* cos(latAvg)*kDegreeToRadian;
+    return (kEarthRadiusInMeters*sqrt(pow(y2-y1,2.0) + pow(x2-x1,2.0)));
 }
 /**
  * Function 3.2
@@ -425,6 +424,7 @@ double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
  * @return SegmentLength
  */
 double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
+
     return 0;
 }
 
