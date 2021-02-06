@@ -24,6 +24,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <cmath>
 
 /*
  * m1.cpp Declaration Menu
@@ -104,9 +105,8 @@ void LoadStructure2(){
     int totalSegNum = getNumStreetSegments();
     for(int curSegIdx=0;curSegIdx<totalSegNum;curSegIdx++){
         StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
-        //StreetInfoList[curStreetIdx].
+        StreetInfoList[curStreetIdx].StreetInfoOfStreetSegsList.push_back(curSegIdx);
     }
-
 }
 //streetTreeOfStreetName
 /**
@@ -209,7 +209,6 @@ std::vector<Type> SetToVec(const std::set<Type> & srcSet){
     std::copy(srcSet.begin(), srcSet.end(), destVec.begin());
     return destVec;
 }
-
 /* Other Helper End */
 
 /**
@@ -410,7 +409,13 @@ std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_pre
  * @return Distance in double
 */
 double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
-    return 0;
+    //(x,y) =(lon*cos(latavg))
+    /*double y1 = points.first.latitude();
+    double y2 = points.second.latitude();
+    double latAvg=(y1+y2)/2;
+    double x1 =points.first.longitude() * cos(kDegreeToRadiammn*latAvg);
+    double x2 =points.second.longitude()* cos(kDegreeToRadian*latAvg);
+    return (kEarthRadiusInMeters*sqrt(pow(y2-y1,2.0) + pow(x2-x1,2.0)));*/
 }
 /**
  * Function 3.2
