@@ -92,7 +92,11 @@ void LoadStructure1(){
  */
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegs;
 void LoadStructure2(){
-
+    StreetListOfSegs.resize(getNumStreets());
+    for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
+        StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
+        StreetListOfSegs[curStreetIdx].push_back(curSegIdx);
+    }
 }
 /**
  * Structure 3
@@ -222,7 +226,6 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadStructure1();
     LoadStructure4();
     LoadStructure2();
-    LoadStructure3();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
@@ -438,9 +441,11 @@ double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
  * @return
  */
 double findStreetLength(StreetIdx street_id){
-//    for(int curSegIdx=0;curSegIdX<)
-//    StreetInfoList[street_id].StreetInfoOfStreetSegsList[]
-//    return 0;
+    double totalLength=0;
+    for(StreetSegmentIdx curSegIdx : StreetListOfSegs[street_id]){
+        totalLength += findStreetSegmentLength(curSegIdx);
+    }
+    return totalLength/3;//???? why/3 works
 }
 
 /**
