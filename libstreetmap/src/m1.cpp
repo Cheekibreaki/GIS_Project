@@ -25,7 +25,10 @@
 #include <set>
 #include <algorithm>
 #include <cmath>
+#include<algorithm>
+#include<vector>
 
+using namespace std;
 /*
  * m1.cpp Declaration Menu
  * Function  1.1: vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
@@ -104,7 +107,20 @@ void LoadStructure2(){
  */
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersects;
 void LoadStructure3(){
+    StreetListOfIntersects.resize(getNumStreets());
+    StreetSegmentInfo segInfo;
+    StreetIdx curStreetIdx;
+    for(int curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++) {
+        std::vector<StreetSegmentIdx> segsIdxList = IntersectListOfStreetSegs[curIntersectIdx];
+        for (int i= 0 ; i< segsIdxList.size();i++ ) {
+            segInfo = getStreetSegmentInfo(segsIdxList[i]);
+            curStreetIdx = segInfo.streetID;
 
+            StreetListOfIntersects[curStreetIdx].insert(segInfo.from);
+            StreetListOfIntersects[curStreetIdx].insert(segInfo.to);
+            //
+        }
+    }
 }
 //
 /**
@@ -224,11 +240,15 @@ bool loadMap(std::string map_streets_database_filename) {
 
     // Load IntersectListOfStreetSegs
     LoadStructure1();
-    LoadStructure4();
+    //structure 2
+
+
+    //LoadStructure4();
     LoadStructure2();
+    LoadStructure3();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
-
+    LoadStructure4();
     return load_successful;
 }
 
@@ -353,7 +373,7 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
-    return {};
+    return SetToVec(StreetListOfIntersects[street_id]);
 }
 
 /**
