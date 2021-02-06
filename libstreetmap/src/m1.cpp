@@ -221,7 +221,8 @@ bool loadMap(std::string map_streets_database_filename) {
     // Load IntersectListOfStreetSegs
     LoadStructure1();
     LoadStructure4();
-
+    LoadStructure2();
+    LoadStructure3();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
