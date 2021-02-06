@@ -424,8 +424,28 @@ double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
  * @return SegmentLength
  */
 double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
-
-    return 0;
+    StreetSegmentInfo streetSegmentInfo = getStreetSegmentInfo(street_segment_id);
+    IntersectionIdx idTo=streetSegmentInfo.to;
+    IntersectionIdx idFrom=streetSegmentInfo.from;
+    LatLon toLatLon = getIntersectionPosition(idTo);
+    LatLon fromLatLon = getIntersectionPosition(idFrom);
+    int numCurvePoints = streetSegmentInfo.numCurvePoints;
+    double distance = 0;
+    if(numCurvePoints==0) {
+        distance = findDistanceBetweenTwoPoints(std::make_pair(toLatLon, fromLatLon));
+    }else{
+        LatLon curFirstLatLon=fromLatLon;
+        LatLon curSecondLatLon=getStreetSegmentCurvePoint(street_segment_id,0);
+        for(int curCurvePointNum=0;curCurvePointNum<numCurvePoints;curCurvePointNum++){
+            if (curCurvePointNum!=0) {
+                curFirstLatLon = curSecondLatLon;
+                curSecondLatLon = curSecondLatLon=getStreetSegmentCurvePoint(street_segment_id,curCurvePointNum);;
+            }
+            distance+= findDistanceBetweenTwoPoints(std::make_pair(curFirstLatLon , curSecondLatLon));
+        }
+        distance+=findDistanceBetweenTwoPoints(std::make_pair(toLatLon,curSecondLatLon));
+    }
+    return distance;
 }
 
 /**
@@ -436,7 +456,9 @@ double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
  * @return
  */
 double findStreetLength(StreetIdx street_id){
-    return 0;
+//    for(int curSegIdx=0;curSegIdX<)
+//    StreetInfoList[street_id].StreetInfoOfStreetSegsList[]
+//    return 0;
 }
 
 /**
