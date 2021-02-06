@@ -101,27 +101,8 @@ struct StreetInfo{
  */
 std::vector<StreetInfo> StreetInfoList;
 void LoadStructure2(){
-    StreetInfoList.resize(getNumStreets());
-    /*for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
-        StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
-        StreetInfoList[curStreetIdx].StreetInfoOfStreetSegsList.push_back(curSegIdx);
-    }*/
-    /* intersectionIdx->numOfSegments
-     * NumOfSegment->streetSegmentIdx
-     * streetSegmentIdx->streetsegmentInfo
-     * StreetSegmentInfo->streetIdx
-     * then insert intersectionIdx
-     * */
-    for(int curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++){
-        std::vector<StreetSegmentIdx> segsIdxList = IntersectListOfStreetSegs[curIntersectIdx];
-        for(StreetSegmentIdx curSegIdx : segsIdxList){
-            StreetSegmentInfo segInfo = getStreetSegmentInfo(curIntersectIdx);
-            StreetIdx curStreetIdx=segInfo.streetID;
-            StreetInfoList[curStreetIdx].StreetInfoOfIntersectsList.insert(curIntersectIdx);
-        }
-    }
+
 }
-//streetTreeOfStreetName
 /**
  * Structure 3
  * <br> StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
@@ -252,29 +233,6 @@ bool loadMap(std::string map_streets_database_filename) {
 
     // Load IntersectListOfStreetSegs
     LoadStructure1();
-
-
-    //load Structure 2
-    StreetInfoList.resize(getNumStreets());
-    StreetSegmentInfo segInfo;
-    StreetIdx curStreetIdx;
-    for(int curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++){
-        std::vector<StreetSegmentIdx> segsIdxList = IntersectListOfStreetSegs[curIntersectIdx];
-        for(StreetSegmentIdx curSegIdx : segsIdxList){
-             segInfo = getStreetSegmentInfo(curIntersectIdx);
-             curStreetIdx = segInfo.streetID;
-            StreetInfoList[curStreetIdx].StreetInfoOfIntersectsList.insert(segInfo.from);
-            StreetInfoList[curStreetIdx].StreetInfoOfIntersectsList.insert(segInfo.to);
-        }
-    }
-    //
-
-
-    //LoadStructure2();
-    /*load_successful = LoadStructure2();
-    if(!load_successful) return false;
-    load_successful = LoadStructure3();
-    if(!load_successful) return false;*/
     LoadStructure4();
 
     load_successful = true; //Make sure this is updated to reflect whether
@@ -404,7 +362,7 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
-    return SetToVec(StreetInfoList[street_id].StreetInfoOfIntersectsList);
+    return {};
 }
 
 /**
