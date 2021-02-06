@@ -100,6 +100,12 @@ struct StreetInfo{
  */
 std::vector<StreetInfo> StreetInfoList;
 void LoadStructure2(){
+    StreetInfoList.resize(getNumStreets());
+    int totalSegNum = getNumStreetSegments();
+    for(int curSegIdx=0;curSegIdx<totalSegNum;curSegIdx++){
+        StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
+        //StreetInfoList[curStreetIdx].
+    }
 
 }
 //streetTreeOfStreetName
