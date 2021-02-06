@@ -90,12 +90,12 @@ void LoadStructure1(){
  * Structure 2
  * <br> StreetInformation contains Segment vector & Intersection Set
  */
-std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegs;
+std::vector<std::set<StreetSegmentIdx>> StreetListOfSegs;
 void LoadStructure2(){
     StreetListOfSegs.resize(getNumStreets());
     for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
         StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
-        StreetListOfSegs[curStreetIdx].push_back(curSegIdx);
+        StreetListOfSegs[curStreetIdx].insert(curSegIdx);
     }
 }
 /**
@@ -445,7 +445,7 @@ double findStreetLength(StreetIdx street_id){
     for(StreetSegmentIdx curSegIdx : StreetListOfSegs[street_id]){
         totalLength += findStreetSegmentLength(curSegIdx);
     }
-    return totalLength/3;//???? why/3 works
+    return totalLength;
 }
 
 /**
