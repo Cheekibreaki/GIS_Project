@@ -71,6 +71,17 @@
  */
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfStreetSegs;
 
+/**
+ * Load all streetSegs of one intersection in to intersection list
+ */
+void LoadStructure1(){
+    IntersectListOfStreetSegs.resize(getNumIntersections());
+    for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
+        for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
+            IntersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
+        }
+    }
+}
 
 
 
@@ -88,8 +99,8 @@ struct StreetInfo{
  * <br> StreetInformation Vector of all streets [Func: 2.3 & 3.3]
  */
 std::vector<StreetInfo> StreetInfoList;
-bool LoadStructure2(){
-    return false;
+void LoadStructure2(){
+
 }
 //streetTreeOfStreetName
 /**
@@ -97,8 +108,8 @@ bool LoadStructure2(){
  * <br> StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
  */
 std::vector<std::vector<std::vector<IntersectionIdx>>> StreetXStreetIntersectsList;
-bool LoadStructure3(){
-    return false;
+void LoadStructure3(){
+
 }
 //
 /**
@@ -113,11 +124,20 @@ struct CharTree{
     CharNode* root;
 }StNameTreeForPrefix;
 
+/**
+ * setCorrect Boundary for Char(-128 - 127) into (0 - 255)
+ * @param char
+ * @return
+ */
 int CharToInt(char c){
     return (((unsigned)c)&0xff);
 }
-
-void insertName(std::string curStName, StreetIdx street_id){
+/**
+ * Intsert a String into the CharNodeTree
+ * @param curStName
+ * @param street_id
+ */
+void insertNameToTree(std::string curStName, StreetIdx street_id){
     CharNode* cptr = StNameTreeForPrefix.root;
     for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
         int charDec = CharToInt(curStName[charIdx]);
@@ -128,7 +148,11 @@ void insertName(std::string curStName, StreetIdx street_id){
         cptr ->curPrefixStreetsList.push_back(street_id);
     }
 }
-
+/**
+ * Modify Name with trim space & lowercase
+ * @param srcName
+ * @return modified Name
+ */
 std::string modifyName(std::string srcName){
     std::string name = srcName;
     name.erase(remove(name.begin(), name.end(), ' '), name.end());
@@ -136,65 +160,34 @@ std::string modifyName(std::string srcName){
     return name;
 }
 
-
-bool LoadStructure4(){
+/**
+ * Load CharNodeTree of all StreetName with insertName function
+ */
+void LoadStructure4(){
     StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
     for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
         std::string stName = getStreetName(curStIdx);
         stName = modifyName(stName);
-        insertName(stName, curStIdx);
-    }
-    //Check Structure Created
-    if(StNameTreeForPrefix.root == nullptr) {
-        return false;
-    }
-    else{
-        return true;
+        insertNameToTree(stName, curStIdx);
     }
 }
-
-void CloseHelperStructure4(CharNode* myRoot){
+/**
+ * clear all dynamic allocated CharNode using Recursion
+ * @param myRoot
+ */
+void ClearStructure4(CharNode* myRoot){
     if(myRoot == nullptr){
         return;
     }
     for(int i=0; i<256; i++){
-        CloseHelperStructure4(myRoot->nextChar[i]);
+        ClearStructure4(myRoot->nextChar[i]);
     }
     delete myRoot;
     myRoot = nullptr;
 }
 
 /*Global Structure Define End*/
-
-/*Global Structure Load Helper Begin*/
-bool LoadStructure1(){
-
-    //Set Size of intersectList
-    IntersectListOfStreetSegs.resize(getNumIntersections());
-
-    //Loop through All intersections (column)
-    for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
-
-        //Loop through individual intersection's all connected StreetSegs
-        for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
-
-            //Using DataBaseAPI func getIntersectStreetSeg(IntersectIdx, SegNum)
-            //push into intersectionListOfStreetSegs
-            IntersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
-        }
-    }
-
-    //Check Structure Created
-    if(IntersectListOfStreetSegs.empty()) {
-        return false;
-    }
-    else{
-        return true;
-    }
-}
-
-/* Global Structure Load Helper End */
 
 /* Other Helper Begin */
 template<typename Type>
@@ -258,7 +251,7 @@ void closeMap() {
     closeStreetDatabase();
 
     // clear the data structure for searching street names
-    CloseHelperStructure4(StNameTreeForPrefix.root);
+    ClearStructure4(StNameTreeForPrefix.root);
 }
 /**
  * Function 1.1: <br>
