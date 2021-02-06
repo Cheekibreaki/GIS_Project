@@ -87,33 +87,20 @@ void LoadStructure1(){
 
 
 /**
- * Sub Structure 2
+ * Structure 2
  * <br> StreetInformation contains Segment vector & Intersection Set
  */
-struct StreetInfo{
-    std::vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;
-    std::set<IntersectionIdx> StreetInfoOfIntersectsList;
-
-};
-/**
- * Structure 2
- * <br> StreetInformation Vector of all streets [Func: 2.3 & 3.3]
- */
-std::vector<StreetInfo> StreetInfoList;
+std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegs;
 void LoadStructure2(){
 
 }
 /**
  * Structure 3
- * <br> StreetIndex X StreetIndex double Array (Special) [Func: 2.2]
+ * <br> StreetInformation contains Segment vector & Intersection Set
  */
-std::vector<std::vector<std::vector<IntersectionIdx>>> StreetXStreetIntersectsList;
+std::vector<std::set<IntersectionIdx>> StreetListOfIntersects;
 void LoadStructure3(){
-StreetXStreetIntersectsList.resize(getNumStreets());
-for(int StreetIdx1 = 0; StreetIdx1 < getNumStreets(); StreetIdx1++){
 
-
-}
 }
 //
 /**
