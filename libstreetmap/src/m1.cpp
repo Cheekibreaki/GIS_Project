@@ -23,6 +23,7 @@
 #include "StreetsDatabaseAPI.h"
 #include <vector>
 #include <set>
+#include <algorithm>
 
 /*
  * m1.cpp Declaration Menu
@@ -128,15 +129,20 @@ void insertName(std::string curStName, StreetIdx street_id){
     }
 }
 
+std::string modifyName(std::string srcName){
+    std::string name = srcName;
+    name.erase(remove(name.begin(), name.end(), ' '), name.end());
+    transform(name.begin(), name.end(), name.begin(), ::tolower);
+    return name;
+}
+
+
 bool LoadStructure4(){
     StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
     for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
         std::string stName = getStreetName(curStIdx);
-        // remove spaces and covert all letter to lower case before storing
-        xxx
-        xxx
-
+        stName = modifyName(stName);
         insertName(stName, curStIdx);
     }
     //Check Structure Created
@@ -387,10 +393,10 @@ std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
  * @return
  */
 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
-
+    std::string prefix = modifyName(street_prefix);
     CharNode* cptr = StNameTreeForPrefix.root;
-    for(int charIdx = 0; charIdx < street_prefix.length(); charIdx++){
-        int charDec = CharToInt(street_prefix[charIdx]);
+    for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
+        int charDec = CharToInt(prefix[charIdx]);
         if(cptr->nextChar[charDec] == nullptr) {
             return {};
         }
