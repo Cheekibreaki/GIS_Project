@@ -481,10 +481,10 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    float  speed=getStreetSegmentInfo(street_segment_id).speedLimit;
-    double length=findStreetSegmentLength(street_segment_id);
-    double time=(length/speed);
-    return time;
+//    float  speed=getStreetSegmentInfo(street_segment_id).speedLimit;
+//    double length=findStreetSegmentLength(street_segment_id);
+//    double time=(length/speed);
+//    return time;
 return 0;
 }
 
@@ -497,10 +497,66 @@ return 0;
  * @param feature_id
  * @return AreaSize in double
  */
-double findFeatureArea(FeatureIdx feature_id){
-    return 0;
 
+/*struct XYPos{
+    double x;
+    double y;
+};*/
+
+//std::vector<XYPos> LatLonPairToXYPair(LatLon Pos1, LatLon Pos2){
+//    std::vector<XYPos> temp = std::vector<XYPos>(2);
+//    temp[0].y = Pos1.latitude() * kDegreeToRadian;;
+//    temp[1].y = Pos2.latitude() * kDegreeToRadian;;
+//    double latAvg = (temp[0].y + temp[1].y) / 2;
+//    temp[0].x = Pos1.longitude() * cos(latAvg) * kDegreeToRadian;
+//    temp[1].x = Pos2.longitude() * cos(latAvg) * kDegreeToRadian;
+//    return temp;
+//}
+
+
+double findFeatureArea(FeatureIdx feature_id){
+    double area=0;
+    int numFeaturePoints = getNumFeaturePoints(feature_id);
+    LatLon firstPointLatLon = getFeaturePoint(feature_id, 0);
+    LatLon lastPointLatLon = getFeaturePoint(feature_id, numFeaturePoints-1);
+    if(firstPointLatLon==lastPointLatLon){
+        std::vector<double> xList = std::vector<double>(numFeaturePoints);
+        std::vector<double> yList = std::vector<double>(numFeaturePoints);
+        double latAvg=0;
+
+        //Save yList
+        for(int pointNum=0; pointNum < numFeaturePoints; pointNum++){
+            double tempLat =getFeaturePoint(feature_id, pointNum).latitude();
+            yList[pointNum] =  tempLat* kDegreeToRadian;
+            latAvg += tempLat;
+        }
+        latAvg=latAvg/(numFeaturePoints-1);
+
+        //Save xList
+        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
+            double tempLon=getFeaturePoint(feature_id,pointNum).longitude();
+            xList[pointNum] = tempLon * cos(latAvg) * kDegreeToRadian;
+        }
+
+        //Save area
+        for(int i=0; i < numFeaturePoints-1; i++) {
+            area += (((xList[i] * yList[i+1]) - (xList[i+1] * yList[i]) )/ 2);
+        }
+
+        /*
+        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
+                curPointLatLon1 = getFeaturePoint(feature_id, pointNum);
+                curPointLatLon2 = getFeaturePoint(feature_id, pointNum + 1);
+                std::vector<XYPos> temp = LatLonPairToXYPair(curPointLatLon1, curPointLatLon2);
+                area += (((temp[0].x * temp[1].y) - (temp[0].y * temp[1].x)) / 2);
+        }
+        std::vector<XYPos> temp = LatLonPairToXYPair(lastPointLatLon, firstPointLatLon);
+        area += (((temp[0].x * temp[1].y) - (temp[0].y * temp[1].x)) / 2);*/
+    }
+    return kEarthRadiusInMeters*1e7*abs(area);
 }
+
+
 
 /**
  * Function 4.1
