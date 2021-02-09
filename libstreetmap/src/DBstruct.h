@@ -101,5 +101,5 @@ std::string modifyName(std::string srcName){
     return name;
 };
 
-//std::unordered_map<std::string, std::vector<LatLon>> POIListOfLatLonsList;
-//void LoadPOIListOfLatLonsList();
+std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
+void LoadPOINameListOfPOIsList();

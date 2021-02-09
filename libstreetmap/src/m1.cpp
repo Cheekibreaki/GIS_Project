@@ -22,6 +22,7 @@
 #include "m1.h"
 #include "StreetsDatabaseAPI.h"
 #include "DBstruct.h"
+#include <limits>
 
 //using namespace std;
 /*
@@ -122,7 +123,11 @@ void LoadStNameTreeForPrefix(){
     }
 }
 
-
+void LoadPOIListOfLatLonsList(){
+    for(POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++ ){
+        POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
+    }
+}
 /* Other Helper Begin */
 template<typename Type>
 /**
@@ -167,6 +172,7 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadIntersectListOfStName();
     LoadStreetListOfIntersectsList();
     LoadStNameTreeForPrefix();
+    LoadPOIListOfLatLonsList();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
@@ -192,6 +198,8 @@ void closeMap() {
     SegListOfLenAndTime.clear();
 
     StNameTreeForPrefix.clear();
+
+    POINameListOfPOIsList.clear();
 }
 /**
  * Function 1.1: <br>
@@ -498,6 +506,7 @@ double findFeatureArea(FeatureIdx feature_id){
  * @return
  */
 IntersectionIdx findClosestIntersection(LatLon my_position){
+    //for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < List)
     return 0;
 }
 
@@ -510,7 +519,20 @@ IntersectionIdx findClosestIntersection(LatLon my_position){
  * @return closest POIIdx
  */
 POIIdx findClosestPOI(LatLon my_position, std::string POIname){
-    return 0;
+    std::vector<POIIdx> POIList = POINameListOfPOIsList.at(POIname);
+    if(POIList.empty()){
+        return -1;
+    }
+    double minDistance = std::numeric_limits<double>::max();
+    POIIdx closestPOIIdx = -1;
+    for(POIIdx curPOI : POIList){
+        double curDistance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(curPOI), my_position));
+        if(curDistance < minDistance){
+            minDistance = curDistance;
+            closestPOIIdx = curPOI;
+        }
+    }
+    return closestPOIIdx;
 }
 
 
