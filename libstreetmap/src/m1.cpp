@@ -22,6 +22,7 @@
 #include "m1.h"
 #include "StreetsDatabaseAPI.h"
 #include "DBstruct.h"
+#include <limits>
 
 //using namespace std;
 /*
@@ -111,24 +112,6 @@ void LoadIntersectListOfStName(){
         }
     }
 }
-void insertNameToTree(std::string curStName, StreetIdx street_id){
-    CharNode* cptr = StNameTreeForPrefix.root;
-    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = (((unsigned)curStName[charIdx])&0xff);
-        if(cptr->nextChar[charDec] == nullptr){
-            cptr->nextChar[charDec] = new CharNode();
-        }
-        cptr = cptr -> nextChar[charDec];
-        cptr ->curPrefixStreetsList.push_back(street_id);
-    }
-}
-
-std::string modifyName(std::string srcName){
-    std::string name = srcName;
-    name.erase(remove(name.begin(), name.end(), ' '), name.end());
-    transform(name.begin(), name.end(), name.begin(), ::tolower);
-    return name;
-}
 
 void LoadStNameTreeForPrefix(){
     StNameTreeForPrefix.root = new CharNode();
@@ -140,23 +123,11 @@ void LoadStNameTreeForPrefix(){
     }
 }
 
-
-/* Other Helper Begin */
-template<typename Type>
-/**
- * DataStructure Helper Function:<br>
- * Transfer Set into vector using copy
- * @tparam Type
- * @param source Set<Type>
- * @return destination Vector<Type>
- */
-std::vector<Type> SetToVec(const std::set<Type> & srcSet){
-    std::vector<Type> destVec(srcSet.size());
-    std::copy(srcSet.begin(), srcSet.end(), destVec.begin());
-    return destVec;
+void LoadPOIListOfLatLonsList(){
+    for(POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++ ){
+        POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
+    }
 }
-/* Other Helper End */
-
 /**
  * LoadMap Function: <br>
  * loadMap will be called with the name of the file that stores the "layer-2"
@@ -185,6 +156,7 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadIntersectListOfStName();
     LoadStreetListOfIntersectsList();
     LoadStNameTreeForPrefix();
+    LoadPOIListOfLatLonsList();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
@@ -210,6 +182,8 @@ void closeMap() {
     SegListOfLenAndTime.clear();
 
     StNameTreeForPrefix.clear();
+
+    POINameListOfPOIsList.clear();
 }
 /**
  * Function 1.1: <br>
@@ -223,7 +197,7 @@ void closeMap() {
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
 
     //Declare AdjIntersection List
-    std::set<IntersectionIdx> adjIntersectSet;
+    std::unordered_set<IntersectionIdx> adjIntersectSet;
     int segsTotal = IntersectListOfSegsList[intersection_id].size();
 
     //Loop through StreetSegs of current intersection
@@ -251,7 +225,7 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
             }
         }
     }
-    return SetToVec<IntersectionIdx>(adjIntersectSet);
+    return std::vector<IntersectionIdx> (adjIntersectSet.begin(),adjIntersectSet.end());
 }
 
 /**
@@ -374,7 +348,7 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
-    return SetToVec(StreetListOfIntersectsList[street_id]);
+    return std::vector<IntersectionIdx>(StreetListOfIntersectsList[street_id].begin(),StreetListOfIntersectsList[street_id].end());
 }
 
 /**
@@ -514,36 +488,63 @@ double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
 
 
 double findFeatureArea(FeatureIdx feature_id){
-    double area=0;
     int numFeaturePoints = getNumFeaturePoints(feature_id);
     LatLon firstPointLatLon = getFeaturePoint(feature_id, 0);
     LatLon lastPointLatLon = getFeaturePoint(feature_id, numFeaturePoints-1);
-    if(firstPointLatLon==lastPointLatLon){
+    double area = 0;
+    if(firstPointLatLon == lastPointLatLon) {
+
         std::vector<double> xList = std::vector<double>(numFeaturePoints);
         std::vector<double> yList = std::vector<double>(numFeaturePoints);
-        double latAvg=0;
+        std::vector<double> realXList = std::vector<double>(numFeaturePoints);
+        std::vector<double> realYList = std::vector<double>(numFeaturePoints);
+        double latAvg = 0;
 
         //Save yList
-        for(int pointNum=0; pointNum < numFeaturePoints; pointNum++){
-            double tempLat =getFeaturePoint(feature_id, pointNum).latitude();
-            yList[pointNum] =  tempLat* kDegreeToRadian;
+        std::cout<<"yList: ";
+        for (int pointNum = 0; pointNum < numFeaturePoints; pointNum++) {
+            double tempLat = getFeaturePoint(feature_id, pointNum).latitude();
+            yList[pointNum] = tempLat * kDegreeToRadian;
+            std::cout<<yList[pointNum]<<" ";
             latAvg += tempLat;
         }
-        latAvg=latAvg/(numFeaturePoints-1);
-
+        latAvg = latAvg / (numFeaturePoints - 1);
+        std::cout<<std::endl;
         //Save xList
-        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
-            double tempLon=getFeaturePoint(feature_id,pointNum).longitude();
-            xList[pointNum] = tempLon * cos(latAvg) ;
+        std::cout<<"xList: ";
+        for (int pointNum = 0; pointNum < numFeaturePoints; pointNum++) {
+            double tempLon = getFeaturePoint(feature_id, pointNum).longitude();
+            xList[pointNum] = tempLon * cos(latAvg);
+            std::cout<<xList[pointNum]<<" ";
         }
-
+        std::cout<<std::endl;
+        //Save referenced Positions
+        realXList[0] = 0;
+        realYList[0] = 0;
+        realXList[numFeaturePoints - 1] = 0;
+        realYList[numFeaturePoints - 1] = 0;
+        for (int i = 1; i < numFeaturePoints; i++) {
+            realXList[i] =abs(kEarthRadiusInMeters * (xList[i] - xList[0]));
+            realYList[i] =abs(kEarthRadiusInMeters * (yList[i] - yList[0]));
+        }
+        std::cout<<"realYList: ";
+        for (double a:realYList){
+            std::cout<<a<<" ";
+        }
+        std::cout<<"realXList: ";
+        std::cout<<std::endl;
+        for (double a:realXList){
+            std::cout<<a<<" ";
+        }
+        std::cout<<std::endl;
         //Save area
-        for(int i=0; i < numFeaturePoints-1; i++) {
-            area += (((xList[i] * yList[i+1]) - (xList[i+1] * yList[i]) )/ 2);
+        for (int i = 0; i < numFeaturePoints - 1; i++) {
+            area += (((realXList[i] * realYList[i + 1]) - (realXList[i + 1] * realYList[i])) / 2);
+            std::cout<<area<<" ";
         }
-
+        std::cout<<std::endl;
         /*
-        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
+ realYList  for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
                 curPointLatLon1 = getFeaturePoint(feature_id, pointNum);
                 curPointLatLon2 = getFeaturePoint(feature_id, pointNum + 1);
                 std::vector<XYPos> temp = LatLonPairToXYPair(curPointLatLon1, curPointLatLon2);
@@ -552,7 +553,7 @@ double findFeatureArea(FeatureIdx feature_id){
         std::vector<XYPos> temp = LatLonPairToXYPair(lastPointLatLon, firstPointLatLon);
         area += (((temp[0].x * temp[1].y) - (temp[0].y * temp[1].x)) / 2);*/
     }
-    return kEarthRadiusInMeters*abs(area);
+    return abs(area);
 }
 
 
@@ -565,7 +566,16 @@ double findFeatureArea(FeatureIdx feature_id){
  * @return
  */
 IntersectionIdx findClosestIntersection(LatLon my_position){
-    return 0;
+    IntersectionIdx closestIntersection = -1;
+    double closestDistance = std::numeric_limits<double>::max();
+    for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfLatLon.size(); curIntersectIdx++){
+        double curDistance = findDistanceBetweenTwoPoints(std::make_pair(IntersectListOfLatLon[curIntersectIdx], my_position));
+        if(curDistance < closestDistance){
+            closestDistance = curDistance;
+            closestIntersection = curIntersectIdx;
+        }
+    }
+    return closestIntersection;
 }
 
 /**
@@ -577,7 +587,20 @@ IntersectionIdx findClosestIntersection(LatLon my_position){
  * @return closest POIIdx
  */
 POIIdx findClosestPOI(LatLon my_position, std::string POIname){
-    return 0;
+    std::vector<POIIdx> POIList = POINameListOfPOIsList.at(POIname);
+    if(POIList.empty()){
+        return -1;
+    }
+    double minDistance = std::numeric_limits<double>::max();
+    POIIdx closestPOIIdx = -1;
+    for(POIIdx curPOI : POIList){
+        double curDistance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(curPOI), my_position));
+        if(curDistance < minDistance){
+            minDistance = curDistance;
+            closestPOIIdx = curPOI;
+        }
+    }
+    return closestPOIIdx;
 }
 
 
