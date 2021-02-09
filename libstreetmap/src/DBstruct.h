@@ -8,10 +8,11 @@
  * Structure 1
  */
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
+std::vector<LatLon> IntersectListOfLatLon;
 /**
  * Load all streetSegs of one intersection in to intersection list
  */
-void LoadIntersectListOfSeg();
+void LoadIntersectListOfSegAndLatLon();
 
 //Loaded during func findStreetNamesOfIntersection
 //Save Data if not loaded using firstElement
