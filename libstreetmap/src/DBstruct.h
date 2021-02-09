@@ -2,6 +2,7 @@
 #include <vector>
 #include <set>
 #include <unordered_set>
+#include <unordered_map>
 #include <algorithm>
 #include <cmath>
 /**
@@ -77,10 +78,28 @@ void LoadStNameTreeForPrefix();
  * @param curStName
  * @param street_id
  */
-void insertNameToTree(std::string curStName, StreetIdx street_id);
+void insertNameToTree(std::string curStName, StreetIdx street_id){
+    CharNode* cptr = StNameTreeForPrefix.root;
+    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
+        int charDec = (((unsigned)curStName[charIdx])&0xff);
+        if(cptr->nextChar[charDec] == nullptr){
+            cptr->nextChar[charDec] = new CharNode();
+        }
+        cptr = cptr -> nextChar[charDec];
+        cptr ->curPrefixStreetsList.push_back(street_id);
+    }
+};
 /**
  * Modify Name with trim space & lowercase
  * @param srcName
  * @return modified Name
  */
-std::string modifyName(std::string srcName);
+std::string modifyName(std::string srcName){
+    std::string name = srcName;
+    name.erase(remove(name.begin(), name.end(), ' '), name.end());
+    transform(name.begin(), name.end(), name.begin(), ::tolower);
+    return name;
+};
+
+//std::unordered_map<std::string, std::vector<LatLon>> POIListOfLatLonsList;
+//void LoadPOIListOfLatLonsList();
