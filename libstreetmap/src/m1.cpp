@@ -214,6 +214,7 @@ std::vector<Type> SetToVec(const std::set<Type> & srcSet){
     return destVec;
 }
 /* Other Helper End */
+
 /**
  * LoadMap Function: <br>
  * loadMap will be called with the name of the file that stores the "layer-2"
@@ -260,7 +261,7 @@ void closeMap() {
     StreetListOfIntersects.clear();
     StreetListOfSegs.clear();
     // clear the data structure for searching street names
-    //ClearStructure4(StNameTreeForPrefix.root);
+    ClearStructure4(StNameTreeForPrefix.root);
 }
 /**
  * Function 1.1: <br>
@@ -468,7 +469,7 @@ double findStreetLength(StreetIdx street_id){
     for(StreetSegmentIdx curSegIdx : StreetListOfSegs[street_id]){
         totalLength += findStreetSegmentLength(curSegIdx);
     }
-    return totalLength/3;//???? why/3 works
+    return totalLength;//???? why/3 works
 }
 
 /**
@@ -481,7 +482,11 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    return 0;
+    float  speed=getStreetSegmentInfo(street_segment_id).speedLimit;
+    double length=findStreetSegmentLength(street_segment_id);
+    double time=(length/speed);
+    return time;
+return 0;
 }
 
 /**
@@ -495,6 +500,7 @@ double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
  */
 double findFeatureArea(FeatureIdx feature_id){
     return 0;
+
 }
 
 /**
