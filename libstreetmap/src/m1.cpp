@@ -324,16 +324,16 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
  * @return Vector of StreetNames
  */
 std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
-    std::unordered_set<std::string> StreetNameVec;
+    std::vector<std::string> StreetNameVec;
     int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
     for(int segNum = 0; segNum < segsTotal; segNum++){
         int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
         StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
 
         std::string tempName = getStreetName(curSegInfo.streetID);
-        StreetNameVec.insert(tempName);
+        StreetNameVec.push_back(tempName);
     }
-    return vector<std::string> StreetNameVec(StreetNameVec.begin(),StreetNameVec.end());
+    return StreetNameVec;
 }
 
 /**
