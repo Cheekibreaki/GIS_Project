@@ -298,7 +298,36 @@ std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersect
  * MinLatLon & MaxLatLon
  */
 LatLonBounds findStreetBoundingBox(StreetIdx street_id){
+
     LatLonBounds empty;
+    std::vector<IntersectionIdx> allIntersections=findIntersectionsOfStreet(street_id);
+    double maxLatitude = -400.0;
+    double maxLongitude = -400.0;
+    double minLatitude = 400.0;
+    double minLongitude = 400.0;
+
+    for(int curIdx = 0 ;curIdx < allIntersections.size() ;curIdx++ ){
+        IntersectionIdx curIntersection = allIntersections[curIdx];
+        LatLon position = IntersectListOfLatLon[curIntersection];
+
+            if(maxLatitude <= position.latitude()){
+            maxLatitude = position.latitude();
+            }
+            if(maxLongitude <= position.longitude()){
+            maxLongitude = position.longitude();
+            }
+            if(minLatitude >= position.latitude()){
+              minLatitude = position.latitude();
+
+            }
+            if(minLongitude >= position.longitude()){
+                minLongitude = position.longitude();
+            }
+    }
+    empty.max=LatLon(maxLatitude,maxLongitude);
+    empty.min=LatLon(minLatitude,minLongitude);
+
+
     return empty;
 }
 
@@ -314,7 +343,27 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
-    return {};
+    std::vector<IntersectionIdx> AllIntersections1 = findIntersectionsOfStreet(street_ids.first);
+    std::vector<IntersectionIdx> AllIntersections2 = findIntersectionsOfStreet(street_ids.second);
+    std::sort(AllIntersections1.begin(),AllIntersections1.end());
+    std::sort(AllIntersections2.begin(),AllIntersections2.end());
+    std::vector<IntersectionIdx> StoreIntersections;
+    StoreIntersections.resize(AllIntersections2.size());
+
+    std::set_intersection(AllIntersections1.begin(),AllIntersections1.end(),AllIntersections2.begin(),AllIntersections2.end()
+    ,StoreIntersections.begin());
+    /**
+     * shrink vector
+     * take "0" out of the vector
+     */
+    for(std::vector<IntersectionIdx>::iterator it=StoreIntersections.begin();it!=StoreIntersections.end();){
+        if(*it==0) {
+            it=StoreIntersections.erase(it);
+        }else{
+                it++;
+            }
+    }
+    return StoreIntersections;
 }
 
 /**
