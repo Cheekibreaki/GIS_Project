@@ -506,8 +506,16 @@ double findFeatureArea(FeatureIdx feature_id){
  * @return
  */
 IntersectionIdx findClosestIntersection(LatLon my_position){
-    //for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < List)
-    return 0;
+    IntersectionIdx closestIntersection = -1;
+    double closestDistance = std::numeric_limits<double>::max();
+    for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfLatLon.size(); curIntersectIdx++){
+        double curDistance = findDistanceBetweenTwoPoints(std::make_pair(IntersectListOfLatLon[curIntersectIdx], my_position));
+        if(curDistance < closestDistance){
+            closestDistance = curDistance;
+            closestIntersection = curIntersectIdx;
+        }
+    }
+    return closestIntersection;
 }
 
 /**
