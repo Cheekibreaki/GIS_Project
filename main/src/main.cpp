@@ -63,14 +63,23 @@ int main(int argc, char** argv) {
 
     std::cout << "Successfully loaded map '" << map_path << "'\n";
 
+    int itersId = 102380;
     //You can now do something with the map data
-    std::vector<StreetIdx> temp = findStreetIdsFromPartialStreetName("Basildon Crescent");
-    for(StreetIdx c : temp){
-        std::cout << c << " ";
+
+    closeMap();
+
+    loadMap(map_path);
+    std::vector<StreetSegmentIdx> temp = findStreetSegmentsOfIntersection(itersId);
+    for(StreetSegmentIdx c : temp){
+        std::cout <<"StreetSegment: "<< c << " StreetID:" << getStreetName(getStreetSegmentInfo(c).streetID)<<std::endl;
     }
     //Clean-up the map data and related data structures
     std::cout << "Closing map\n";
-    closeMap(); 
+    std::vector<std::string> temp2 = findStreetNamesOfIntersection(itersId);
+    for(std::string str: temp2){
+        std::cout <<"StreetSegment: "<< " " << " StreetID:" << str <<std::endl;
+    }
+    closeMap();
 
     return SUCCESS_EXIT_CODE;
 }

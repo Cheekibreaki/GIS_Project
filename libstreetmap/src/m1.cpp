@@ -73,7 +73,7 @@ using namespace std;
  * <br> IntersectionList of StreetSegments [Direct Func: 1.1]
  */
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfStreetSegs;
-
+vector<std::pair<bool,vector<std::string>>> IntersectionListOfStreetName;
 /**
  * Load all streetSegs of one intersection in to intersection list
  */
@@ -239,15 +239,13 @@ bool loadMap(std::string map_streets_database_filename) {
 
     // Load IntersectListOfStreetSegs
     LoadStructure1();
-    //structure 2
-
-
-    LoadStructure4();
     LoadStructure2();
     LoadStructure3();
-    //LoadStructure4();
+    LoadStructure4();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
+
+    IntersectionListOfStreetName.resize(getNumIntersections());
 
     return load_successful;
 }
@@ -257,7 +255,10 @@ void closeMap() {
 
     // call this API to close the currently opened map
     closeStreetDatabase();
-
+    IntersectListOfStreetSegs.clear();
+    StreetListOfIntersects.clear();
+    StreetListOfIntersects.clear();
+    StreetListOfSegs.clear();
     // clear the data structure for searching street names
     ClearStructure4(StNameTreeForPrefix.root);
 }
@@ -324,16 +325,18 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
  * @return Vector of StreetNames
  */
 std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
-    std::vector<std::string> StreetNameVec;
-    int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
-    for(int segNum = 0; segNum < segsTotal; segNum++){
-        int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
-        StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
+    if(!IntersectionListOfStreetName[intersection_id].first){
+        IntersectionListOfStreetName[intersection_id].first = true;
+        int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
+        for(int segNum = 0; segNum < segsTotal; segNum++){
+            int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
+            StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
 
-        std::string tempName = getStreetName(curSegInfo.streetID);
-        StreetNameVec.push_back(tempName);
+            std::string tempName = getStreetName(curSegInfo.streetID);
+            IntersectionListOfStreetName[intersection_id].second.push_back(tempName);
+        }
     }
-    return StreetNameVec;
+    return IntersectionListOfStreetName[intersection_id].second;
 }
 
 /**
