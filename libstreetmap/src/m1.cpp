@@ -468,7 +468,7 @@ double findStreetLength(StreetIdx street_id){
     for(StreetSegmentIdx curSegIdx : StreetListOfSegs[street_id]){
         totalLength += findStreetSegmentLength(curSegIdx);
     }
-    return totalLength/3;//???? why/3 works
+    return totalLength;//???? why/3 works
 }
 
 /**
@@ -481,9 +481,9 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    float speed=getStreetSegmentInfo(street_segment_id).speedLimit;
+    float  speed=getStreetSegmentInfo(street_segment_id).speedLimit;
     double length=findStreetSegmentLength(street_segment_id);
-    double time=(double)(length/speed);
+    double time=(length/speed);
     return time;
 return 0;
 }
@@ -499,6 +499,7 @@ return 0;
  */
 double findFeatureArea(FeatureIdx feature_id){
     return 0;
+
 }
 
 /**
