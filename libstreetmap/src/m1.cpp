@@ -64,9 +64,10 @@
 
 /*Global Structure Define Begin*/
 
-void LoadIntersectListOfSeg(){
+void LoadIntersectListOfSegAndLatLon(){
     IntersectListOfSegsList.resize(getNumIntersections());
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
+        IntersectListOfLatLon.push_back(getIntersectionPosition(curIntersect));
         for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
             IntersectListOfSegsList[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
         }
@@ -179,7 +180,7 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     // Load IntersectListOfSegsList
-    LoadIntersectListOfSeg();
+    LoadIntersectListOfSegAndLatLon();
     LoadStructurePackage();
     LoadIntersectListOfStName();
     LoadStreetListOfIntersectsList();
@@ -199,6 +200,7 @@ void closeMap() {
     closeStreetDatabase();
 
     IntersectListOfSegsList.clear();
+    IntersectListOfLatLon.clear();
     IntersectListOfStName.clear();
 
     StreetListOfIntersectsList.clear();
