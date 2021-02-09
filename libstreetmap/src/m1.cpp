@@ -243,9 +243,9 @@ bool loadMap(std::string map_streets_database_filename) {
 
 
     //LoadStructure4();
-    LoadStructure2();
-    LoadStructure3();
-    LoadStructure4();
+    //LoadStructure2();
+    //LoadStructure3();
+    //LoadStructure4();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
@@ -259,7 +259,7 @@ void closeMap() {
     closeStreetDatabase();
 
     // clear the data structure for searching street names
-    ClearStructure4(StNameTreeForPrefix.root);
+    //ClearStructure4(StNameTreeForPrefix.root);
 }
 /**
  * Function 1.1: <br>
