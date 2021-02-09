@@ -94,16 +94,19 @@ void LoadStructure1(){
  */
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegs;
 std::vector<StreetSegmentInfo> SegListSegInfo;
-std::vector<double> SegListOfLen;
+std::vector<std::pair<double,double>> SegListOfLenAndTime;
 void LoadStructure2(){
     StreetListOfSegs.resize(getNumStreets());
     SegListSegInfo.resize(getNumStreetSegments());
-    SegListOfLen.resize(getNumStreetSegments());
+    SegListOfLenAndTime.resize(getNumStreetSegments());
 
     for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
         SegListSegInfo[curSegIdx] = getStreetSegmentInfo(curSegIdx);
 
-        SegListOfLen[curSegIdx] = findStreetSegmentLength(curSegIdx);
+        double length = findStreetSegmentLength(curSegIdx);
+        double speed = SegListSegInfo[curSegIdx].speedLimit;
+        SegListOfLenAndTime[curSegIdx].first = length;
+        SegListOfLenAndTime[curSegIdx].second = (length/speed);
 
         StreetIdx curStreetIdx = SegListSegInfo[curSegIdx].streetID;
         StreetListOfSegs[curStreetIdx].push_back(curSegIdx);
@@ -287,7 +290,7 @@ void closeMap() {
     //StreetListOfLen.clear();
 
     SegListSegInfo.clear();
-    SegListOfLen.clear();
+    SegListOfLenAndTime.clear();
 
     // clear the data structure for searching street names
     ClearStructure4(StNameTreeForPrefix.root);
@@ -512,11 +515,11 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    float  speed=SegListSegInfo[street_segment_id].speedLimit;
+    /*float  speed=SegListSegInfo[street_segment_id].speedLimit;
     double length=findStreetSegmentLength(street_segment_id);
     double time=(length/speed);
-    return time;
-return 0;
+    return time;*/
+    return SegListOfLenAndTime[street_segment_id].second;
 }
 
 /**
