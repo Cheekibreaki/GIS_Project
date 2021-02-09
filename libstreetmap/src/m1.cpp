@@ -27,6 +27,7 @@
 #include <cmath>
 #include<algorithm>
 #include<vector>
+#include<unordered_map>
 
 using namespace std;
 /*
@@ -198,6 +199,30 @@ void ClearStructure4(CharNode* myRoot){
     myRoot = nullptr;
 }
 
+/**
+ * structure 5
+ * <br> StreetId & StreetId  to check intersection [Direct Func: 2.2]
+ */
+
+
+/*std::vector <std::vector<std::set<IntersectionIdx>>> StreetXStreetIntersectsList;
+void LoadStructure5(){
+    for(int StreetIdx1 = 0; StreetIdx1 < getNumStreets();StreetIdx1++){
+        std::vector<IntersectionIdx> allIntersections = findIntersectionsOfStreet(StreetIdx1);
+        for(int curIntersectionNum = 0; curIntersectionNum< allIntersections.size();curIntersectionNum++ ){
+            std::vector<StreetSegmentIdx> allSegs=findStreetSegmentsOfIntersection(allIntersections[curIntersectionNum]);
+            for(int curSeg = 0; curSeg < allSegs.size(); curSeg++){
+                StreetSegmentInfo StreetInfo=getStreetSegmentInfo(allSegs[curSeg]);
+                if(StreetInfo.streetID!=StreetIdx1) {
+                    StreetXStreetIntersectsList[StreetIdx1][StreetInfo.streetID].insert(
+                            allIntersections[curIntersectionNum]);
+                }
+            }
+
+
+        }
+    }
+}*/
 /*Global Structure Define End*/
 
 /* Other Helper Begin */
@@ -362,7 +387,8 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
-    return {};
+
+    return /*SetToVec(StreetXStreetIntersectsList[street_ids.first][street_ids.second])*/{};
 }
 
 /**
