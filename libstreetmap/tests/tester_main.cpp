@@ -20,11 +20,13 @@
  */
 #include <iostream>
 #include <UnitTest++/UnitTest++.h>
-
+#include "m1.h"
 /*
  * This is the main that drives running
  * unit tests.
  */
+std::string default_map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
+
 int main(int /*argc*/, char** /*argv*/) {
     //Run the unit tests
     int num_failures = UnitTest::RunAllTests();

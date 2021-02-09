@@ -93,11 +93,32 @@ void LoadStructure1(){
  * <br> StreetInformation contains Segment vector & Intersection Set
  */
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegs;
+std::vector<StreetSegmentInfo> SegListSegInfo;
+std::vector<double> SegListOfLen;
 void LoadStructure2(){
     StreetListOfSegs.resize(getNumStreets());
+    SegListSegInfo.resize(getNumStreetSegments());
+    SegListOfLen.resize(getNumStreetSegments());
+
     for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
-        StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
+        SegListSegInfo[curSegIdx] = getStreetSegmentInfo(curSegIdx);
+
+        SegListOfLen[curSegIdx] = findStreetSegmentLength(curSegIdx);
+
+        StreetIdx curStreetIdx = SegListSegInfo[curSegIdx].streetID;
         StreetListOfSegs[curStreetIdx].push_back(curSegIdx);
+
+    }
+}
+std::vector<double> StreetListOfLen;
+void LoadStreetListOfLen(){
+    StreetListOfLen.resize(getNumStreets());
+    for(StreetIdx curStIdx = 0; curStIdx < getNumStreets(); curStIdx++){
+        double totalLength=0;
+        for(StreetSegmentIdx curSegIdx : StreetListOfSegs[curStIdx]){
+            totalLength += findStreetSegmentLength(curSegIdx);
+        }
+        StreetListOfLen[curStIdx] = totalLength;
     }
 }
 /**
@@ -105,7 +126,7 @@ void LoadStructure2(){
  * <br> StreetInformation contains Segment vector & Intersection Set
  */
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersects;
-void LoadStructure3(){
+ void LoadStructure3(){
     StreetListOfIntersects.resize(getNumStreets());
     StreetSegmentInfo segInfo;
     StreetIdx curStreetIdx;
@@ -121,6 +142,7 @@ void LoadStructure3(){
         }
     }
 }
+
 //
 /**
  * Structure 4: 256CharNodeTree (Special) [Func: 2.4]
@@ -242,6 +264,7 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadStructure2();
     LoadStructure3();
     LoadStructure4();
+    //LoadStreetListOfLen();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
@@ -255,11 +278,17 @@ void closeMap() {
 
     // call this API to close the currently opened map
     closeStreetDatabase();
+
     IntersectListOfStreetSegs.clear();
     IntersectionListOfStreetName.clear();
-    StreetListOfIntersects.clear();
+
     StreetListOfIntersects.clear();
     StreetListOfSegs.clear();
+    //StreetListOfLen.clear();
+
+    SegListSegInfo.clear();
+    SegListOfLen.clear();
+
     // clear the data structure for searching street names
     ClearStructure4(StNameTreeForPrefix.root);
 }
@@ -433,7 +462,7 @@ double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
  * @return SegmentLength
  */
 double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
-    StreetSegmentInfo streetSegmentInfo = getStreetSegmentInfo(street_segment_id);
+    StreetSegmentInfo streetSegmentInfo = SegListSegInfo[street_segment_id];
     IntersectionIdx idTo=streetSegmentInfo.to;
     IntersectionIdx idFrom=streetSegmentInfo.from;
     LatLon toLatLon = getIntersectionPosition(idTo);
@@ -469,7 +498,8 @@ double findStreetLength(StreetIdx street_id){
     for(StreetSegmentIdx curSegIdx : StreetListOfSegs[street_id]){
         totalLength += findStreetSegmentLength(curSegIdx);
     }
-    return totalLength;//???? why/3 works
+    return totalLength;
+    //return StreetListOfLen[street_id];
 }
 
 /**
@@ -482,7 +512,7 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    float  speed=getStreetSegmentInfo(street_segment_id).speedLimit;
+    float  speed=SegListSegInfo[street_segment_id].speedLimit;
     double length=findStreetSegmentLength(street_segment_id);
     double time=(length/speed);
     return time;
