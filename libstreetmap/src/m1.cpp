@@ -23,10 +23,9 @@
 #include "StreetsDatabaseAPI.h"
 #include <vector>
 #include <set>
+#include <unordered_set>
 #include <algorithm>
 #include <cmath>
-#include<algorithm>
-#include<vector>
 
 using namespace std;
 /*
@@ -246,9 +245,10 @@ bool loadMap(std::string map_streets_database_filename) {
     //LoadStructure4();
     LoadStructure2();
     LoadStructure3();
+    LoadStructure4();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
-    LoadStructure4();
+
     return load_successful;
 }
 
@@ -324,16 +324,16 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
  * @return Vector of StreetNames
  */
 std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
-    std::vector<std::string> StreetNameVec;
+    std::unordered_set<std::string> StreetNameVec;
     int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
     for(int segNum = 0; segNum < segsTotal; segNum++){
         int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
         StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
 
         std::string tempName = getStreetName(curSegInfo.streetID);
-        StreetNameVec.push_back(tempName);
+        StreetNameVec.insert(tempName);
     }
-    return StreetNameVec;
+    return vector<std::string> StreetNameVec(StreetNameVec.begin(),StreetNameVec.end());
 }
 
 /**
