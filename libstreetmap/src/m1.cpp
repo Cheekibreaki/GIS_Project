@@ -255,6 +255,7 @@ void closeMap() {
     // call this API to close the currently opened map
     closeStreetDatabase();
     IntersectListOfStreetSegs.clear();
+    IntersectionListOfStreetName.clear();
     StreetListOfIntersects.clear();
     StreetListOfIntersects.clear();
     StreetListOfSegs.clear();
