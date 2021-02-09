@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 
     //You can now do something with the map data
 
-    findFeatureArea(559983);
+    findFeatureArea(31880);
 
     closeMap();
 

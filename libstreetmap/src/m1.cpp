@@ -455,36 +455,63 @@ double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
 
 
 double findFeatureArea(FeatureIdx feature_id){
-    double area=0;
     int numFeaturePoints = getNumFeaturePoints(feature_id);
     LatLon firstPointLatLon = getFeaturePoint(feature_id, 0);
     LatLon lastPointLatLon = getFeaturePoint(feature_id, numFeaturePoints-1);
-    if(firstPointLatLon==lastPointLatLon){
+    double area = 0;
+    if(firstPointLatLon == lastPointLatLon) {
+
         std::vector<double> xList = std::vector<double>(numFeaturePoints);
         std::vector<double> yList = std::vector<double>(numFeaturePoints);
-        double latAvg=0;
+        std::vector<double> realXList = std::vector<double>(numFeaturePoints);
+        std::vector<double> realYList = std::vector<double>(numFeaturePoints);
+        double latAvg = 0;
 
         //Save yList
-        for(int pointNum=0; pointNum < numFeaturePoints; pointNum++){
-            double tempLat =getFeaturePoint(feature_id, pointNum).latitude();
-            yList[pointNum] =  tempLat* kDegreeToRadian;
+        std::cout<<"yList: ";
+        for (int pointNum = 0; pointNum < numFeaturePoints; pointNum++) {
+            double tempLat = getFeaturePoint(feature_id, pointNum).latitude();
+            yList[pointNum] = tempLat * kDegreeToRadian;
+            std::cout<<yList[pointNum]<<" ";
             latAvg += tempLat;
         }
-        latAvg=latAvg/(numFeaturePoints-1);
-
+        latAvg = latAvg / (numFeaturePoints - 1);
+        std::cout<<std::endl;
         //Save xList
-        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
-            double tempLon=getFeaturePoint(feature_id,pointNum).longitude();
-            xList[pointNum] = tempLon * cos(latAvg) ;
+        std::cout<<"xList: ";
+        for (int pointNum = 0; pointNum < numFeaturePoints; pointNum++) {
+            double tempLon = getFeaturePoint(feature_id, pointNum).longitude();
+            xList[pointNum] = tempLon * cos(latAvg);
+            std::cout<<xList[pointNum]<<" ";
         }
-
+        std::cout<<std::endl;
+        //Save referenced Positions
+        realXList[0] = 0;
+        realYList[0] = 0;
+        realXList[numFeaturePoints - 1] = 0;
+        realYList[numFeaturePoints - 1] = 0;
+        for (int i = 1; i < numFeaturePoints; i++) {
+            realXList[i] =abs(kEarthRadiusInMeters * (xList[i] - xList[0]));
+            realYList[i] =abs(kEarthRadiusInMeters * (yList[i] - yList[0]));
+        }
+        std::cout<<"realYList: ";
+        for (double a:realYList){
+            std::cout<<a<<" ";
+        }
+        std::cout<<"realXList: ";
+        std::cout<<std::endl;
+        for (double a:realXList){
+            std::cout<<a<<" ";
+        }
+        std::cout<<std::endl;
         //Save area
-        for(int i=0; i < numFeaturePoints-1; i++) {
-            area += (((xList[i] * yList[i+1]) - (xList[i+1] * yList[i]) )/ 2);
+        for (int i = 0; i < numFeaturePoints - 1; i++) {
+            area += (((realXList[i] * realYList[i + 1]) - (realXList[i + 1] * realYList[i])) / 2);
+            std::cout<<area<<" ";
         }
-
+        std::cout<<std::endl;
         /*
-        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
+ realYList  for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
                 curPointLatLon1 = getFeaturePoint(feature_id, pointNum);
                 curPointLatLon2 = getFeaturePoint(feature_id, pointNum + 1);
                 std::vector<XYPos> temp = LatLonPairToXYPair(curPointLatLon1, curPointLatLon2);
@@ -493,7 +520,7 @@ double findFeatureArea(FeatureIdx feature_id){
         std::vector<XYPos> temp = LatLonPairToXYPair(lastPointLatLon, firstPointLatLon);
         area += (((temp[0].x * temp[1].y) - (temp[0].y * temp[1].x)) / 2);*/
     }
-    return kEarthRadiusInMeters*abs(area);
+    return abs(area);
 }
 
 
