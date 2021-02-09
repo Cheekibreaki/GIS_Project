@@ -281,25 +281,25 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
     double minLongitude = 400.0;
 
     for(int curIdx = 0 ;curIdx < allIntersections.size() ;curIdx++ ){
-        IntersectionIdx curIntersection = allIntersections[curIdx];
+        IntersectionIdx curIntersection = findIntersectionsOfStreet(street_id)[curIdx];
         LatLon position = IntersectListOfLatLon[curIntersection];
 
-            if(maxLatitude <= position.latitude()){
+            if(maxLatitude < position.latitude()){
             maxLatitude = position.latitude();
             }
-            if(maxLongitude <= position.longitude()){
+            if(maxLongitude < position.longitude()){
             maxLongitude = position.longitude();
             }
-            if(minLatitude >= position.latitude()){
+            if(minLatitude > position.latitude()){
               minLatitude = position.latitude();
 
             }
-            if(minLongitude >= position.longitude()){
+            if(minLongitude > position.longitude()){
                 minLongitude = position.longitude();
             }
     }
-    empty.max=LatLon(maxLatitude,maxLongitude);
-    empty.min=LatLon(minLatitude,minLongitude);
+    empty.max=LatLon((float)maxLatitude,(float)maxLongitude);
+    empty.min=LatLon((float)minLatitude,(float)minLongitude);
 
 
     return empty;
