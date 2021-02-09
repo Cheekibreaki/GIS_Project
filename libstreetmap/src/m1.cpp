@@ -128,22 +128,6 @@ void LoadPOIListOfLatLonsList(){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
-/* Other Helper Begin */
-template<typename Type>
-/**
- * DataStructure Helper Function:<br>
- * Transfer Set into vector using copy
- * @tparam Type
- * @param source Set<Type>
- * @return destination Vector<Type>
- */
-std::vector<Type> SetToVec(const std::set<Type> & srcSet){
-    std::vector<Type> destVec(srcSet.size());
-    std::copy(srcSet.begin(), srcSet.end(), destVec.begin());
-    return destVec;
-}
-/* Other Helper End */
-
 /**
  * LoadMap Function: <br>
  * loadMap will be called with the name of the file that stores the "layer-2"
@@ -213,7 +197,7 @@ void closeMap() {
 std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersection_id){
 
     //Declare AdjIntersection List
-    std::set<IntersectionIdx> adjIntersectSet;
+    std::unordered_set<IntersectionIdx> adjIntersectSet;
     int segsTotal = IntersectListOfSegsList[intersection_id].size();
 
     //Loop through StreetSegs of current intersection
@@ -241,7 +225,7 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
             }
         }
     }
-    return SetToVec<IntersectionIdx>(adjIntersectSet);
+    return std::vector<IntersectionIdx> (adjIntersectSet.begin(),adjIntersectSet.end());
 }
 
 /**
@@ -315,7 +299,7 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
-    return SetToVec(StreetListOfIntersectsList[street_id]);
+    return std::vector<IntersectionIdx>(StreetListOfIntersectsList[street_id].begin(),StreetListOfIntersectsList[street_id].end());
 }
 
 /**
