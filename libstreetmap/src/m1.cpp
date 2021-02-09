@@ -113,17 +113,6 @@ void LoadStructure2(){
 
     }
 }
-std::vector<double> StreetListOfLen;
-void LoadStreetListOfLen(){
-    StreetListOfLen.resize(getNumStreets());
-    for(StreetIdx curStIdx = 0; curStIdx < getNumStreets(); curStIdx++){
-        double totalLength=0;
-        for(StreetSegmentIdx curSegIdx : StreetListOfSegs[curStIdx]){
-            totalLength += findStreetSegmentLength(curSegIdx);
-        }
-        StreetListOfLen[curStIdx] = totalLength;
-    }
-}
 /**
  * Structure 3
  * <br> StreetInformation contains Segment vector & Intersection Set
@@ -267,7 +256,6 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadStructure2();
     LoadStructure3();
     LoadStructure4();
-    //LoadStreetListOfLen();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
 
@@ -287,7 +275,6 @@ void closeMap() {
 
     StreetListOfIntersects.clear();
     StreetListOfSegs.clear();
-    //StreetListOfLen.clear();
 
     SegListSegInfo.clear();
     SegListOfLenAndTime.clear();
