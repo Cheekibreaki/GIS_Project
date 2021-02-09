@@ -21,15 +21,9 @@
 #include <iostream>
 #include "m1.h"
 #include "StreetsDatabaseAPI.h"
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <cmath>
-#include<algorithm>
-#include<vector>
-#include<unordered_map>
+#include "DBstruct.h"
 
-using namespace std;
+//using namespace std;
 /*
  * m1.cpp Declaration Menu
  * Function  1.1: vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
@@ -50,7 +44,7 @@ using namespace std;
  *          4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
  *          4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
  * DataStructure
- *      Structure 1: vector <vector<StreetSegmentIdx>> IntersectListOfStreetSegs; (Func 1.2)
+ *      Structure 1: vector <vector<StreetSegmentIdx>> IntersectListOfSegsList; (Func 1.2)
  *
  *      Structure 2: vector<StreetInfo> StreetInfoList;
  *                      struct StreetInfo{
@@ -70,89 +64,56 @@ using namespace std;
 
 /*Global Structure Define Begin*/
 
-/**
- * Structure 1
- * <br> IntersectionList of StreetSegments [Direct Func: 1.1]
- */
-std::vector <std::vector<StreetSegmentIdx>> IntersectListOfStreetSegs;
-
-/**
- * Load all streetSegs of one intersection in to intersection list
- */
-void LoadStructure1(){
-    IntersectListOfStreetSegs.resize(getNumIntersections());
+void LoadIntersectListOfSeg(){
+    IntersectListOfSegsList.resize(getNumIntersections());
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
         for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
-            IntersectListOfStreetSegs[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
+            IntersectListOfSegsList[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
         }
     }
 }
+void LoadStructurePackage(){
+    StreetListOfSegsList.resize(getNumStreets());
+    SegListSegInfo.resize(getNumStreetSegments());
+    SegListOfLenAndTime.resize(getNumStreetSegments());
 
-
-
-/**
- * Structure 2
- * <br> StreetInformation contains Segment vector & Intersection Set
- */
-std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegs;
-void LoadStructure2(){
-    StreetListOfSegs.resize(getNumStreets());
     for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
-        StreetIdx curStreetIdx = getStreetSegmentInfo(curSegIdx).streetID;
-        StreetListOfSegs[curStreetIdx].push_back(curSegIdx);
+        SegListSegInfo[curSegIdx] = getStreetSegmentInfo(curSegIdx);
+
+        double length = findStreetSegmentLength(curSegIdx);
+        double speed = SegListSegInfo[curSegIdx].speedLimit;
+        SegListOfLenAndTime[curSegIdx].first = length;
+        SegListOfLenAndTime[curSegIdx].second = (length/speed);
+
+        StreetIdx curStreetIdx = SegListSegInfo[curSegIdx].streetID;
+        StreetListOfSegsList[curStreetIdx].push_back(curSegIdx);
+
     }
 }
-/**
- * Structure 3
- * <br> StreetInformation contains Segment vector & Intersection Set
- */
-std::vector<std::set<IntersectionIdx>> StreetListOfIntersects;
-void LoadStructure3(){
-    StreetListOfIntersects.resize(getNumStreets());
+void LoadIntersectListOfStName(){
+    IntersectListOfStName.resize(getNumIntersections());
+}
+
+ void LoadStreetListOfIntersectsList(){
+    StreetListOfIntersectsList.resize(getNumStreets());
     StreetSegmentInfo segInfo;
     StreetIdx curStreetIdx;
     for(int curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++) {
-        std::vector<StreetSegmentIdx> segsIdxList = IntersectListOfStreetSegs[curIntersectIdx];
+        std::vector<StreetSegmentIdx> segsIdxList = IntersectListOfSegsList[curIntersectIdx];
         for (int i= 0 ; i< segsIdxList.size();i++ ) {
             segInfo = getStreetSegmentInfo(segsIdxList[i]);
             curStreetIdx = segInfo.streetID;
 
-            StreetListOfIntersects[curStreetIdx].insert(segInfo.from);
-            StreetListOfIntersects[curStreetIdx].insert(segInfo.to);
+            StreetListOfIntersectsList[curStreetIdx].insert(segInfo.from);
+            StreetListOfIntersectsList[curStreetIdx].insert(segInfo.to);
             //
         }
     }
 }
-//
-/**
- * Structure 4: 256CharNodeTree (Special) [Func: 2.4]
- * <br> Freed during Close Map
- */
-struct CharNode{
-    std::vector<StreetIdx> curPrefixStreetsList;
-    CharNode* nextChar[256];
-};
-struct CharTree{
-    CharNode* root;
-}StNameTreeForPrefix;
-
-/**
- * setCorrect Boundary for Char(-128 - 127) into (0 - 255)
- * @param char
- * @return
- */
-int CharToInt(char c){
-    return (((unsigned)c)&0xff);
-}
-/**
- * Intsert a String into the CharNodeTree
- * @param curStName
- * @param street_id
- */
 void insertNameToTree(std::string curStName, StreetIdx street_id){
     CharNode* cptr = StNameTreeForPrefix.root;
     for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = CharToInt(curStName[charIdx]);
+        int charDec = (((unsigned)curStName[charIdx])&0xff);
         if(cptr->nextChar[charDec] == nullptr){
             cptr->nextChar[charDec] = new CharNode();
         }
@@ -160,11 +121,7 @@ void insertNameToTree(std::string curStName, StreetIdx street_id){
         cptr ->curPrefixStreetsList.push_back(street_id);
     }
 }
-/**
- * Modify Name with trim space & lowercase
- * @param srcName
- * @return modified Name
- */
+
 std::string modifyName(std::string srcName){
     std::string name = srcName;
     name.erase(remove(name.begin(), name.end(), ' '), name.end());
@@ -172,10 +129,7 @@ std::string modifyName(std::string srcName){
     return name;
 }
 
-/**
- * Load CharNodeTree of all StreetName with insertName function
- */
-void LoadStructure4(){
+void LoadStNameTreeForPrefix(){
     StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
     for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
@@ -184,46 +138,7 @@ void LoadStructure4(){
         insertNameToTree(stName, curStIdx);
     }
 }
-/**
- * clear all dynamic allocated CharNode using Recursion
- * @param myRoot
- */
-void ClearStructure4(CharNode* myRoot){
-    if(myRoot == nullptr){
-        return;
-    }
-    for(int i=0; i<256; i++){
-        ClearStructure4(myRoot->nextChar[i]);
-    }
-    delete myRoot;
-    myRoot = nullptr;
-}
 
-/**
- * structure 5
- * <br> StreetId & StreetId  to check intersection [Direct Func: 2.2]
- */
-
-
-/*std::vector <std::vector<std::set<IntersectionIdx>>> StreetXStreetIntersectsList;
-void LoadStructure5(){
-    for(int StreetIdx1 = 0; StreetIdx1 < getNumStreets();StreetIdx1++){
-        std::vector<IntersectionIdx> allIntersections = findIntersectionsOfStreet(StreetIdx1);
-        for(int curIntersectionNum = 0; curIntersectionNum< allIntersections.size();curIntersectionNum++ ){
-            std::vector<StreetSegmentIdx> allSegs=findStreetSegmentsOfIntersection(allIntersections[curIntersectionNum]);
-            for(int curSeg = 0; curSeg < allSegs.size(); curSeg++){
-                StreetSegmentInfo StreetInfo=getStreetSegmentInfo(allSegs[curSeg]);
-                if(StreetInfo.streetID!=StreetIdx1) {
-                    StreetXStreetIntersectsList[StreetIdx1][StreetInfo.streetID].insert(
-                            allIntersections[curIntersectionNum]);
-                }
-            }
-
-
-        }
-    }
-}*/
-/*Global Structure Define End*/
 
 /* Other Helper Begin */
 template<typename Type>
@@ -263,17 +178,17 @@ bool loadMap(std::string map_streets_database_filename) {
     load_successful = loadStreetsDatabaseBIN(map_streets_database_filename);
     if(!load_successful) return false;
 
-    // Load IntersectListOfStreetSegs
-    LoadStructure1();
-    //structure 2
-
-
-    //LoadStructure4();
-    LoadStructure2();
-    LoadStructure3();
+    // Load IntersectListOfSegsList
+    LoadIntersectListOfSeg();
+    LoadStructurePackage();
+    LoadIntersectListOfStName();
+    LoadStreetListOfIntersectsList();
+    LoadStNameTreeForPrefix();
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
-    LoadStructure4();
+
+
+
     return load_successful;
 }
 
@@ -283,8 +198,16 @@ void closeMap() {
     // call this API to close the currently opened map
     closeStreetDatabase();
 
-    // clear the data structure for searching street names
-    ClearStructure4(StNameTreeForPrefix.root);
+    IntersectListOfSegsList.clear();
+    IntersectListOfStName.clear();
+
+    StreetListOfIntersectsList.clear();
+    StreetListOfSegsList.clear();
+
+    SegListSegInfo.clear();
+    SegListOfLenAndTime.clear();
+
+    StNameTreeForPrefix.clear();
 }
 /**
  * Function 1.1: <br>
@@ -299,13 +222,13 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
 
     //Declare AdjIntersection List
     std::set<IntersectionIdx> adjIntersectSet;
-    int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
+    int segsTotal = IntersectListOfSegsList[intersection_id].size();
 
     //Loop through StreetSegs of current intersection
     for(int segNum=0; segNum < segsTotal; segNum++) {
 
         //Save current SegInfo
-        int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
+        int curSegIdx = IntersectListOfSegsList[intersection_id][segNum];
         StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
         IntersectionIdx idFrom = curSegInfo.from;
         IntersectionIdx idTo = curSegInfo.to;
@@ -337,7 +260,7 @@ std::vector<IntersectionIdx> findAdjacentIntersections(IntersectionIdx intersect
  * @return List Of StreetSegmentIndex of Specific Intersection
  */
 std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id){
-    return IntersectListOfStreetSegs[intersection_id];
+    return IntersectListOfSegsList[intersection_id];
 }
 
 /**
@@ -349,16 +272,18 @@ std::vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx i
  * @return Vector of StreetNames
  */
 std::vector<std::string> findStreetNamesOfIntersection(IntersectionIdx intersection_id){
-    std::vector<std::string> StreetNameVec;
-    int segsTotal = IntersectListOfStreetSegs[intersection_id].size();
-    for(int segNum = 0; segNum < segsTotal; segNum++){
-        int curSegIdx = IntersectListOfStreetSegs[intersection_id][segNum];
-        StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
+    if(!IntersectListOfStName[intersection_id].first){
+        IntersectListOfStName[intersection_id].first = true;
+        int segsTotal = IntersectListOfSegsList[intersection_id].size();
+        for(int segNum = 0; segNum < segsTotal; segNum++){
+            int curSegIdx = IntersectListOfSegsList[intersection_id][segNum];
+            StreetSegmentInfo curSegInfo = getStreetSegmentInfo(curSegIdx);
 
-        std::string tempName = getStreetName(curSegInfo.streetID);
-        StreetNameVec.push_back(tempName);
+            std::string tempName = getStreetName(curSegInfo.streetID);
+            IntersectListOfStName[intersection_id].second.push_back(tempName);
+        }
     }
-    return StreetNameVec;
+    return IntersectListOfStName[intersection_id].second;
 }
 
 /**
@@ -387,8 +312,7 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
-
-    return /*SetToVec(StreetXStreetIntersectsList[street_ids.first][street_ids.second])*/{};
+    return {};
 }
 
 /**
@@ -399,7 +323,7 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
-    return SetToVec(StreetListOfIntersects[street_id]);
+    return SetToVec(StreetListOfIntersectsList[street_id]);
 }
 
 /**
@@ -423,7 +347,7 @@ std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_pre
     std::string prefix = modifyName(street_prefix);
     CharNode* cptr = StNameTreeForPrefix.root;
     for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
-        int charDec = CharToInt(prefix[charIdx]);
+        int charDec = (((unsigned)prefix[charIdx])&0xff);
         if(cptr->nextChar[charDec] == nullptr) {
             return {};
         }
@@ -442,9 +366,9 @@ std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_pre
 double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
     double y1 = points.first.latitude()*kDegreeToRadian;
     double y2 = points.second.latitude()*kDegreeToRadian;
-    double latAvg=(y1+y2)/2;
-    double x1 =points.first.longitude() * cos(latAvg)*kDegreeToRadian;
-    double x2 =points.second.longitude()* cos(latAvg)*kDegreeToRadian;
+    double latAvg=((y1+y2)/2);
+    double x1 =points.first.longitude() * cos(latAvg)* kDegreeToRadian;
+    double x2 =points.second.longitude()* cos(latAvg)* kDegreeToRadian;
     return (kEarthRadiusInMeters*sqrt(pow(y2-y1,2.0) + pow(x2-x1,2.0)));
 }
 /**
@@ -455,7 +379,7 @@ double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
  * @return SegmentLength
  */
 double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
-    StreetSegmentInfo streetSegmentInfo = getStreetSegmentInfo(street_segment_id);
+    StreetSegmentInfo streetSegmentInfo = SegListSegInfo[street_segment_id];
     IntersectionIdx idTo=streetSegmentInfo.to;
     IntersectionIdx idFrom=streetSegmentInfo.from;
     LatLon toLatLon = getIntersectionPosition(idTo);
@@ -488,10 +412,11 @@ double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
  */
 double findStreetLength(StreetIdx street_id){
     double totalLength=0;
-    for(StreetSegmentIdx curSegIdx : StreetListOfSegs[street_id]){
+    for(StreetSegmentIdx curSegIdx : StreetListOfSegsList[street_id]){
         totalLength += findStreetSegmentLength(curSegIdx);
     }
-    return totalLength/3;//???? why/3 works
+    return totalLength;
+    //return StreetListOfLen[street_id];
 }
 
 /**
@@ -504,7 +429,11 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    return 0;
+    /*float  speed=SegListSegInfo[street_segment_id].speedLimit;
+    double length=findStreetSegmentLength(street_segment_id);
+    double time=(length/speed);
+    return time;*/
+    return SegListOfLenAndTime[street_segment_id].second;
 }
 
 /**
@@ -516,9 +445,66 @@ double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
  * @param feature_id
  * @return AreaSize in double
  */
+
+/*struct XYPos{
+    double x;
+    double y;
+};*/
+
+//std::vector<XYPos> LatLonPairToXYPair(LatLon Pos1, LatLon Pos2){
+//    std::vector<XYPos> temp = std::vector<XYPos>(2);
+//    temp[0].y = Pos1.latitude() * kDegreeToRadian;;
+//    temp[1].y = Pos2.latitude() * kDegreeToRadian;;
+//    double latAvg = (temp[0].y + temp[1].y) / 2;
+//    temp[0].x = Pos1.longitude() * cos(latAvg) * kDegreeToRadian;
+//    temp[1].x = Pos2.longitude() * cos(latAvg) * kDegreeToRadian;
+//    return temp;
+//}
+
+
 double findFeatureArea(FeatureIdx feature_id){
-    return 0;
+    double area=0;
+    int numFeaturePoints = getNumFeaturePoints(feature_id);
+    LatLon firstPointLatLon = getFeaturePoint(feature_id, 0);
+    LatLon lastPointLatLon = getFeaturePoint(feature_id, numFeaturePoints-1);
+    if(firstPointLatLon==lastPointLatLon){
+        std::vector<double> xList = std::vector<double>(numFeaturePoints);
+        std::vector<double> yList = std::vector<double>(numFeaturePoints);
+        double latAvg=0;
+
+        //Save yList
+        for(int pointNum=0; pointNum < numFeaturePoints; pointNum++){
+            double tempLat =getFeaturePoint(feature_id, pointNum).latitude();
+            yList[pointNum] =  tempLat* kDegreeToRadian;
+            latAvg += tempLat;
+        }
+        latAvg=latAvg/(numFeaturePoints-1);
+
+        //Save xList
+        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
+            double tempLon=getFeaturePoint(feature_id,pointNum).longitude();
+            xList[pointNum] = tempLon * cos(latAvg) ;
+        }
+
+        //Save area
+        for(int i=0; i < numFeaturePoints-1; i++) {
+            area += (((xList[i] * yList[i+1]) - (xList[i+1] * yList[i]) )/ 2);
+        }
+
+        /*
+        for(int pointNum=0; pointNum < numFeaturePoints;pointNum++){
+                curPointLatLon1 = getFeaturePoint(feature_id, pointNum);
+                curPointLatLon2 = getFeaturePoint(feature_id, pointNum + 1);
+                std::vector<XYPos> temp = LatLonPairToXYPair(curPointLatLon1, curPointLatLon2);
+                area += (((temp[0].x * temp[1].y) - (temp[0].y * temp[1].x)) / 2);
+        }
+        std::vector<XYPos> temp = LatLonPairToXYPair(lastPointLatLon, firstPointLatLon);
+        area += (((temp[0].x * temp[1].y) - (temp[0].y * temp[1].x)) / 2);*/
+    }
+    return kEarthRadiusInMeters*abs(area);
 }
+
+
 
 /**
  * Function 4.1
