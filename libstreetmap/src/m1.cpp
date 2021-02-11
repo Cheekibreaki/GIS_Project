@@ -44,26 +44,25 @@
  *
  *          4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
  *          4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
- * DataStructure
- *      Structure 1: vector <vector<StreetSegmentIdx>> IntersectListOfSegsList; (Func 1.2)
+ * DataStructure: (For More Detail See DBstruct.h)
+ *          vector <vector<StreetSegmentIdx>> IntersectListOfSegsList
+ *          vector<LatLon> IntersectListOfLatLon
  *
- *      Structure 2: vector<StreetInfo> StreetInfoList;
- *                      struct StreetInfo{
- *                          vector<StreetSegmentIdx> StreetInfoOfStreetSegsList;            (Func 2.3)
- *                          set<IntersectionIdx> StreetInfoOfIntersectsList;                (Func 3.3)
- *                      };
+ *          vector<pair<bool,vector<string>>> IntersectListOfStName
  *
- *      Structure 3: vector<vector<vector<IntersectionIdx>>> StreetXStreetIntersectsList;   (Func 2.2)
+ *          vector<vector<StreetSegmentIdx>> StreetListOfSegsList
+ *          vector<StreetSegmentInfo> SegListSegInfo
+ *          vector<pair<double,double>> SegListOfLenAndTime
  *
- *      Structure 4: struct StreetNameTree{CharNode root;};                                 (Func 2.4)
- *                      struct CharNode{
- *                          vector<StreetIdx> curPrefixStreetsList;
- *                          CharNode* nextChar[256];
- *                      };
+ *          vector<set<IntersectionIdx>> StreetListOfIntersectsList
+ *
+ *          struct CharTree
+ *
+ *          unordered_map<string, vector<POIIdx>> POINameListOfPOIsList
  */
 
 
-/*Global Structure Define Begin*/
+/*Global Structure Load Begin*/
 
 void LoadIntersectListOfSegAndLatLon(){
     IntersectListOfSegsList.resize(getNumIntersections());
@@ -128,6 +127,9 @@ void LoadPOIListOfLatLonsList(){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
+
+/*Global Structure Load End*/
+
 /**
  * LoadMap Function: <br>
  * loadMap will be called with the name of the file that stores the "layer-2"
@@ -150,7 +152,7 @@ bool loadMap(std::string map_streets_database_filename) {
     load_successful = loadStreetsDatabaseBIN(map_streets_database_filename);
     if(!load_successful) return false;
 
-    // Load IntersectListOfSegsList
+    //Load Function Called
     LoadIntersectListOfSegAndLatLon();
     LoadStructurePackage();
     LoadIntersectListOfStName();
@@ -363,7 +365,8 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
-    return std::vector<IntersectionIdx>(StreetListOfIntersectsList[street_id].begin(),StreetListOfIntersectsList[street_id].end());
+    return std::vector<IntersectionIdx>(StreetListOfIntersectsList[street_id].begin(),
+                                        StreetListOfIntersectsList[street_id].end());
 }
 
 /**
@@ -456,7 +459,6 @@ double findStreetLength(StreetIdx street_id){
         totalLength += findStreetSegmentLength(curSegIdx);
     }
     return totalLength;
-    //return StreetListOfLen[street_id];
 }
 
 /**
@@ -469,10 +471,6 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    /*float  speed=SegListSegInfo[street_segment_id].speedLimit;
-    double length=findStreetSegmentLength(street_segment_id);
-    double time=(length/speed);
-    return time;*/
     return SegListOfLenAndTime[street_segment_id].second;
 }
 
@@ -545,7 +543,9 @@ IntersectionIdx findClosestIntersection(LatLon my_position){
     IntersectionIdx closestIntersection = -1;
     double closestDistance = std::numeric_limits<double>::max();
     for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfLatLon.size(); curIntersectIdx++){
-        double curDistance = findDistanceBetweenTwoPoints(std::make_pair(IntersectListOfLatLon[curIntersectIdx], my_position));
+        double curDistance = findDistanceBetweenTwoPoints
+                (std::make_pair(IntersectListOfLatLon[curIntersectIdx], my_position));
+
         if(curDistance < closestDistance){
             closestDistance = curDistance;
             closestIntersection = curIntersectIdx;

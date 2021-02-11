@@ -6,34 +6,57 @@
 #include <algorithm>
 #include <cmath>
 /**
- * Structure 1
+ * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
+/**
+ * Intersection List of LatitudeLongitude (LatLon belongs to Current Intersection)
+ */
 std::vector<LatLon> IntersectListOfLatLon;
 /**
- * Load all streetSegs of one intersection in to intersection list
+ * Load all streetSegments and LatLon of current intersection in to relative list
  */
 void LoadIntersectListOfSegAndLatLon();
 
-//Loaded during func findStreetNamesOfIntersection
-//Save Data if not loaded using firstElement
-std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
-void LoadIntersectListOfStName();
+
 
 /**
- * Package 2
- * <br> StreetInformation contains Segment vector & Intersection Set
+ * Intersection List of StreetNames List (streetNames belong to Current Intersection)
+ */
+std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
+/**
+ * Only resize List
+ * Loaded during func findStreetNamesOfIntersection
+ * <br>Save Data if not loaded using firstElement
+ */
+void LoadIntersectListOfStName();
+
+
+
+
+/**
+ * Package
+ * <br>StreetSegment List of StreetSegmentInfo/ Length & TravelTime
+ * <br>Street List of all StreetSegments belonged to current Street
+ * <br>StreetInformation contains Segment vector & Intersection Set
  */
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
 std::vector<StreetSegmentInfo> SegListSegInfo;
 std::vector<std::pair<double,double>> SegListOfLenAndTime;
+/**
+ * Load StreetList -> SegList
+ * <br>Load SegList -> SegInfo
+ * <br>Load SegList -> Length & TravelTime
+ */
 void LoadStructurePackage();
 
 /**
- * Structure 3
- * <br> StreetInformation contains Segment vector & Intersection Set
+ * Street List Of all Intersections belong to current Street
  */
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
+/**
+ * Load Street List -> Intersection List
+ */
 void LoadStreetListOfIntersectsList();
 
 
@@ -42,8 +65,8 @@ struct CharNode{
     CharNode* nextChar[256];
 };
 /**
- * Structure 4: 256CharNodeTree (Special) [Func: 2.4]
- * <br> Freed during Close Map
+ * 256CharNodeTree (Node Include Vector)
+ * <br> Freed during Close Map (#TREENAME#.close())
  */
 struct CharTree{
     CharNode* root;
@@ -101,5 +124,13 @@ std::string modifyName(std::string srcName){
     return name;
 };
 
+/**
+ * POI Name List -> POI Index List
+ * <br>Key: POI Name
+ * <br>Value: List of POI Index
+ */
 std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
+/**
+ * Load POI Name List -> POI Index List
+ */
 void LoadPOINameListOfPOIsList();
