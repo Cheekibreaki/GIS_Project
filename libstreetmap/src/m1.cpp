@@ -317,26 +317,16 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
  * @return
  */
 std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, StreetIdx> street_ids){
-    std::vector<IntersectionIdx> AllIntersections1 = findIntersectionsOfStreet(street_ids.first);
-    std::vector<IntersectionIdx> AllIntersections2 = findIntersectionsOfStreet(street_ids.second);
-    std::sort(AllIntersections1.begin(),AllIntersections1.end());
-    std::sort(AllIntersections2.begin(),AllIntersections2.end());
     std::vector<IntersectionIdx> StoreIntersections;
-    StoreIntersections.resize(AllIntersections2.size());
+    StoreIntersections.resize(StreetListOfIntersectsList[street_ids.first].size());
 
-    std::set_intersection(AllIntersections1.begin(),AllIntersections1.end(),AllIntersections2.begin(),AllIntersections2.end()
-    ,StoreIntersections.begin());
-    /**
-     * shrink vector
-     * take "0" out of the vector
-     */
-    for(std::vector<IntersectionIdx>::iterator it=StoreIntersections.begin();it!=StoreIntersections.end();){
-        if(*it==0) {
-            it=StoreIntersections.erase(it);
-        }else{
-                it++;
-            }
-    }
+    std::set_intersection(StreetListOfIntersectsList[street_ids.first].begin(),
+                          StreetListOfIntersectsList[street_ids.first].end(),
+                          StreetListOfIntersectsList[street_ids.second].begin(),
+                          StreetListOfIntersectsList[street_ids.second].end()
+                            ,StoreIntersections.begin());
+    StoreIntersections.erase(remove(StoreIntersections.begin(),StoreIntersections.end(),0)
+                             ,StoreIntersections.end());
     return StoreIntersections;
 }
 

@@ -33,7 +33,7 @@ void LoadStructurePackage();
  * Structure 3
  * <br> StreetInformation contains Segment vector & Intersection Set
  */
-std::vector<std::unordered_set<IntersectionIdx>> StreetListOfIntersectsList;
+std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 void LoadStreetListOfIntersectsList();
 
 
