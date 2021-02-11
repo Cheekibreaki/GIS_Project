@@ -297,7 +297,32 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
             if(minLongitude > position.longitude()){
                 minLongitude = position.longitude();
             }
+
     }
+    std::vector<StreetSegmentIdx> AllStreetSegments = StreetListOfSegsList[street_id];
+    for(int curSeg = 0; curSeg < AllStreetSegments.size(); curSeg++){
+        int curveNum=SegListSegInfo[AllStreetSegments[curSeg]].numCurvePoints;
+        for(int i = 0 ; i< curveNum ; i++){
+            LatLon position = getStreetSegmentCurvePoint(AllStreetSegments[curSeg],i);
+
+            if(maxLatitude < position.latitude()){
+                maxLatitude = position.latitude();
+            }
+            if(maxLongitude < position.longitude()){
+                maxLongitude = position.longitude();
+            }
+            if(minLatitude > position.latitude()){
+                minLatitude = position.latitude();
+
+            }
+            if(minLongitude > position.longitude()){
+                minLongitude = position.longitude();
+            }
+
+        }
+
+    }
+
     empty.max=LatLon((float)maxLatitude,(float)maxLongitude);
     empty.min=LatLon((float)minLatitude,(float)minLongitude);
 
