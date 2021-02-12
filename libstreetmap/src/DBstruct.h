@@ -81,6 +81,7 @@ struct CharTree{
      * @param myRoot
      */
     void clearHelper(CharNode* myRoot);
+    void insertNameToTree(std::string curStName, StreetIdx street_id);
 }StNameTreeForPrefix;
 void CharTree::clearHelper(CharNode* myRoot){
     if(myRoot == nullptr){
@@ -101,10 +102,10 @@ void LoadStNameTreeForPrefix();
  * @param curStName
  * @param street_id
  */
-void insertNameToTree(std::string curStName, StreetIdx street_id){
+void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id){
     CharNode* cptr = StNameTreeForPrefix.root;
     for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = (((unsigned)curStName[charIdx])&0xff);
+        int charDec = (curStName[charIdx]&0xff);
         if(cptr->nextChar[charDec] == nullptr){
             cptr->nextChar[charDec] = new CharNode();
         }
@@ -129,4 +130,4 @@ std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 /**
  * Load POI Name List -> POI Index List
  */
-void LoadPOINameListOfPOIsList();
+void LoadPOIListOfLatLonsList();
