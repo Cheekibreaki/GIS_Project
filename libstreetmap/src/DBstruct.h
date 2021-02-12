@@ -111,18 +111,14 @@ void insertNameToTree(std::string curStName, StreetIdx street_id){
         cptr = cptr -> nextChar[charDec];
         cptr ->curPrefixStreetsList.push_back(street_id);
     }
-};
+}
 /**
  * Modify Name with trim space & lowercase
  * @param srcName
  * @return modified Name
  */
-std::string modifyName(std::string srcName){
-    std::string name = srcName;
-    name.erase(remove(name.begin(), name.end(), ' '), name.end());
-    transform(name.begin(), name.end(), name.begin(), ::tolower);
-    return name;
-};
+std::string modifyName(std::string srcName);
+
 
 /**
  * POI Name List -> POI Index List

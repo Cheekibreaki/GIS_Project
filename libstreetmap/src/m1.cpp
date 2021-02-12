@@ -118,7 +118,7 @@ void LoadStNameTreeForPrefix(){
     for(int curStIdx = 0; curStIdx < totalStNum; curStIdx++){
         std::string stName = getStreetName(curStIdx);
         stName = modifyName(stName);
-        insertNameToTree(stName, curStIdx);
+        StNameTreeForPrefix.insertNameToTree(stName, curStIdx);
     }
 }
 
@@ -129,7 +129,12 @@ void LoadPOIListOfLatLonsList(){
 }
 
 /*Global Structure Load End*/
-
+std::string modifyName(std::string srcName){
+    std::string name = srcName;
+    name.erase(remove(name.begin(), name.end(), ' '), name.end());
+    transform(name.begin(), name.end(), name.begin(), ::tolower);
+    return name;
+}
 /**
  * LoadMap Function: <br>
  * loadMap will be called with the name of the file that stores the "layer-2"
@@ -325,8 +330,8 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
 
     }
 
-    empty.max=LatLon((float)maxLatitude,(float)maxLongitude);
-    empty.min=LatLon((float)minLatitude,(float)minLongitude);
+    empty.max=LatLon(maxLatitude,maxLongitude);
+    empty.min=LatLon(minLatitude,minLongitude);
 
 
     return empty;
@@ -390,7 +395,7 @@ std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_pre
     std::string prefix = modifyName(street_prefix);
     CharNode* cptr = StNameTreeForPrefix.root;
     for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
-        int charDec = (((unsigned)prefix[charIdx])&0xff);
+        int charDec = (prefix[charIdx]&0xff);
         if(cptr->nextChar[charDec] == nullptr) {
             return {};
         }
@@ -427,6 +432,7 @@ double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
     IntersectionIdx idFrom=streetSegmentInfo.from;
     LatLon toLatLon = getIntersectionPosition(idTo);
     LatLon fromLatLon = getIntersectionPosition(idFrom);
+    //LatLon curSecondLatLon = getIntersectionPosition(idFrom);
     int numCurvePoints = streetSegmentInfo.numCurvePoints;
     double distance = 0;
     if(numCurvePoints==0) {
@@ -437,7 +443,7 @@ double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
         for(int curCurvePointNum=0;curCurvePointNum<numCurvePoints;curCurvePointNum++){
             if (curCurvePointNum!=0) {
                 curFirstLatLon = curSecondLatLon;
-                curSecondLatLon = curSecondLatLon=getStreetSegmentCurvePoint(street_segment_id,curCurvePointNum);;
+                curSecondLatLon=getStreetSegmentCurvePoint(street_segment_id,curCurvePointNum);
             }
             distance+= findDistanceBetweenTwoPoints(std::make_pair(curFirstLatLon , curSecondLatLon));
         }
