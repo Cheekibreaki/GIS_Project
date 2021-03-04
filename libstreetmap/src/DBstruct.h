@@ -5,23 +5,34 @@
 #include <unordered_map>
 #include <algorithm>
 #include <cmath>
+
+#include "StreetsDatabaseAPI.h"
+
 /**
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
-/**
- * Intersection List of LatitudeLongitude (LatLon belongs to Current Intersection)
- */
-std::vector<LatLon> IntersectListOfLatLon;
-/**
- * Load all streetSegments and LatLon of current intersection in to relative list
- */
-void LoadIntersectListOfSegAndLatLon();
 
 
+/**
+ * IntersectInfo Node include LatLon & intersectName
+ */
+struct IntersectInfo{
+    LatLon position;
+    std::string name;
+};
+/**
+ * Intersection List of Info include LatLon & IntersectName
+ */
+std::vector<IntersectInfo> IntersectListOfIntersectInfo;
+/**
+ * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
+ */
+void LoadIntersectListOfInfo();
 
 /**
  * Intersection List of StreetNames List (streetNames belong to Current Intersection)
+ * <br> !!!!!!Notice this structure is not preloaded, need to use with function "findStreetNamesOfIntersection"
  */
 std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
 /**
@@ -31,17 +42,23 @@ std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
  */
 void LoadIntersectListOfStName();
 
-
-
-
-/**
+/*
  * Package
  * <br>StreetSegment List of StreetSegmentInfo/ Length & TravelTime
  * <br>Street List of all StreetSegments belonged to current Street
  * <br>StreetInformation contains Segment vector & Intersection Set
  */
+ /**
+  * Street List contains all segment Id that belongs to indivual street
+  */
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
+/**
+ * segment List contains Information(OSMID, from, to, oneWay, numCurvPoints, speedLimit, streetID )
+ */
 std::vector<StreetSegmentInfo> SegListSegInfo;
+/**
+ * segment List contains Length and Travel time
+ */
 std::vector<std::pair<double,double>> SegListOfLenAndTime;
 /**
  * Load StreetList -> SegList

@@ -1,10 +1,14 @@
 //
 // Created by cheny811 on 2021-03-03.
 //
+
+#include <iostream>
+#include "m1.h"
+#include "DBstruct.h"
 #include "m2.h"
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
-#include "m1.cpp"
+
 
 void draw_main_canvas (ezgl::renderer *g);
 
@@ -28,5 +32,11 @@ void drawMap(){
 
 void draw_main_canvas(ezgl::renderer *g){
     g->draw_rectangle({0, 0},{1000, 1000});
+
+    float min_lat = IntersectListOfLatLon[0].latitude();
+    float max_lat = min_lat;
+    float min_lon = IntersectListOfLatLon[0].longitude();
+    float max_lon = min_lon;
+
 
 }

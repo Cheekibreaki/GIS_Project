@@ -20,7 +20,6 @@
  */
 #include <iostream>
 #include "m1.h"
-#include "StreetsDatabaseAPI.h"
 #include "DBstruct.h"
 #include <limits>
 
@@ -46,7 +45,7 @@
  *          4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
  * DataStructure: (For More Detail See DBstruct.h)
  *          vector <vector<StreetSegmentIdx>> IntersectListOfSegsList
- *          vector<LatLon> IntersectListOfLatLon
+ *          vector<LatLon> IntersectListOfInfo
  *
  *          vector<pair<bool,vector<string>>> IntersectListOfStName
  *
@@ -64,19 +63,33 @@
 
 /*Global Structure Load Begin*/
 
-void LoadIntersectListOfSegAndLatLon(){
+void LoadIntersectListOfInfo(){
+    //resize all IntersecionList to amount of Intersection
     IntersectListOfSegsList.resize(getNumIntersections());
+    IntersectListOfIntersectInfo.resize(getNumIntersections());
+
+    //go through all IntersectionId
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
-        IntersectListOfLatLon.push_back(getIntersectionPosition(curIntersect));
+
+        //load the temporary IntersectInfo structure of current Intersection
+        IntersectInfo tempInfo;
+        tempInfo.position = getIntersectionPosition(curIntersect);
+        tempInfo.name = getIntersectionName(curIntersect);
+        IntersectListOfIntersectInfo.push_back(tempInfo);
+
+        //load SegmentList of current intersection
         for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
             IntersectListOfSegsList[curIntersect].push_back(getIntersectionStreetSegment(curIntersect, segNum));
         }
     }
 }
+
 void LoadStructurePackage(){
+    //resize all List before loaded
     StreetListOfSegsList.resize(getNumStreets());
     SegListSegInfo.resize(getNumStreetSegments());
     SegListOfLenAndTime.resize(getNumStreetSegments());
+
 
     for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
         SegListSegInfo[curSegIdx] = getStreetSegmentInfo(curSegIdx);
@@ -159,16 +172,22 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     //Load Function Called
-    LoadIntersectListOfSegAndLatLon();
+    //LoadIntersectListOfSegAndLatLon();
+
+    LoadIntersectListOfInfo();
+
     LoadStructurePackage();
+
     LoadIntersectListOfStName();
+
     LoadStreetListOfIntersectsList();
+
     LoadStNameTreeForPrefix();
+
     LoadPOIListOfLatLonsList();
+
     load_successful = true; //Make sure this is updated to reflect whether
                             //loading the map succeeded or failed
-
-
 
     return load_successful;
 }
@@ -180,7 +199,8 @@ void closeMap() {
     closeStreetDatabase();
 
     IntersectListOfSegsList.clear();
-    IntersectListOfLatLon.clear();
+    //IntersectListOfLatLon.clear();
+    IntersectListOfIntersectInfo.clear();
     IntersectListOfStName.clear();
 
     StreetListOfIntersectsList.clear();
@@ -290,8 +310,7 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
 
     for(int curIdx = 0 ;curIdx < allIntersections.size() ;curIdx++ ){
         IntersectionIdx curIntersection = findIntersectionsOfStreet(street_id)[curIdx];
-        LatLon position = IntersectListOfLatLon[curIntersection];
-
+        LatLon position = IntersectListOfIntersectInfo[curIntersection].position;
             if(maxLatitude < position.latitude()){
             maxLatitude = position.latitude();
             }
@@ -549,9 +568,9 @@ double findFeatureArea(FeatureIdx feature_id){
 IntersectionIdx findClosestIntersection(LatLon my_position){
     IntersectionIdx closestIntersection = -1;
     double closestDistance = std::numeric_limits<double>::max();
-    for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfLatLon.size(); curIntersectIdx++){
+    for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfIntersectInfo.size(); curIntersectIdx++){
         double curDistance = findDistanceBetweenTwoPoints
-                (std::make_pair(IntersectListOfLatLon[curIntersectIdx], my_position));
+                (std::make_pair(IntersectListOfIntersectInfo[curIntersectIdx].position, my_position));
 
         if(curDistance < closestDistance){
             closestDistance = curDistance;
