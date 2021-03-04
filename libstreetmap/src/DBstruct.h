@@ -11,7 +11,7 @@
 /**
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
-std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
+extern std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
 
 
 /**
@@ -24,7 +24,7 @@ struct IntersectInfo{
 /**
  * Intersection List of Info include LatLon & IntersectName
  */
-std::vector<IntersectInfo> IntersectListOfIntersectInfo;
+extern std::vector<IntersectInfo> IntersectListOfIntersectInfo;
 /**
  * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
  */
@@ -34,7 +34,7 @@ void LoadIntersectListOfInfo();
  * Intersection List of StreetNames List (streetNames belong to Current Intersection)
  * <br> !!!!!!Notice this structure is not preloaded, need to use with function "findStreetNamesOfIntersection"
  */
-std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
+extern std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
 /**
  * Only resize List
  * Loaded during func findStreetNamesOfIntersection
@@ -51,15 +51,15 @@ void LoadIntersectListOfStName();
  /**
   * Street List contains all segment Id that belongs to indivual street
   */
-std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
+extern std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
 /**
  * segment List contains Information(OSMID, from, to, oneWay, numCurvPoints, speedLimit, streetID )
  */
-std::vector<StreetSegmentInfo> SegListSegInfo;
+extern std::vector<StreetSegmentInfo> SegListSegInfo;
 /**
  * segment List contains Length and Travel time
  */
-std::vector<std::pair<double,double>> SegListOfLenAndTime;
+extern std::vector<std::pair<double,double>> SegListOfLenAndTime;
 /**
  * Load StreetList -> SegList
  * <br>Load SegList -> SegInfo
@@ -70,7 +70,7 @@ void LoadStructurePackage();
 /**
  * Street List Of all Intersections belong to current Street
  */
-std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
+extern std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 /**
  * Load Street List -> Intersection List
  */
@@ -87,49 +87,29 @@ struct CharNode{
  */
 struct CharTree{
     CharNode* root;
-    void clear(){
-        if(root== nullptr){
-            return;
-        }
-        clearHelper(root);
-    };
+    /**
+     * clear the CharTree
+     */
+    void clear();
     /**
      * clear all dynamic allocated CharNode using Recursion
      * @param myRoot
      */
     void clearHelper(CharNode* myRoot);
+    /**
+     * Intsert a String into the CharNodeTree
+     * @param curStName
+     * @param street_id
+     */
     void insertNameToTree(std::string curStName, StreetIdx street_id);
-}StNameTreeForPrefix;
-void CharTree::clearHelper(CharNode* myRoot){
-    if(myRoot == nullptr){
-        return;
-    }
-    for(int i=0; i<256; i++){
-        clearHelper(myRoot->nextChar[i]);
-    }
-    delete myRoot;
-    myRoot = nullptr;
-}
+};
+extern CharTree StNameTreeForPrefix;
+
 /**
  * Load CharNodeTree of all StreetName with insertName function
  */
 void LoadStNameTreeForPrefix();
-/**
- * Intsert a String into the CharNodeTree
- * @param curStName
- * @param street_id
- */
-void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id){
-    CharNode* cptr = StNameTreeForPrefix.root;
-    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = (curStName[charIdx]&0xff);
-        if(cptr->nextChar[charDec] == nullptr){
-            cptr->nextChar[charDec] = new CharNode();
-        }
-        cptr = cptr -> nextChar[charDec];
-        cptr ->curPrefixStreetsList.push_back(street_id);
-    }
-}
+
 /**
  * Modify Name with trim space & lowercase
  * @param srcName
@@ -143,7 +123,7 @@ std::string modifyName(std::string srcName);
  * <br>Key: POI Name
  * <br>Value: List of POI Index
  */
-std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
+extern std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 /**
  * Load POI Name List -> POI Index List
  */

@@ -7,7 +7,8 @@
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
 
-#include "m1.cpp"
+#include "m1.h"
+#include "DBstruct.h"
 #include "m2.h"
 
 double avg_lat = 0;
@@ -21,6 +22,8 @@ void draw_main_canvas (ezgl::renderer *g);
 
 
 void drawMap(){
+
+
 
     double min_lat = IntersectListOfIntersectInfo[0].position.latitude();
     double max_lat = min_lat;

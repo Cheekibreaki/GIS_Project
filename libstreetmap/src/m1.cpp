@@ -61,13 +61,57 @@
  */
 /*Global Structure Load Begin*/
 
-/*name Initalization*/
+///Struct Name Used
 double min_lat, max_lat, min_lon, max_lon;
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
+std::vector<IntersectInfo> IntersectListOfIntersectInfo;
+std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
+std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
+std::vector<StreetSegmentInfo> SegListSegInfo;
+std::vector<std::pair<double,double>> SegListOfLenAndTime;
+std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
+std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
+CharTree StNameTreeForPrefix;
+/// CharTree "StNameTreeForPrefix" included
 
-/*Initalization end*/
+/// CharTree Member function & used Function
+void CharTree::clear(){
+    if(root== nullptr){
+        return;
+    }
+    clearHelper(root);
+}
 
+void CharTree::clearHelper(CharNode* myRoot){
+    if(myRoot == nullptr){
+        return;
+    }
+    for(int i=0; i<256; i++){
+        clearHelper(myRoot->nextChar[i]);
+    }
+    delete myRoot;
+    myRoot = nullptr;
+}
 
+void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id){
+    CharNode* cptr = root;
+    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
+        int charDec = (curStName[charIdx]&0xff);
+        if(cptr->nextChar[charDec] == nullptr){
+            cptr->nextChar[charDec] = new CharNode();
+        }
+        cptr = cptr -> nextChar[charDec];
+        cptr ->curPrefixStreetsList.push_back(street_id);
+    }
+}
+std::string modifyName(std::string srcName){
+    std::string name = srcName;
+    name.erase(remove(name.begin(), name.end(), ' '), name.end());
+    transform(name.begin(), name.end(), name.begin(), ::tolower);
+    return name;
+}
+/// Char Tree Member Function End
+///Load Helper Start
 void LoadIntersectListOfInfo(){
     //resize all IntersecionList to amount of Intersection
     IntersectListOfSegsList.resize(getNumIntersections());
@@ -144,47 +188,30 @@ void LoadPOIListOfLatLonsList(){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
+///Load Helper End
 
-/*Global Structure Load End*/
 
-/*CharTree memberFunc Start*/
-void CharTree::clear(){
-    if(root== nullptr){
-        return;
-    }
-    clearHelper(root);
-}
 
-void CharTree::clearHelper(CharNode* myRoot){
-    if(myRoot == nullptr){
-        return;
-    }
-    for(int i=0; i<256; i++){
-        clearHelper(myRoot->nextChar[i]);
-    }
-    delete myRoot;
-    myRoot = nullptr;
-}
 
-void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id){
-    CharNode* cptr = StNameTreeForPrefix.root;
-    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = (curStName[charIdx]&0xff);
-        if(cptr->nextChar[charDec] == nullptr){
-            cptr->nextChar[charDec] = new CharNode();
-        }
-        cptr = cptr -> nextChar[charDec];
-        cptr ->curPrefixStreetsList.push_back(street_id);
-    }
-}
-std::string modifyName(std::string srcName){
-    std::string name = srcName;
-    name.erase(remove(name.begin(), name.end(), ' '), name.end());
-    transform(name.begin(), name.end(), name.begin(), ::tolower);
-    return name;
-}
-/*CharTree memberFunc End*/
+/// Tested Functions implemtation from m1.h
 
+/// 1.1: vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
+/// 1.2: vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
+/// 1.3: vector<string> findStreetNamesOfIntersection();
+
+/// 2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
+/// 2.2: vector<IntersectionIdx> findIntersectionsOfTwoStreets(pair<StreetIdx,StreetIdx> street_ids);
+/// 2.3: vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
+/// 2.4  vector<StreetIdx> findStreetIdsFromPartialStreetName(string street_prefix);
+
+/// 3.1: double findDistanceBetweenTwoPoints(pair<LatLon, LatLon> points);
+/// 3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
+/// 3.3: double findStreetLength (StreetIdx street_id);
+/// 3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
+/// 3.5: double findFeatureArea (FeatureIdx feature_id);
+
+/// 4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
+/// 4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
 
 /**
  * LoadMap Function: <br>
@@ -209,7 +236,6 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     //Load Function Called
-    //LoadIntersectListOfSegAndLatLon();
 
     LoadIntersectListOfInfo();
 
@@ -236,7 +262,6 @@ void closeMap() {
     closeStreetDatabase();
 
     IntersectListOfSegsList.clear();
-    //IntersectListOfLatLon.clear();
     IntersectListOfIntersectInfo.clear();
     IntersectListOfStName.clear();
 
