@@ -115,7 +115,7 @@ LIB_STREETMAP_TEST=test_libstreetmap
 LIB_STREETMAP=$(BUILD)/libstreetmap.a
 
 #Things to build and copy to the project root
-PRODUCTS=$(EXE) $(LIB_STREETMAP_TEST) $(notdir $(LIB_STREETMAP))
+PRODUCTS=$(EXE) $(notdir $(LIB_STREETMAP))
 
 ################################################################################
 # Tool flags
@@ -142,7 +142,7 @@ WARN_CXXFLAGS = -Wall \
 			 -Wredundant-decls \
 			 -Wshadow \
 			 -Wno-sign-compare \
-			 -Wold-style-cast \
+			 #-Wold-style-cast \
 			 #-Wconversion \
 			 #-Wno-sign-conversion
 
@@ -236,11 +236,16 @@ DEP = $(EXE_OBJ:.o=.d) $(LIB_STREETMAP_OBJ:.o=.d) $(LIB_STREETMAP_TEST_OBJ:.o=.d
 # This is called when you type 'make' on the command line
 all: $(PRODUCTS)
 
-#This runs the unit test executable
+#This builds and runs the unit test executable
 test: $(LIB_STREETMAP_TEST)
 	@echo ""
 	@echo "Running Unit Tests..."
 	$(LIB_STREETMAP_TEST)
+
+#Symlink the test exec to the project root
+$(LIB_STREETMAP_TEST): $$(BUILD)/$$@
+	@rm -f $@
+	ln -s $< $@
 
 #Symlink the products to the project root
 $(PRODUCTS): $$(BUILD)/$$@
@@ -283,14 +288,15 @@ help:
 	@echo "Makefile for ECE297"
 	@echo ""
 	@echo "Usage: "
-	@echo '    > make'
+	@echo '    > make -j4'
 	@echo "        Call the default make target (all)."
 	@echo "        This builds the project executable: '$(EXE)'."
+	@echo "        Use -j4 option to do parallel builds."
 	@echo "    > make clean"
 	@echo "        Removes any generated files including exectuables,"
 	@echo "        static libraries, and object files."
 	@echo "    > make test"
-	@echo "        Runs unit tests."
+	@echo "        Builds and runs unit tests."
 	@echo "        Builds and runs any tests found in $(LIB_STREETMAP_TEST_DIR),"
 	@echo "        generating the test executable '$(LIB_STREETMAP_TEST)'."
 	@echo "    > make echo_flags"
