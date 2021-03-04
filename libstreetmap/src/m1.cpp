@@ -71,11 +71,9 @@ void LoadIntersectListOfInfo(){
     //go through all IntersectionId
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
 
-        //load the temporary IntersectInfo structure of current Intersection
-        IntersectInfo tempInfo;
-        tempInfo.position = getIntersectionPosition(curIntersect);
-        tempInfo.name = getIntersectionName(curIntersect);
-        IntersectListOfIntersectInfo.push_back(tempInfo);
+        IntersectListOfIntersectInfo[curIntersect].position = getIntersectionPosition(curIntersect);
+        IntersectListOfIntersectInfo[curIntersect].name = getIntersectionName(curIntersect);
+
 
         //load SegmentList of current intersection
         for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
