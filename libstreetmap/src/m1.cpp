@@ -64,7 +64,7 @@
 ///Struct Name Used
 double min_lat, max_lat, min_lon, max_lon;
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
-std::vector<IntersectInfo> IntersectListOfIntersectInfo;
+std::vector<LatLon> IntersectListOfLatLon;
 std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
 std::vector<StreetSegmentInfo> SegListSegInfo;
@@ -115,14 +115,12 @@ std::string modifyName(std::string srcName){
 void LoadIntersectListOfInfo(){
     //resize all IntersecionList to amount of Intersection
     IntersectListOfSegsList.resize(getNumIntersections());
-    IntersectListOfIntersectInfo.resize(getNumIntersections());
+    IntersectListOfLatLon.resize(getNumIntersections());
 
     //go through all IntersectionId
     for (int curIntersect = 0; curIntersect < getNumIntersections(); curIntersect++) {
 
-        IntersectListOfIntersectInfo[curIntersect].position = getIntersectionPosition(curIntersect);
-        IntersectListOfIntersectInfo[curIntersect].name = getIntersectionName(curIntersect);
-
+        IntersectListOfLatLon[curIntersect] = getIntersectionPosition(curIntersect);
 
         //load SegmentList of current intersection
         for (int segNum = 0; segNum < getNumIntersectionStreetSegment(curIntersect); segNum++) {
@@ -240,7 +238,7 @@ void closeMap() {
     closeStreetDatabase();
 
     IntersectListOfSegsList.clear();
-    IntersectListOfIntersectInfo.clear();
+    IntersectListOfLatLon.clear();
     IntersectListOfStName.clear();
 
     StreetListOfIntersectsList.clear();
@@ -371,7 +369,7 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
 
     for(int curIdx = 0 ;curIdx < allIntersections.size() ;curIdx++ ){
         IntersectionIdx curIntersection = findIntersectionsOfStreet(street_id)[curIdx];
-        LatLon position = IntersectListOfIntersectInfo[curIntersection].position;
+        LatLon position = IntersectListOfLatLon[curIntersection];
             if(maxLatitude < position.latitude()){
             maxLatitude = position.latitude();
             }
@@ -629,9 +627,9 @@ double findFeatureArea(FeatureIdx feature_id){
 IntersectionIdx findClosestIntersection(LatLon my_position){
     IntersectionIdx closestIntersection = -1;
     double closestDistance = std::numeric_limits<double>::max();
-    for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfIntersectInfo.size(); curIntersectIdx++){
+    for(IntersectionIdx curIntersectIdx = 0; curIntersectIdx < IntersectListOfLatLon.size(); curIntersectIdx++){
         double curDistance = findDistanceBetweenTwoPoints
-                (std::make_pair(IntersectListOfIntersectInfo[curIntersectIdx].position, my_position));
+                (std::make_pair(IntersectListOfLatLon[curIntersectIdx], my_position));
 
         if(curDistance < closestDistance){
             closestDistance = curDistance;

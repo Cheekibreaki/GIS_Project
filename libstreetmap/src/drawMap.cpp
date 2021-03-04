@@ -11,35 +11,41 @@
 #include "DBstruct.h"
 #include "m2.h"
 
+
 double avg_lat = 0;
-double x_from_lon(float lon);
-double y_from_lat(float lat);
-double lon_from_x(float x);
-double lat_from_y(float y);
+std::vector<intersect_info> IntersectInfoList;
 
 void draw_main_canvas (ezgl::renderer *g);
-
+void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y);
 
 
 void drawMap(){
 
 
-
-    double min_lat = IntersectListOfIntersectInfo[0].position.latitude();
+    double min_lat = IntersectListOfLatLon[0].latitude();
     double max_lat = min_lat;
-    double min_lon = IntersectListOfIntersectInfo[0].position.longitude();
+    double min_lon = IntersectListOfLatLon[0].longitude();
     double max_lon = min_lon;
 
-    for(IntersectionIdx id = 0; id < IntersectListOfIntersectInfo.size(); id++){
-        std::cout << IntersectListOfIntersectInfo[id].position.latitude() <<" " <<IntersectListOfIntersectInfo[id].position.longitude() << std::endl;
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
 
-        min_lat = std::min(min_lat, IntersectListOfIntersectInfo[id].position.latitude());
-        max_lat = std::max(max_lat, IntersectListOfIntersectInfo[id].position.latitude());
-        min_lon = std::min(min_lon, IntersectListOfIntersectInfo[id].position.longitude());
-        max_lon = std::max(max_lon, IntersectListOfIntersectInfo[id].position.longitude());
+        min_lat = std::min(min_lat, IntersectListOfLatLon[id].latitude());
+        max_lat = std::max(max_lat, IntersectListOfLatLon[id].latitude());
+        min_lon = std::min(min_lon, IntersectListOfLatLon[id].longitude());
+        max_lon = std::max(max_lon, IntersectListOfLatLon[id].longitude());
     }
 
     avg_lat = (min_lat + max_lat) / 2;
+
+
+    IntersectInfoList.resize(getNumIntersections());
+
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+        IntersectInfoList[id].curPosXY.x = x_from_lon(IntersectListOfLatLon[id].longitude());
+        IntersectInfoList[id].curPosXY.y = y_from_lat(IntersectListOfLatLon[id].latitude());
+        IntersectInfoList[id].name = getIntersectionName(id);
+    }
+
 
     ezgl::application::settings settings;
     settings.main_ui_resource   =   "libstreetmap/resources/main.ui";
@@ -56,25 +62,39 @@ void drawMap(){
 
 
 
-    application.run(nullptr, nullptr,
+    application.run(nullptr, act_on_mouse_click,
                     nullptr, nullptr);
 }
 
 void draw_main_canvas(ezgl::renderer *g){
-    g->set_color(ezgl::GREY_55);
 
-    for(IntersectionIdx id = 0; id < IntersectListOfIntersectInfo.size(); id++){
-        float x = x_from_lon(IntersectListOfIntersectInfo[id].position.longitude());
-        float y = y_from_lat(IntersectListOfIntersectInfo[id].position.latitude());
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+        float x = IntersectInfoList[id].curPosXY.x;
+        float y = IntersectInfoList[id].curPosXY.y;
 
-        //std::cout<<x<<" "<<y<<std::endl;
+        if(IntersectInfoList[id].highlight){
+            g->set_color(ezgl::RED);
+        }else{
+            g->set_color(ezgl::GREY_55);
+        }
 
         float width = 100;
         float height = width;
         g->fill_rectangle({x, y},{x + width, y + height});
     }
-
 }
+
+void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y){
+    std::cout << "Mouse clicked at (" <<x<< "," <<y<< ")\n";
+    LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
+    int id = findClosestIntersection(pos);
+
+    std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
+    IntersectInfoList[id].highlight = true;
+
+    app->refresh_drawing();
+}
+
 
 double x_from_lon(float lon){
     return lon * kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian);

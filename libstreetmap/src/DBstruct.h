@@ -15,16 +15,9 @@ extern std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
 
 
 /**
- * IntersectInfo Node include LatLon & intersectName
- */
-struct IntersectInfo{
-    LatLon position;
-    std::string name;
-};
-/**
  * Intersection List of Info include LatLon & IntersectName
  */
-extern std::vector<IntersectInfo> IntersectListOfIntersectInfo;
+extern std::vector<LatLon> IntersectListOfLatLon;
 /**
  * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
  */
@@ -128,3 +121,23 @@ extern std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsLis
  * Load POI Name List -> POI Index List
  */
 void LoadPOIListOfLatLonsList();
+
+
+///temparay func and Structure used in drawMap
+double x_from_lon(float lon);
+double y_from_lat(float lat);
+double lon_from_x(float x);
+double lat_from_y(float y);
+
+
+
+struct position_XY {
+    double x;
+    double y;
+};
+struct intersect_info{
+    position_XY curPosXY;
+    std::string name;
+    bool highlight;
+};
+extern std::vector<intersect_info> IntersectInfoList;
