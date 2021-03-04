@@ -191,28 +191,6 @@ void LoadPOIListOfLatLonsList(){
 ///Load Helper End
 
 
-
-
-/// Tested Functions implemtation from m1.h
-
-/// 1.1: vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
-/// 1.2: vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
-/// 1.3: vector<string> findStreetNamesOfIntersection();
-
-/// 2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
-/// 2.2: vector<IntersectionIdx> findIntersectionsOfTwoStreets(pair<StreetIdx,StreetIdx> street_ids);
-/// 2.3: vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
-/// 2.4  vector<StreetIdx> findStreetIdsFromPartialStreetName(string street_prefix);
-
-/// 3.1: double findDistanceBetweenTwoPoints(pair<LatLon, LatLon> points);
-/// 3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
-/// 3.3: double findStreetLength (StreetIdx street_id);
-/// 3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
-/// 3.5: double findFeatureArea (FeatureIdx feature_id);
-
-/// 4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
-/// 4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
-
 /**
  * LoadMap Function: <br>
  * loadMap will be called with the name of the file that stores the "layer-2"
@@ -225,8 +203,8 @@ void LoadPOIListOfLatLonsList(){
  * @return loadMap Successful (bool)
  */
 bool loadMap(std::string map_streets_database_filename) {
-    bool load_successful = false; //Indicates whether the map has loaded 
-                                  //successfully
+    bool load_successful = false; //Indicates whether the map has loaded
+    //successfully
 
     std::cout << "loadMap: " << map_streets_database_filename << std::endl;
 
@@ -250,7 +228,7 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadPOIListOfLatLonsList();
 
     load_successful = true; //Make sure this is updated to reflect whether
-                            //loading the map succeeded or failed
+    //loading the map succeeded or failed
 
     return load_successful;
 }
@@ -275,6 +253,27 @@ void closeMap() {
 
     POINameListOfPOIsList.clear();
 }
+
+/// Tested Functions implemtation from m1.h
+
+/// 1.1: vector<IntersectionIdx> findAdjacentInters(IntersectionIdx intersection_id);
+/// 1.2: vector<StreetSegmentIdx> findStreetSegmentsOfIntersection(IntersectionIdx intersection_id);
+/// 1.3: vector<string> findStreetNamesOfIntersection();
+
+/// 2.1: LatLonBounds findStreetBoundingBox(StreetIdx street_id);
+/// 2.2: vector<IntersectionIdx> findIntersectionsOfTwoStreets(pair<StreetIdx,StreetIdx> street_ids);
+/// 2.3: vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id);
+/// 2.4  vector<StreetIdx> findStreetIdsFromPartialStreetName(string street_prefix);
+
+/// 3.1: double findDistanceBetweenTwoPoints(pair<LatLon, LatLon> points);
+/// 3.2: double findStreetSegmentLength (StreetSegmentIdx street_segment_id);
+/// 3.3: double findStreetLength (StreetIdx street_id);
+/// 3.4: double findStreetSegmentTravelTime (StreetSegmentIdx street_segment_id);
+/// 3.5: double findFeatureArea (FeatureIdx feature_id);
+
+/// 4.1: IntersectionIdx findClosestIntersection(LatLon my_position);
+/// 4.2:POIIdx findClosestPOI(LatLon my_position, string POIname);
+
 /**
  * Function 1.1: <br>
  * Returns all intersections reachable by traveling down one street segment
