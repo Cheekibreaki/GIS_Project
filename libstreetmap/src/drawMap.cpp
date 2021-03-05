@@ -101,7 +101,7 @@ void drawMap(){
 
 
     application.run(nullptr, act_on_mouse_click,
-                    act_on_, nullptr);
+                    nullptr, nullptr);
 
     IntersectInfoList.clear();
 }
