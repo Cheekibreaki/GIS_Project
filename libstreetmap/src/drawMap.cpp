@@ -49,7 +49,6 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
 //                double y= y_from_lat(temp.latitude());
 //                naturalFeatureList[feature_id].polyList[i]= ezgl::point2d(x,y);
 //            }
-//
 //        if(findFeatureArea(feature_id)!=-1 && naturalFeatureList[feature_id].polyList.size()>1){
 //            naturalFeatureList[feature_id].isPoly=true;
 //        }
