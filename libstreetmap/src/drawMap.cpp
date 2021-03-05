@@ -24,7 +24,6 @@ float legendLength;
 void calcLegendLength(ezgl::renderer *g);
 
 double avg_lat = 0;
-position_XY LatLon_to_posXY(LatLon curLatLon);
 
 std::vector<intersect_info> IntersectInfoList;
 void draw_main_canvas (ezgl::renderer *g);
@@ -74,13 +73,8 @@ void drawMap(){
 
     avg_lat = (min_lat + max_lat) / 2;
 
+    LoadIntersectInfoList();
 
-    IntersectInfoList.resize(getNumIntersections());
-
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
-        IntersectInfoList[id].curPosXY = LatLon_to_posXY(IntersectListOfLatLon[id]);
-        IntersectInfoList[id].name = getIntersectionName(id);
-    }
 
 
     ezgl::application::settings settings;
@@ -134,6 +128,7 @@ void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::WORLD);
 }
 
+///Find osm for further modification Not Finished
 void draw_streetSeg(ezgl::renderer *g) {
 
     for(int segIdx = 0; segIdx<SegListSegInfo.size(); segIdx++){
@@ -147,28 +142,28 @@ void draw_streetSeg(ezgl::renderer *g) {
             }
         }
 
-        position_XY fromPos=IntersectInfoList[SegListSegInfo[segIdx].from].curPosXY;
-        position_XY toPos=IntersectInfoList[SegListSegInfo[segIdx].to].curPosXY;
+        ezgl::point2d fromPos=IntersectInfoList[SegListSegInfo[segIdx].from].curPosXY;
+        ezgl::point2d toPos=IntersectInfoList[SegListSegInfo[segIdx].to].curPosXY;
 
 
 
         int numCurvePoints = SegListSegInfo[segIdx].numCurvePoints;
         if(numCurvePoints != 0){
             //start of fromPos connect first curvePoint
-            position_XY lastCurvePos = fromPos;
+            ezgl::point2d lastCurvePos = fromPos;
 
             //for loop through all curvePoint
             for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
-                position_XY tempCurvePos = LatLon_to_posXY(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
+                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
 
-                g->draw_line({tempCurvePos.x,tempCurvePos.y},{lastCurvePos.x, lastCurvePos.y});
+                g->draw_line(tempCurvePos,lastCurvePos);
                 lastCurvePos = tempCurvePos;
             }
             //draw the last curvePoint to toPos
-            g->draw_line({lastCurvePos.x, lastCurvePos.y},{toPos.x, toPos.y});
+            g->draw_line(lastCurvePos,toPos);
 
         }else{
-            g->draw_line({fromPos.x,fromPos.y},{toPos.x, toPos.y});
+            g->draw_line(fromPos,toPos);
         }
     }
 }
@@ -263,6 +258,14 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
     app->refresh_drawing();
 }
 
+void LoadIntersectInfoList(){
+    IntersectInfoList.resize(getNumIntersections());
+
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+        IntersectInfoList[id].curPosXY = LatLon_to_point2d(IntersectListOfLatLon[id]);
+        IntersectInfoList[id].name = getIntersectionName(id);
+    }
+}
 
 double x_from_lon(float lon){
     return lon * kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian);
@@ -276,11 +279,10 @@ double lon_from_x(float x){
 double lat_from_y(float y){
     return y / kDegreeToRadian / kEarthRadiusInMeters;
 }
-position_XY LatLon_to_posXY(LatLon curLatLon){
-    position_XY tempPos;
-    tempPos.x = x_from_lon(curLatLon.longitude());
-    tempPos.y = y_from_lat(curLatLon.latitude());
-    return tempPos;
+ezgl::point2d LatLon_to_point2d(LatLon curLatLon){
+
+    return ezgl::point2d(x_from_lon(curLatLon.longitude()),y_from_lat(curLatLon.latitude()));
+
 }
 
 void calcLegendLength(ezgl::renderer *g){

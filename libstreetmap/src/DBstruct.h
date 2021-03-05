@@ -7,7 +7,7 @@
 #include <cmath>
 
 #include "StreetsDatabaseAPI.h"
-
+#include "ezgl/point.hpp"
 /**
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
@@ -128,16 +128,14 @@ double x_from_lon(float lon);
 double y_from_lat(float lat);
 double lon_from_x(float x);
 double lat_from_y(float y);
+ezgl::point2d LatLon_to_point2d(LatLon curLatLon);
 
 
-
-struct position_XY {
-    double x;
-    double y;
-};
 struct intersect_info{
-    position_XY curPosXY;
+    ezgl::point2d curPosXY;
     std::string name;
     bool highlight = false;
 };
 extern std::vector<intersect_info> IntersectInfoList;
+
+void LoadIntersectInfoList();
