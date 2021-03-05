@@ -26,6 +26,7 @@ namespace ezgl {
  */
 class point2d {
 public:
+  point2d(){};
   /**
    * Create a point at the given x and y position.
    */
