@@ -138,6 +138,6 @@ struct position_XY {
 struct intersect_info{
     position_XY curPosXY;
     std::string name;
-    bool highlight;
+    bool highlight = false;
 };
 extern std::vector<intersect_info> IntersectInfoList;

@@ -16,7 +16,11 @@ double avg_lat = 0;
 std::vector<intersect_info> IntersectInfoList;
 
 void draw_main_canvas (ezgl::renderer *g);
+void draw_intersection(ezgl::renderer *g);
+void draw_streetSeg(ezgl::renderer *g);
+void draw_naturalFeature(ezgl::renderer *g);
 void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y);
+
 
 
 void drawMap(){
@@ -68,6 +72,19 @@ void drawMap(){
 
 void draw_main_canvas(ezgl::renderer *g){
 
+    //draw_intersection(g);
+
+    draw_streetSeg(g);
+    draw_naturalFeature(g);
+}
+
+void draw_streetSeg(ezgl::renderer *g){
+
+}
+void draw_naturalFeature(ezgl::renderer *g){
+
+}
+void draw_intersection(ezgl::renderer *g){
     for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
         float x = IntersectInfoList[id].curPosXY.x;
         float y = IntersectInfoList[id].curPosXY.y;
@@ -78,7 +95,9 @@ void draw_main_canvas(ezgl::renderer *g){
             g->set_color(ezgl::GREY_55);
         }
 
-        float width = 100;
+        //g->get_visible_screen();
+
+        float width = 5;
         float height = width;
         g->fill_rectangle({x, y},{x + width, y + height});
     }
