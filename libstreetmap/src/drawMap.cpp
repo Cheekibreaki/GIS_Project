@@ -72,13 +72,15 @@ void drawMap(){
 
     application.run(nullptr, act_on_mouse_click,
                     nullptr, nullptr);
+
+    IntersectInfoList.clear();
 }
 
 void draw_main_canvas(ezgl::renderer *g){
     draw_intersection(g);
+    draw_legend(g);
     draw_streetSeg(g);
     draw_naturalFeature(g);
-    draw_legend(g);
 }
 
 void draw_legend(ezgl::renderer *g){
@@ -104,11 +106,20 @@ void draw_legend(ezgl::renderer *g){
 void draw_streetSeg(ezgl::renderer *g) {
 
     for(int segIdx = 0; segIdx<SegListSegInfo.size(); segIdx++){
-        
+        double curSegSpeed = SegListSegInfo[segIdx].speedLimit;
+        if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
+            continue;
+        }else{
+            g->set_color(255,255,255,255);
+            if(curSegSpeed > 16.7){
+                g->set_color(250,226,211,255);
+            }
+        }
+
         position_XY fromPos=IntersectInfoList[SegListSegInfo[segIdx].from].curPosXY;
         position_XY toPos=IntersectInfoList[SegListSegInfo[segIdx].to].curPosXY;
 
-        g->set_color(255,255,255,255);
+
 
         int numCurvePoints = SegListSegInfo[segIdx].numCurvePoints;
         if(numCurvePoints != 0){
@@ -158,6 +169,8 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
+    for(int i=0;i<IntersectListOfSegsList[id].size();i++)
+    std::cout << "Closest Seg speed "<< getStreetSegmentInfo(IntersectListOfSegsList[id][i]).speedLimit << "\n";
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
