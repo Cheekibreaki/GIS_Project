@@ -11,23 +11,20 @@
 #include "DBstruct.h"
 #include "m2.h"
 
-
+float legendLength;
+void calcLegendLength(ezgl::renderer *g);
 
 double avg_lat = 0;
+position_XY LatLon_to_posXY(LatLon curLatLon);
+
 std::vector<intersect_info> IntersectInfoList;
 void draw_main_canvas (ezgl::renderer *g);
 void draw_intersection(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
-void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y);
 
-position_XY LatLon_to_posXY(LatLon curLatLon){
-    position_XY tempPos;
-    tempPos.x = x_from_lon(curLatLon.longitude());
-    tempPos.y = y_from_lat(curLatLon.latitude());
-    return tempPos;
-}
+void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y);
 
 void drawMap(){
 
@@ -78,25 +75,12 @@ void drawMap(){
 }
 
 void draw_main_canvas(ezgl::renderer *g){
-
-
-
     draw_intersection(g);
-
     draw_streetSeg(g);
     draw_naturalFeature(g);
     draw_legend(g);
 }
-float legendLength;
-void calcLegendLength(ezgl::renderer *g){
-    // Calculate LegendLength
-    // (visibleWorld.right-visibleWorld.left)/(visibleScreen.right-visibleScreen.left) * 100
-    // [m/100 pixel]
-    ezgl::rectangle currentScreen = g->get_visible_screen();
-    ezgl::rectangle currentWorld = g->get_visible_world();
 
-    legendLength = 100 * (currentWorld.right()-currentWorld.left())/(currentScreen.right()-currentScreen.left());
-}
 void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::SCREEN);
 
@@ -116,12 +100,11 @@ void draw_legend(ezgl::renderer *g){
 
     g->set_coordinate_system(ezgl::WORLD);
 }
+
 void draw_streetSeg(ezgl::renderer *g) {
 
     for(int segIdx = 0; segIdx<SegListSegInfo.size(); segIdx++){
-
-
-
+        
         position_XY fromPos=IntersectInfoList[SegListSegInfo[segIdx].from].curPosXY;
         position_XY toPos=IntersectInfoList[SegListSegInfo[segIdx].to].curPosXY;
 
@@ -192,4 +175,20 @@ double lon_from_x(float x){
 }
 double lat_from_y(float y){
     return y / kDegreeToRadian / kEarthRadiusInMeters;
+}
+position_XY LatLon_to_posXY(LatLon curLatLon){
+    position_XY tempPos;
+    tempPos.x = x_from_lon(curLatLon.longitude());
+    tempPos.y = y_from_lat(curLatLon.latitude());
+    return tempPos;
+}
+
+void calcLegendLength(ezgl::renderer *g){
+    // Calculate LegendLength
+    // (visibleWorld.right-visibleWorld.left)/(visibleScreen.right-visibleScreen.left) * 100
+    // [m/100 pixel]
+    ezgl::rectangle currentScreen = g->get_visible_screen();
+    ezgl::rectangle currentWorld = g->get_visible_world();
+
+    legendLength = 100 * (currentWorld.right()-currentWorld.left())/(currentScreen.right()-currentScreen.left());
 }
