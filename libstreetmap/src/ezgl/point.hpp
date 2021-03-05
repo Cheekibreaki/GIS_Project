@@ -29,6 +29,7 @@ public:
   /**
    * Create a point at the given x and y position.
    */
+  point2d(){}
   point2d(double x_coord, double y_coord) : x(x_coord), y(y_coord)
   {
   }
