@@ -208,16 +208,22 @@ void draw_naturalFeature(ezgl::renderer *g){
             g->set_color(50,205,50);
         }
 
-        if(findFeatureArea(feature_id)!=-1 && polyList.size()>1){
-
-          g->fill_poly(polyList);
+        if(findFeatureArea(feature_id)!=-1 && polyList.size()>1) {
+            if (legendLength < 300 && getFeatureType(feature_id) == 6){
+                g->fill_poly(polyList);
+        }
+            else {g->fill_poly(polyList);}
 
         }
         if(polyList[0]!=polyList[getNumFeaturePoints(feature_id)-1]) {
-
-                for (int i = 0; i < polyList.size() - 1; i++) {
-
-                    g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
+                if(getFeatureType(feature_id)!=6) {
+                    for (int i = 0; i < polyList.size() - 1; i++) {
+                        g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
+                    }
+                }else if(getFeatureType(feature_id)==6 && legendLength<300){
+                    for (int i = 0; i < polyList.size() - 1; i++) {
+                        g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
+                    }
                 }
         }
 
