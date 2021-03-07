@@ -13,25 +13,7 @@
 /* External constants */
 
 
-
-
-/**
- * dynamic length of 100 pixels to meters, calculated in drawMap using  func: calcLegendLength(renderer)
- */
-extern float legendLength;
-/**
- * average Latitude of all points
- */
-extern double avg_lat;
-
-
-
-
 /* Support Lower Level Structures */
-
-
-
-
 
 
 /**
@@ -96,9 +78,6 @@ struct poi_info{
 /* External structures */
 
 
-
-
-
 /**
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
@@ -153,10 +132,6 @@ extern std::vector<poi_info> PoiInfoList;
 
 /* Load Functions Start */
 
-
-
-
-
 /**
  * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
  */
@@ -198,8 +173,6 @@ void LoadPoiInfoList();
 
 
 /* Supportive Func */
-
-
 
 
 /**
