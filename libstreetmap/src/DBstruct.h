@@ -120,7 +120,7 @@ extern std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsLis
 /**
  * Load POI Name List -> POI Index List
  */
-void LoadPOIListOfLatLonsList();
+void LoadPOINameListOfPOIsList();
 
 
 ///temparay func and Structure used in drawMap
@@ -139,3 +139,4 @@ struct intersect_info{
 extern std::vector<intersect_info> IntersectInfoList;
 
 void LoadIntersectInfoList();
+

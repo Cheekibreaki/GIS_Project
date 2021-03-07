@@ -181,7 +181,7 @@ void LoadStNameTreeForPrefix(){
     }
 }
 
-void LoadPOIListOfLatLonsList(){
+void LoadPOINameListOfPOIsList(){
     for(POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++ ){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
@@ -223,7 +223,7 @@ bool loadMap(std::string map_streets_database_filename) {
 
     LoadStNameTreeForPrefix();
 
-    LoadPOIListOfLatLonsList();
+    LoadPOINameListOfPOIsList();
 
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
