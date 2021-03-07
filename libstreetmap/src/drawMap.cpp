@@ -11,6 +11,15 @@
 #include "DBstruct.h"
 #include "m2.h"
 
+//struct naturalFeature{
+//    std::string name;
+//    FeatureType type;
+//    std::vector<ezgl::point2d> polyList;
+//    bool isPoly = false;
+//};
+
+//std::vector<naturalFeature> naturalFeatureList;
+
 float legendLength;
 void calcLegendLength(ezgl::renderer *g);
 
@@ -24,10 +33,31 @@ void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 
 void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y);
+//void set_up_naturalFeature();
+
+//void set_up_naturalFeature(){
+//    naturalFeatureList.resize(getNumFeatures());
+//    for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
+//        naturalFeatureList[feature_id].name=getFeatureName(feature_id);
+//        naturalFeatureList[feature_id].type=getFeatureType(feature_id);
+//        naturalFeatureList[feature_id].polyList.resize(getNumFeaturePoints(feature_id));
+//
+//            for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
+//                LatLon temp=getFeaturePoint(feature_id,i);
+//                double x= x_from_lon(temp.longitude());
+//                double y= y_from_lat(temp.latitude());
+//                naturalFeatureList[feature_id].polyList[i]= ezgl::point2d(x,y);
+//            }
+//        if(findFeatureArea(feature_id)!=-1 && naturalFeatureList[feature_id].polyList.size()>1){
+//            naturalFeatureList[feature_id].isPoly=true;
+//        }
+//    }
+//
+//}
 
 void drawMap(){
 
-
+    //set_up_naturalFeature();
     double min_lat = IntersectListOfLatLon[0].latitude();
     double max_lat = min_lat;
     double min_lon = IntersectListOfLatLon[0].longitude();
@@ -71,10 +101,11 @@ void drawMap(){
 }
 
 void draw_main_canvas(ezgl::renderer *g){
-    draw_intersection(g);
-    draw_legend(g);
+    //draw_intersection(g);
+
     draw_streetSeg(g);
     draw_naturalFeature(g);
+    draw_legend(g);
 }
 
 void draw_legend(ezgl::renderer *g){
@@ -137,6 +168,68 @@ void draw_streetSeg(ezgl::renderer *g) {
     }
 }
 void draw_naturalFeature(ezgl::renderer *g){
+    for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
+
+        std::vector<ezgl::point2d>polyList;
+        polyList.resize(getNumFeaturePoints(feature_id));
+
+        for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
+            LatLon temp=getFeaturePoint(feature_id,i);
+            double x= x_from_lon(temp.longitude());
+            double y= y_from_lat(temp.latitude());
+            polyList[i]= ezgl::point2d(x,y);
+        }
+
+        if(getFeatureType(feature_id)==0) {
+            g->set_color(255,228,225);
+        }
+        if(getFeatureType(feature_id)==1){
+            g->set_color(128,128,0);
+        }
+        if(getFeatureType(feature_id)==2){
+            g->set_color(251,239,199);
+        }
+        if(getFeatureType(feature_id)==3){
+            g->set_color(185,208,251);
+        }
+        if(getFeatureType(feature_id)==4){
+            g->set_color(185,208,251);
+        }
+        if(getFeatureType(feature_id)==5){
+            g->set_color(105,105,105);
+        }
+        if(getFeatureType(feature_id)==6){
+            g->set_color(214,214,214);
+        }
+        if(getFeatureType(feature_id)==7){
+            g->set_color(206,222,175);
+        }
+        if(getFeatureType(feature_id)==8){
+            g->set_color(50,205,50);
+        }
+
+        if(findFeatureArea(feature_id)!=-1 && polyList.size()>1) {
+            if (legendLength < 300 && getFeatureType(feature_id) == 6){
+                g->fill_poly(polyList);
+        }
+            else {g->fill_poly(polyList);}
+
+        }
+        if(polyList[0]!=polyList[getNumFeaturePoints(feature_id)-1]) {
+                if(getFeatureType(feature_id)!=6) {
+                    for (int i = 0; i < polyList.size() - 1; i++) {
+                        g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
+                    }
+                }else if(getFeatureType(feature_id)==6 && legendLength<300){
+                    for (int i = 0; i < polyList.size() - 1; i++) {
+                        g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
+                    }
+                }
+        }
+
+        }
+
+
 
 }
 void draw_intersection(ezgl::renderer *g){
