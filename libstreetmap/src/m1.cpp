@@ -62,7 +62,6 @@
 /*Global Structure Load Begin*/
 
 ///Struct Name Used
-double min_lat, max_lat, min_lon, max_lon;
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
 std::vector<LatLon> IntersectListOfLatLon;
 std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;

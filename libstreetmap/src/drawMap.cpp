@@ -24,8 +24,13 @@ float legendLength;
 void calcLegendLength(ezgl::renderer *g);
 
 double avg_lat = 0;
+double min_lat, max_lat, min_lon, max_lon;
+void calc_avg_lat();
 
 std::vector<intersect_info> IntersectInfoList;
+void LoadDrawingStructure();
+void CloseDrawingStructure();
+
 void draw_main_canvas (ezgl::renderer *g);
 void draw_intersection(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
@@ -58,23 +63,11 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
 void drawMap(){
 
     //set_up_naturalFeature();
-    double min_lat = IntersectListOfLatLon[0].latitude();
-    double max_lat = min_lat;
-    double min_lon = IntersectListOfLatLon[0].longitude();
-    double max_lon = min_lon;
 
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
 
-        min_lat = std::min(min_lat, IntersectListOfLatLon[id].latitude());
-        max_lat = std::max(max_lat, IntersectListOfLatLon[id].latitude());
-        min_lon = std::min(min_lon, IntersectListOfLatLon[id].longitude());
-        max_lon = std::max(max_lon, IntersectListOfLatLon[id].longitude());
-    }
+    calc_avg_lat();
 
-    avg_lat = (min_lat + max_lat) / 2;
-
-    LoadIntersectInfoList();
-
+    LoadDrawingStructure();
 
 
     ezgl::application::settings settings;
@@ -97,16 +90,22 @@ void drawMap(){
     application.run(nullptr, act_on_mouse_click,
                     nullptr, nullptr);
 
-    IntersectInfoList.clear();
+    CloseDrawingStructure();
 }
+void LoadDrawingStructure(){
 
+    LoadIntersectInfoList();
+
+}
+void CloseDrawingStructure(){
+
+    IntersectInfoList.clear();
+
+}
 void draw_main_canvas(ezgl::renderer *g){
     //draw_intersection(g);
     //draw_naturalFeature(g);
     draw_streetSeg(g);
-
-
-
     draw_legend(g);
 }
 
@@ -264,6 +263,23 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
+}
+
+void calc_avg_lat(){
+    min_lat = IntersectListOfLatLon[0].latitude();
+    max_lat = min_lat;
+    min_lon = IntersectListOfLatLon[0].longitude();
+    max_lon = min_lon;
+
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+
+        min_lat = std::min(min_lat, IntersectListOfLatLon[id].latitude());
+        max_lat = std::max(max_lat, IntersectListOfLatLon[id].latitude());
+        min_lon = std::min(min_lon, IntersectListOfLatLon[id].longitude());
+        max_lon = std::max(max_lon, IntersectListOfLatLon[id].longitude());
+    }
+
+    avg_lat = (min_lat + max_lat) / 2;
 }
 
 void LoadIntersectInfoList(){
