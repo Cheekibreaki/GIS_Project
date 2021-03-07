@@ -28,7 +28,7 @@ double min_lat, max_lat, min_lon, max_lon;
 void calc_avg_lat();
 
 std::vector<intersect_info> IntersectInfoList;
-void LoadDrawingStructure();
+void InitDrawingStructure();
 void CloseDrawingStructure();
 
 void draw_main_canvas (ezgl::renderer *g);
@@ -37,7 +37,11 @@ void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 
-void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y);
+void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
+void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
+void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
+void initial_setup(ezgl::application *application, bool new_window);
+
 //void set_up_naturalFeature();
 
 //void set_up_naturalFeature(){
@@ -59,15 +63,22 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
 //    }
 //
 //}
+void InitDrawingStructure(){
+
+    calc_avg_lat();
+    LoadIntersectInfoList();
+
+}
+void CloseDrawingStructure(){
+
+    IntersectInfoList.clear();
+
+}
 
 void drawMap(){
 
     //set_up_naturalFeature();
-
-
-    calc_avg_lat();
-
-    LoadDrawingStructure();
+    InitDrawingStructure();
 
 
     ezgl::application::settings settings;
@@ -87,21 +98,16 @@ void drawMap(){
 
 
 
-    application.run(nullptr, act_on_mouse_click,
-                    nullptr, nullptr);
+    application.run(initial_setup, act_on_mouse_press,
+                    act_on_mouse_move, act_on_key_press);
 
     CloseDrawingStructure();
 }
-void LoadDrawingStructure(){
 
-    LoadIntersectInfoList();
 
-}
-void CloseDrawingStructure(){
 
-    IntersectInfoList.clear();
+/*Render drawing main Canvas*/
 
-}
 void draw_main_canvas(ezgl::renderer *g){
     //draw_intersection(g);
     //draw_naturalFeature(g);
@@ -252,7 +258,20 @@ void draw_intersection(ezgl::renderer *g){
     }
 }
 
-void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x, double y){
+
+
+/*User interaction*/
+void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y){
+
+}
+void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name){
+
+}
+void initial_setup(ezgl::application *application, bool new_window){
+
+}
+
+void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     std::cout << "Mouse clicked at (" <<x<< "," <<y<< ")\n";
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
@@ -264,6 +283,12 @@ void act_on_mouse_click(ezgl::application* app, GdkEventButton* event, double x,
 
     app->refresh_drawing();
 }
+
+
+
+
+/*Supportive Helper Functions*/
+
 
 void calc_avg_lat(){
     min_lat = IntersectListOfLatLon[0].latitude();
@@ -291,21 +316,21 @@ void LoadIntersectInfoList(){
     }
 }
 
-double x_from_lon(float lon){
+double x_from_lon(double lon){
     return lon * kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian);
 }
-double y_from_lat(float lat){
+double y_from_lat(double lat){
     return lat * kDegreeToRadian * kEarthRadiusInMeters;
 }
-double lon_from_x(float x){
+double lon_from_x(double x){
     return x / (kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian));
 }
-double lat_from_y(float y){
+double lat_from_y(double y){
     return y / kDegreeToRadian / kEarthRadiusInMeters;
 }
 ezgl::point2d LatLon_to_point2d(LatLon curLatLon){
 
-    return ezgl::point2d(x_from_lon(curLatLon.longitude()),y_from_lat(curLatLon.latitude()));
+    return {x_from_lon(curLatLon.longitude()),y_from_lat(curLatLon.latitude())};
 
 }
 
