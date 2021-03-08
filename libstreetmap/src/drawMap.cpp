@@ -89,7 +89,7 @@ void drawMap(){
 /*Render drawing main Canvas*/
 
 void draw_main_canvas(ezgl::renderer *g){
-    draw_intersection(g);
+    //draw_intersection(g);
     draw_naturalFeature(g);
     draw_streetSeg(g);
     draw_legend(g);
@@ -240,7 +240,7 @@ void draw_intersection(ezgl::renderer *g){
     for(IntersectionIdx id = 0; id < 10; id++){
         tempList.push_back(IntersectInfoList[id].curPosXY);
     }
-    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_pos.png");*/
+    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_point.png");*/
 }
 
 /*User interaction*/
@@ -287,14 +287,17 @@ void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
     GtkEntry* text_Entry = (GtkEntry* ) app->get_object("TextInput");
     const char * text = gtk_entry_get_text(text_Entry);
 
+    // determine which search mode it will excute
+    // STREETNAME (highlight the Street)
+    // STREETNAME, STREETNAME (find Intersection of Two street and then)
+
 
     std::vector<StreetIdx> tempStreetIDList = findStreetIdsFromPartialStreetName(std::string(text));
     if(!tempStreetIDList.size()){
         app->update_message("Name No Found");
     }else{
-        app->update_message(getStreetName(tempStreetIDList[0]));
+        //app->update_message(getStreetName(tempStreetIDList[0]));
     }
-
 }
 /*Supportive Helper Functions*/
 
