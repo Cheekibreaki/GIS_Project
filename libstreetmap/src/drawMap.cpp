@@ -196,7 +196,7 @@ void draw_naturalFeature(ezgl::renderer *g){
             g->set_color(50,205,50);
         }
 
-        if(findFeatureArea(feature_id)!=-1 && polyList.size()>1) {
+        if(polyList[0]==polyList[getNumFeaturePoints(feature_id)-1]&& polyList.size()>1) {
             if (legendLength < 300 && getFeatureType(feature_id) == 6){
                 g->fill_poly(polyList);
             }
@@ -320,4 +320,3 @@ void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std
 
     ezgl::renderer::free_surface(png_surface);
 }
-
