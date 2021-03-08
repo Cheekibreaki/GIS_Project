@@ -36,6 +36,8 @@ void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, do
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
 void initial_setup(ezgl::application *application, bool new_window);
 
+void TextInput_Enter_Key_action(GtkWidget *, gpointer data);
+
 //void set_up_naturalFeature();
 
 //void set_up_naturalFeature(){
@@ -250,9 +252,6 @@ void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, do
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name){
 
 }
-void initial_setup(ezgl::application *application, bool new_window){
-
-}
 
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     std::cout << "Mouse clicked at (" <<x<< "," <<y<< ")\n";
@@ -265,6 +264,37 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
+}
+
+void initial_setup(ezgl::application *application, bool new_window){
+    application->update_message("EZGL Application");
+
+    g_signal_connect(
+            application->get_object("TextInput"),
+            "activate",
+            G_CALLBACK(TextInput_Enter_Key_action),
+            application
+    );
+}
+
+// Find function
+// Input One: StreetName (Enter to autoComplete)
+// Input Two: StreetName (Enter to autoComplete)
+
+void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
+    auto app = static_cast<ezgl::application *>(data);
+    std::cout << "testCallBack excuting" << std::endl;
+    GtkEntry* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+    const char * text = gtk_entry_get_text(text_Entry);
+
+
+    std::vector<StreetIdx> tempStreetIDList = findStreetIdsFromPartialStreetName(std::string(text));
+    if(!tempStreetIDList.size()){
+        app->update_message("Name No Found");
+    }else{
+        app->update_message(getStreetName(tempStreetIDList[0]));
+    }
+
 }
 /*Supportive Helper Functions*/
 

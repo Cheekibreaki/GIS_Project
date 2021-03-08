@@ -24,7 +24,7 @@
           </object>
           <packing>
             <property name="left_attach">0</property>
-            <property name="top_attach">0</property>
+            <property name="top_attach">2</property>
           </packing>
         </child>
         <child>
@@ -172,7 +172,7 @@
           </object>
           <packing>
             <property name="left_attach">1</property>
-            <property name="top_attach">0</property>
+            <property name="top_attach">2</property>
           </packing>
         </child>
         <child>
@@ -184,9 +184,36 @@
           </object>
           <packing>
             <property name="left_attach">0</property>
-            <property name="top_attach">1</property>
+            <property name="top_attach">3</property>
             <property name="width">2</property>
           </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="TextInput">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <signal name="activate" handler="TextInput_Enter_Key_action" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkTextView" id="TextOutput">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </object>
     </child>
