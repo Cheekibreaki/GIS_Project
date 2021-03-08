@@ -23,13 +23,6 @@
 float legendLength;
 void calcLegendLength(ezgl::renderer *g);
 
-double avg_lat = 0;
-double min_lat, max_lat, min_lon, max_lon;
-void calc_avg_lat();
-
-std::vector<intersect_info> IntersectInfoList;
-void InitDrawingStructure();
-void CloseDrawingStructure();
 
 void draw_main_canvas (ezgl::renderer *g);
 void draw_intersection(ezgl::renderer *g);
@@ -64,23 +57,8 @@ void initial_setup(ezgl::application *application, bool new_window);
 //    }
 //
 //}
-void InitDrawingStructure(){
-
-    calc_avg_lat();
-    LoadIntersectInfoList();
-
-}
-void CloseDrawingStructure(){
-
-    IntersectInfoList.clear();
-
-}
 
 void drawMap(){
-
-    //set_up_naturalFeature();
-    InitDrawingStructure();
-
 
     ezgl::application::settings settings;
     settings.main_ui_resource   =   "libstreetmap/resources/main.ui";
@@ -91,18 +69,17 @@ void drawMap(){
 
     //set init coordinate system
     ezgl::rectangle initial_world = ezgl::rectangle{{x_from_lon(min_lon),y_from_lat(min_lat)},
-                                  {x_from_lon(max_lon),y_from_lat(max_lat)}};
+                                                    {x_from_lon(max_lon),y_from_lat(max_lat)}};
 
 
+    ezgl::color backgroundColor = ezgl::color(220,220,220,255);
 
-    application.add_canvas("MainCanvas", draw_main_canvas, initial_world,ezgl::GREY_55);
+    application.add_canvas("MainCanvas", draw_main_canvas, initial_world,backgroundColor);
 
 
 
     application.run(initial_setup, act_on_mouse_press,
                     act_on_mouse_move, act_on_key_press);
-
-    CloseDrawingStructure();
 }
 
 
@@ -139,8 +116,9 @@ void draw_legend(ezgl::renderer *g){
 ///Find osm for further modification Not Finished
 void draw_streetSeg(ezgl::renderer *g) {
 
-    for(int segIdx = 0; segIdx<SegListSegInfo.size(); segIdx++){
-        double curSegSpeed = SegListSegInfo[segIdx].speedLimit;
+    for(int segIdx = 0; segIdx<SegsInfoList.size(); segIdx++){
+        double curSegSpeed = SegsInfoList[segIdx].segInfo.speedLimit;
+        //SegListSegInfo[segIdx].speedLimit;
         if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
             continue;
         }else{
@@ -150,12 +128,12 @@ void draw_streetSeg(ezgl::renderer *g) {
             }
         }
 
-        ezgl::point2d fromPos=IntersectInfoList[SegListSegInfo[segIdx].from].curPosXY;
-        ezgl::point2d toPos=IntersectInfoList[SegListSegInfo[segIdx].to].curPosXY;
+        ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
+        ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
 
 
 
-        int numCurvePoints = SegListSegInfo[segIdx].numCurvePoints;
+        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
         if(numCurvePoints != 0){
             //start of fromPos connect first curvePoint
             ezgl::point2d lastCurvePos = fromPos;
@@ -219,23 +197,23 @@ void draw_naturalFeature(ezgl::renderer *g){
         if(findFeatureArea(feature_id)!=-1 && polyList.size()>1) {
             if (legendLength < 300 && getFeatureType(feature_id) == 6){
                 g->fill_poly(polyList);
-        }
+            }
             else {g->fill_poly(polyList);}
 
         }
         if(polyList[0]!=polyList[getNumFeaturePoints(feature_id)-1]) {
-                if(getFeatureType(feature_id)!=6) {
-                    for (int i = 0; i < polyList.size() - 1; i++) {
-                        g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
-                    }
-                }else if(getFeatureType(feature_id)==6 && legendLength<300){
-                    for (int i = 0; i < polyList.size() - 1; i++) {
-                        g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
-                    }
+            if(getFeatureType(feature_id)!=6) {
+                for (int i = 0; i < polyList.size() - 1; i++) {
+                    g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
                 }
+            }else if(getFeatureType(feature_id)==6 && legendLength<300){
+                for (int i = 0; i < polyList.size() - 1; i++) {
+                    g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
+                }
+            }
         }
 
-        }
+    }
 
 
 
@@ -283,7 +261,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
     for(int i=0;i<IntersectListOfSegsList[id].size();i++)
-    std::cout << "Closest Seg speed "<< getStreetSegmentInfo(IntersectListOfSegsList[id][i]).speedLimit << "\n";
+        std::cout << "Closest Seg speed "<< getStreetSegmentInfo(IntersectListOfSegsList[id][i]).speedLimit << "\n";
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
@@ -291,49 +269,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 /*Supportive Helper Functions*/
 
 
-void calc_avg_lat(){
-    min_lat = IntersectListOfLatLon[0].latitude();
-    max_lat = min_lat;
-    min_lon = IntersectListOfLatLon[0].longitude();
-    max_lon = min_lon;
 
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
-
-        min_lat = std::min(min_lat, IntersectListOfLatLon[id].latitude());
-        max_lat = std::max(max_lat, IntersectListOfLatLon[id].latitude());
-        min_lon = std::min(min_lon, IntersectListOfLatLon[id].longitude());
-        max_lon = std::max(max_lon, IntersectListOfLatLon[id].longitude());
-    }
-
-    avg_lat = (min_lat + max_lat) / 2;
-}
-
-void LoadIntersectInfoList(){
-    IntersectInfoList.resize(getNumIntersections());
-
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
-        IntersectInfoList[id].curPosXY = LatLon_to_point2d(IntersectListOfLatLon[id]);
-        IntersectInfoList[id].name = getIntersectionName(id);
-    }
-}
-
-double x_from_lon(float lon){
-    return lon * kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian);
-}
-double y_from_lat(float lat){
-    return lat * kDegreeToRadian * kEarthRadiusInMeters;
-}
-double lon_from_x(float x){
-    return x / (kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian));
-}
-double lat_from_y(float y){
-    return y / kDegreeToRadian / kEarthRadiusInMeters;
-}
-ezgl::point2d LatLon_to_point2d(LatLon curLatLon){
-
-    return {x_from_lon(curLatLon.longitude()),y_from_lat(curLatLon.latitude())};
-
-}
 
 void calcLegendLength(ezgl::renderer *g){
     // Calculate LegendLength

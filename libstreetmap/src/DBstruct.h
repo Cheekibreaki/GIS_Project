@@ -99,27 +99,29 @@ extern std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentType
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
 extern std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
+
 /**
  * Intersection List of Info include LatLon & IntersectName
  */
 extern std::vector<LatLon> IntersectListOfLatLon;
+
 /**
  * Intersection List of StreetNames List (streetNames belong to Current Intersection)
  * <br> !!!!!!Notice this structure is not preloaded, need to use with function "findStreetNamesOfIntersection"
  */
 extern std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
- /**
-  * Street List contains all segment Id that belongs to indivual street
-  */
-extern std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
+
 /**
- * segment List contains Information(OSMID, from, to, oneWay, numCurvPoints, speedLimit, streetID )
+ * Street List contains all segment Id that belongs to indivual street
  */
-extern std::vector<StreetSegmentInfo> SegListSegInfo;
+extern std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
+
 /**
  * segment List contains Length and Travel time
+ * SegInformation (OSMID, from, to, oneWay, numCurvPoints, speedLimit, streetID)
+ * and highlight
  */
-extern std::vector<std::pair<double,double>> SegListOfLenAndTime;
+extern std::vector <StrSeg_Info> SegsInfoList;
 /**
  * Street List Of all Intersections belong to current Street
  */
@@ -189,6 +191,9 @@ void LoadTypeListOfSegsList(std::string OSMpath);
 /* Supportive Func */
 
 
+extern double avg_lat;
+extern double min_lat, max_lat, min_lon, max_lon;
+
 /**
  * Modify string return for trim space & lowercase
  * @param srcName
@@ -196,6 +201,7 @@ void LoadTypeListOfSegsList(std::string OSMpath);
  */
 std::string modifyName(std::string srcName);
 /* func and Structure implemented in drawMap */
+void calc_avg_lat();
 double x_from_lon(float lon);
 double y_from_lat(float lat);
 double lon_from_x(float x);

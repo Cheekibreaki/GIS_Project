@@ -61,6 +61,8 @@
  *          unordered_map<string, vector<POIIdx>> POINameListOfPOIsList
  */
 /*Global Structure Load Begin*/
+double avg_lat;
+double min_lat, max_lat, min_lon, max_lon;
 
 ///Struct Name Used
 
@@ -68,6 +70,7 @@ std::vector <StrSeg_Info> SegsInfoList;
 
 std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
 
+std::vector<intersect_info> IntersectInfoList;
 
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
 std::vector<LatLon> IntersectListOfLatLon;
@@ -114,8 +117,54 @@ std::string modifyName(std::string srcName){
     transform(name.begin(), name.end(), name.begin(), ::tolower);
     return name;
 }
-/// Char Tree Member Function End
-///Load Helper Start
+void calc_avg_lat(){
+    min_lat = IntersectListOfLatLon[0].latitude();
+    max_lat = min_lat;
+    min_lon = IntersectListOfLatLon[0].longitude();
+    max_lon = min_lon;
+
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+
+        min_lat = std::min(min_lat, IntersectListOfLatLon[id].latitude());
+        max_lat = std::max(max_lat, IntersectListOfLatLon[id].latitude());
+        min_lon = std::min(min_lon, IntersectListOfLatLon[id].longitude());
+        max_lon = std::max(max_lon, IntersectListOfLatLon[id].longitude());
+    }
+
+    avg_lat = (min_lat + max_lat) / 2;
+}
+
+
+double x_from_lon(float lon){
+    return lon * kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian);
+}
+double y_from_lat(float lat){
+    return lat * kDegreeToRadian * kEarthRadiusInMeters;
+}
+double lon_from_x(float x){
+    return x / (kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian));
+}
+double lat_from_y(float y){
+    return y / kDegreeToRadian / kEarthRadiusInMeters;
+}
+ezgl::point2d LatLon_to_point2d(LatLon curLatLon){
+
+    return {x_from_lon(curLatLon.longitude()),y_from_lat(curLatLon.latitude())};
+
+}
+
+
+/* Load Helper Start */
+
+void LoadIntersectInfoList(){
+    IntersectInfoList.resize(getNumIntersections());
+
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+        IntersectInfoList[id].curPosXY = LatLon_to_point2d(IntersectListOfLatLon[id]);
+        IntersectInfoList[id].name = getIntersectionName(id);
+    }
+}
+
 void LoadIntersectListOfInfo(){
     //resize all IntersecionList to amount of Intersection
     IntersectListOfSegsList.resize(getNumIntersections());
@@ -162,7 +211,7 @@ void LoadIntersectListOfStName(){
     //use function findStreetNameOfIntersection
 }
 
- void LoadStreetListOfIntersectsList(){
+void LoadStreetListOfIntersectsList(){
     StreetListOfIntersectsList.resize(getNumStreets());
     StreetSegmentInfo segInfo;
     StreetIdx curStreetIdx;
@@ -306,6 +355,8 @@ void closeMap() {
     StNameTreeForPrefix.clear();
 
     POINameListOfPOIsList.clear();
+
+    IntersectInfoList.clear();
 }
 
 /// Tested Functions implemtation from m1.h
@@ -426,19 +477,19 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
     for(int curIdx = 0 ;curIdx < allIntersections.size() ;curIdx++ ){
         IntersectionIdx curIntersection = findIntersectionsOfStreet(street_id)[curIdx];
         LatLon position = IntersectListOfLatLon[curIntersection];
-            if(maxLatitude < position.latitude()){
+        if(maxLatitude < position.latitude()){
             maxLatitude = position.latitude();
-            }
-            if(maxLongitude < position.longitude()){
+        }
+        if(maxLongitude < position.longitude()){
             maxLongitude = position.longitude();
-            }
-            if(minLatitude > position.latitude()){
-              minLatitude = position.latitude();
+        }
+        if(minLatitude > position.latitude()){
+            minLatitude = position.latitude();
 
-            }
-            if(minLongitude > position.longitude()){
-                minLongitude = position.longitude();
-            }
+        }
+        if(minLongitude > position.longitude()){
+            minLongitude = position.longitude();
+        }
 
     }
     std::vector<StreetSegmentIdx> AllStreetSegments = StreetListOfSegsList[street_id];
@@ -491,9 +542,9 @@ std::vector<IntersectionIdx> findIntersectionsOfTwoStreets(std::pair<StreetIdx, 
                           StreetListOfIntersectsList[street_ids.first].end(),
                           StreetListOfIntersectsList[street_ids.second].begin(),
                           StreetListOfIntersectsList[street_ids.second].end()
-                            ,StoreIntersections.begin());
+            ,StoreIntersections.begin());
     StoreIntersections.erase(remove(StoreIntersections.begin(),StoreIntersections.end(),0)
-                             ,StoreIntersections.end());
+            ,StoreIntersections.end());
     return StoreIntersections;
 }
 
