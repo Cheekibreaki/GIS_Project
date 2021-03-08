@@ -184,8 +184,7 @@ void LoadIntersectInfoList();
  */
 void LoadPoiInfoList();
 
-//void LoadTypeListOfSegsList()
-
+void LoadTypeListOfSegsList(std::string OSMpath);
 
 /* Supportive Func */
 
