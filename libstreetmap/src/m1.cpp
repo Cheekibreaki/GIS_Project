@@ -198,8 +198,8 @@ void LoadStructurePackage(){
         double speed = SegsInfoList[curSegIdx].segInfo.speedLimit;
         SegsInfoList[curSegIdx].length = length;
         SegsInfoList[curSegIdx].time = (length/speed);
-        SegsInfoList[curSegIdx].toXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.from]);
-        SegsInfoList[curSegIdx].fromXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.to]);
+        SegsInfoList[curSegIdx].fromXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.from]);
+        SegsInfoList[curSegIdx].toXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.to]);
 
         StreetIdx curStreetIdx = SegsInfoList[curSegIdx].segInfo.streetID;
         StreetListOfSegsList[curStreetIdx].push_back(curSegIdx);
@@ -243,50 +243,52 @@ void LoadPOINameListOfPOIsList(){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
-//void LoadTypeListOfSegsList(std::string OSMpath){
-//    loadOSMDatabaseBIN(OSMpath);
-//    for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
-//        OSMID OSM=SegsInfoList[segIdx].segInfo.wayOSMID;
-//        int OSM_64=uint64_t(OSM);
-//        const OSMWay *curWay = getWayByIndex(OSM_64);
-////        for(unsigned j=0;j<getTagCount(curWay);j++) {
-////            std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
-////            if(tagPair.first=="highway"&&tagPair.second=="motorway"){
-////                SegmentTypeList["motorway"].push_back(segIdx);
-////                break;
-////            }
-////            else if(tagPair.first=="highway"&&tagPair.second=="trunk"){
-////                SegmentTypeList["trunk"].push_back(segIdx);
-////                break;
-////            }
-////            else if(tagPair.first=="highway"&&tagPair.second=="primary"){
-////                SegmentTypeList["primary"].push_back(segIdx);
-////                break;
-////            }
-////            else if(tagPair.first=="highway"&&tagPair.second=="secondary"){
-////                SegmentTypeList["secondary"].push_back(segIdx);
-////                break;
-////            }
-////            else if(tagPair.first=="highway"&&tagPair.second=="tertiary"){
-////                SegmentTypeList["tertiary"].push_back(segIdx);
-////                break;
-////            }
-////            else if(tagPair.first=="highway"&&tagPair.second=="unclassified"){
-////                SegmentTypeList["unclassified"].push_back(segIdx);
-////                break;
-////            }
-////            else if(tagPair.first=="highway"&&tagPair.second=="residential"){
-////                SegmentTypeList["residential"].push_back(segIdx);
-////                break;
-////            }else{
-////                SegmentTypeList["unknown"].push_back(segIdx);
-////                break;
-////            }
-////
-////        }
-//    }
-//    closeOSMDatabase();
-//}
+void LoadTypeListOfSegsList(std::string OSMpath){
+    std::string map_name = "/cad2/ece297s/public/maps/toronto_canada.osm.bin";
+    loadOSMDatabaseBIN(map_name);
+    for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
+        OSMID OSM=SegsInfoList[segIdx].segInfo.wayOSMID;
+        unsigned OSM_64=uint64_t(OSM);
+        unsigned x=0;
+        const OSMWay *curWay = getWayByIndex(x);
+        for(unsigned j=0;j<getTagCount(curWay);j++) {
+            std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
+            if(tagPair.first=="highway"&&tagPair.second=="motorway"){
+                SegmentTypeList["motorway"].push_back(segIdx);
+                break;
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="trunk"){
+                SegmentTypeList["trunk"].push_back(segIdx);
+                break;
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="primary"){
+                SegmentTypeList["primary"].push_back(segIdx);
+                break;
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="secondary"){
+                SegmentTypeList["secondary"].push_back(segIdx);
+                break;
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="tertiary"){
+                SegmentTypeList["tertiary"].push_back(segIdx);
+                break;
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="unclassified"){
+                SegmentTypeList["unclassified"].push_back(segIdx);
+                break;
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="residential"){
+                SegmentTypeList["residential"].push_back(segIdx);
+                break;
+            }else{
+                SegmentTypeList["unknown"].push_back(segIdx);
+                break;
+            }
+
+        }
+    }
+    closeOSMDatabase();
+}
 ///Load Helper End
 
 
@@ -327,7 +329,7 @@ bool loadMap(std::string map_streets_database_filename) {
 
     LoadPOINameListOfPOIsList();
 
-    //LoadTypeListOfSegsList(map_streets_database_filename);
+    LoadTypeListOfSegsList(map_streets_database_filename);
 
     LoadIntersectInfoList();
 
