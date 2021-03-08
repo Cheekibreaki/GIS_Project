@@ -110,10 +110,10 @@ void drawMap(){
 /*Render drawing main Canvas*/
 
 void draw_main_canvas(ezgl::renderer *g){
-    //draw_intersection(g);
+    draw_intersection(g);
     //draw_naturalFeature(g);
-    //draw_streetSeg(g);
-    //draw_legend(g);
+    draw_streetSeg(g);
+    draw_legend(g);
 }
 
 void draw_legend(ezgl::renderer *g){

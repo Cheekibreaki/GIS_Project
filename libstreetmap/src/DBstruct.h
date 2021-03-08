@@ -69,14 +69,29 @@ struct poi_info{
     std::string type;
     bool highlight = false;
 };
-
-
+/*
+ * @struct structure Point of Segment Information
+ * @content     length
+ * <br>         time
+ * <br>         segInfo
+ * <br>         highlight
+ */
+struct StrSeg_Info{
+    double length;
+    double time;
+    StreetSegmentInfo segInfo;
+    bool highlight = false;
+};
 
 
 
 
 /* External structures */
 
+/**
+ * Segment type contains all belonged segment ID
+ */
+extern std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
 
 /**
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
@@ -124,14 +139,12 @@ extern std::vector<intersect_info> IntersectInfoList;
 /**
  * POI information list contains lower level structure poi_info (curPosXY, name, type, highlight)
  */
-extern std::vector<poi_info> PoiInfoList;
-
+extern std::vector <poi_info> PoiInfoList;
 
 
 
 
 /* Load Functions Start */
-
 /**
  * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
  */
@@ -169,7 +182,7 @@ void LoadIntersectInfoList();
  */
 void LoadPoiInfoList();
 
-
+//void LoadTypeListOfSegsList()
 
 
 /* Supportive Func */

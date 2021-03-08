@@ -62,12 +62,16 @@
 /*Global Structure Load Begin*/
 
 ///Struct Name Used
+
+std::vector <StrSeg_Info> SegsInfoList;
+
+std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
+
+
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
 std::vector<LatLon> IntersectListOfLatLon;
 std::vector<std::pair<bool,std::vector<std::string>>> IntersectListOfStName;
 std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
-std::vector<StreetSegmentInfo> SegListSegInfo;
-std::vector<std::pair<double,double>> SegListOfLenAndTime;
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 CharTree StNameTreeForPrefix;
@@ -131,19 +135,23 @@ void LoadIntersectListOfInfo(){
 void LoadStructurePackage(){
     //resize all List before loaded
     StreetListOfSegsList.resize(getNumStreets());
-    SegListSegInfo.resize(getNumStreetSegments());
-    SegListOfLenAndTime.resize(getNumStreetSegments());
+
+    SegsInfoList.resize(getNumStreetSegments());
+
 
 
     for(int curSegIdx=0;curSegIdx<getNumStreetSegments();curSegIdx++){
-        SegListSegInfo[curSegIdx] = getStreetSegmentInfo(curSegIdx);
+
+        SegsInfoList[curSegIdx].segInfo = getStreetSegmentInfo(curSegIdx);
 
         double length = findStreetSegmentLength(curSegIdx);
-        double speed = SegListSegInfo[curSegIdx].speedLimit;
-        SegListOfLenAndTime[curSegIdx].first = length;
-        SegListOfLenAndTime[curSegIdx].second = (length/speed);
+        double speed = SegsInfoList[curSegIdx].segInfo.speedLimit;
 
-        StreetIdx curStreetIdx = SegListSegInfo[curSegIdx].streetID;
+        SegsInfoList[curSegIdx].length = length;
+        SegsInfoList[curSegIdx].time = (length/speed);
+
+
+        StreetIdx curStreetIdx = SegsInfoList[curSegIdx].segInfo.streetID;
         StreetListOfSegsList[curStreetIdx].push_back(curSegIdx);
 
     }
@@ -185,6 +193,15 @@ void LoadPOINameListOfPOIsList(){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
+//void LoadTypeListOfSegsList(){
+//    for(int segIdx=0; segIdx<SegListSegInfo.size();segIdx++){
+//        OSMID OSM=SegListSegInfo[segIdx].wayOSMID;
+//        int OSM_64=uint64_t(OSM);
+//        OSMWay* way = getWayByIndex(OSM_64);
+//
+//    }
+//
+//}
 ///Load Helper End
 
 
@@ -243,8 +260,7 @@ void closeMap() {
     StreetListOfIntersectsList.clear();
     StreetListOfSegsList.clear();
 
-    SegListSegInfo.clear();
-    SegListOfLenAndTime.clear();
+    SegsInfoList.clear();
 
     StNameTreeForPrefix.clear();
 
@@ -386,7 +402,7 @@ LatLonBounds findStreetBoundingBox(StreetIdx street_id){
     }
     std::vector<StreetSegmentIdx> AllStreetSegments = StreetListOfSegsList[street_id];
     for(int curSeg = 0; curSeg < AllStreetSegments.size(); curSeg++){
-        int curveNum=SegListSegInfo[AllStreetSegments[curSeg]].numCurvePoints;
+        int curveNum= SegsInfoList[AllStreetSegments[curSeg]].segInfo.numCurvePoints;
         for(int i = 0 ; i< curveNum ; i++){
             LatLon position = getStreetSegmentCurvePoint(AllStreetSegments[curSeg],i);
 
@@ -505,12 +521,11 @@ double findDistanceBetweenTwoPoints(std::pair<LatLon, LatLon> points){
  * @return SegmentLength
  */
 double findStreetSegmentLength(StreetSegmentIdx street_segment_id){
-    StreetSegmentInfo streetSegmentInfo = SegListSegInfo[street_segment_id];
+    StreetSegmentInfo streetSegmentInfo = SegsInfoList[street_segment_id].segInfo;
     IntersectionIdx idTo=streetSegmentInfo.to;
     IntersectionIdx idFrom=streetSegmentInfo.from;
     LatLon toLatLon = getIntersectionPosition(idTo);
     LatLon fromLatLon = getIntersectionPosition(idFrom);
-    //LatLon curSecondLatLon = getIntersectionPosition(idFrom);
     int numCurvePoints = streetSegmentInfo.numCurvePoints;
     double distance = 0;
     if(numCurvePoints==0) {
@@ -555,7 +570,7 @@ double findStreetLength(StreetIdx street_id){
  * @return
  */
 double findStreetSegmentTravelTime(StreetSegmentIdx street_segment_id){
-    return SegListOfLenAndTime[street_segment_id].second;
+    return SegsInfoList[street_segment_id].time;
 }
 
 /**
