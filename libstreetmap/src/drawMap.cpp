@@ -36,6 +36,7 @@ void draw_intersection(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
+void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
@@ -111,8 +112,8 @@ void drawMap(){
 void draw_main_canvas(ezgl::renderer *g){
     //draw_intersection(g);
     //draw_naturalFeature(g);
-    draw_streetSeg(g);
-    draw_legend(g);
+    //draw_streetSeg(g);
+    //draw_legend(g);
 }
 
 void draw_legend(ezgl::renderer *g){
@@ -247,20 +248,36 @@ void draw_intersection(ezgl::renderer *g){
         if(IntersectInfoList[id].highlight){
             g->set_color(ezgl::RED);
         }else{
-            g->set_color(ezgl::GREY_55);
+            g->set_color(ezgl::CYAN);
         }
-
-        //g->get_visible_screen();
 
         float width = 5;
         float height = width;
         g->fill_rectangle({x, y},{x + width, y + height});
     }
+
+    /*std::vector<ezgl::point2d> tempList;
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+        tempList.push_back(IntersectInfoList[id].curPosXY);
+    }
+    drawLabelList(g, tempList, "libstreetmap/resources/labels/small_image.png");*/
+}
+
+void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path){
+    ezgl::surface *png_surface = ezgl::renderer::load_png(png_path.c_str());
+
+    for(int i=0; i< point_list.size(); i++){
+        g->draw_surface(png_surface, point_list.at(i));
+    }
+
+    ezgl::renderer::free_surface(png_surface);
 }
 
 
 
 /*User interaction*/
+
+
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y){
 
 }
@@ -283,10 +300,6 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 
     app->refresh_drawing();
 }
-
-
-
-
 /*Supportive Helper Functions*/
 
 
@@ -316,16 +329,16 @@ void LoadIntersectInfoList(){
     }
 }
 
-double x_from_lon(double lon){
+double x_from_lon(float lon){
     return lon * kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian);
 }
-double y_from_lat(double lat){
+double y_from_lat(float lat){
     return lat * kDegreeToRadian * kEarthRadiusInMeters;
 }
-double lon_from_x(double x){
+double lon_from_x(float x){
     return x / (kDegreeToRadian * kEarthRadiusInMeters * std::cos(avg_lat * kDegreeToRadian));
 }
-double lat_from_y(double y){
+double lat_from_y(float y){
     return y / kDegreeToRadian / kEarthRadiusInMeters;
 }
 ezgl::point2d LatLon_to_point2d(LatLon curLatLon){
@@ -343,3 +356,5 @@ void calcLegendLength(ezgl::renderer *g){
 
     legendLength = 100 * (currentWorld.right()-currentWorld.left())/(currentScreen.right()-currentScreen.left());
 }
+
+
