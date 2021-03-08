@@ -88,7 +88,7 @@ void drawMap(){
 
 void draw_main_canvas(ezgl::renderer *g){
     draw_intersection(g);
-    //draw_naturalFeature(g);
+    draw_naturalFeature(g);
     draw_streetSeg(g);
     draw_legend(g);
 }
@@ -115,77 +115,43 @@ void draw_legend(ezgl::renderer *g){
 
 ///Find osm for further modification Not Finished
 void draw_streetSeg(ezgl::renderer *g) {
-    //std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
-    //std::vector<POIIdx> POIList = POINameListOfPOIsList.at(POIname);
 
-    //std::vector<StreetSegmentIdx> motorWaySegList= SegmentTypeList.at("motorway");
-//    for(auto i = 0;i <motorWaySegList.size();i++) {
-//            int segIdx= motorWaySegList[i];
-//            ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
-//            ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
-//
-//
-//
-//            int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
-//            if(numCurvePoints != 0){
-//                //start of fromPos connect first curvePoint
-//                ezgl::point2d lastCurvePos = fromPos;
-//
-//                //for loop through all curvePoint
-//                for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
-//                    ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
-//
-//                    g->draw_line(tempCurvePos,lastCurvePos);
-//                    lastCurvePos = tempCurvePos;
-//                }
-//                //draw the last curvePoint to toPos
-//                g->draw_line(lastCurvePos,toPos);
-//
-//            }else{
-//                g->draw_line(fromPos,toPos);
-//            }
-//    }
+    for(int segIdx = 0; segIdx<SegsInfoList.size(); segIdx++){
+        double curSegSpeed = SegsInfoList[segIdx].segInfo.speedLimit;
+        //SegListSegInfo[segIdx].speedLimit;
+        if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
+            continue;
+        }else{
+            g->set_color(255,255,255,255);
+            if(curSegSpeed > 16.7){
+                g->set_color(250,226,211,255);
+            }
+        }
+
+        ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
+        ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
 
 
 
+        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+        if(numCurvePoints != 0){
+            //start of fromPos connect first curvePoint
+            ezgl::point2d lastCurvePos = fromPos;
 
+            //for loop through all curvePoint
+            for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
+                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
 
-//    for(int segIdx = 0; segIdx<SegsInfoList.size(); segIdx++){
-//        double curSegSpeed = SegsInfoList[segIdx].segInfo.speedLimit;
-//        //SegListSegInfo[segIdx].speedLimit;
-//        if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
-//            continue;
-//        }else{
-//            g->set_color(255,255,255,255);
-//            if(curSegSpeed > 16.7){
-//                g->set_color(250,226,211,255);
-//            }
-//        }
-//
-//        ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
-//        ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
-//
-//
-//
-//        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
-//        if(numCurvePoints != 0){
-//            //start of fromPos connect first curvePoint
-//            ezgl::point2d lastCurvePos = fromPos;
-//
-//            //for loop through all curvePoint
-//            for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
-//                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
-//
-//                g->draw_line(tempCurvePos,lastCurvePos);
-//                lastCurvePos = tempCurvePos;
-//            }
-//            //draw the last curvePoint to toPos
-//            g->draw_line(lastCurvePos,toPos);
-//
-//        }else{
-//            g->draw_line(fromPos,toPos);
-//        }
-//    }
+                g->draw_line(tempCurvePos,lastCurvePos);
+                lastCurvePos = tempCurvePos;
+            }
+            //draw the last curvePoint to toPos
+            g->draw_line(lastCurvePos,toPos);
+
+        }else{
+            g->draw_line(fromPos,toPos);
+        }
+    }
 }
 void draw_naturalFeature(ezgl::renderer *g){
     for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
@@ -228,7 +194,7 @@ void draw_naturalFeature(ezgl::renderer *g){
             g->set_color(50,205,50);
         }
 
-        if(findFeatureArea(feature_id)!=-1 && polyList.size()>1) {
+        if(polyList[0]==polyList[getNumFeaturePoints(feature_id)-1]&& polyList.size()>1) {
             if (legendLength < 300 && getFeatureType(feature_id) == 6){
                 g->fill_poly(polyList);
             }
@@ -324,4 +290,3 @@ void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std
 
     ezgl::renderer::free_surface(png_surface);
 }
-
