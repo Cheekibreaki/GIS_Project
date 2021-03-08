@@ -37,3 +37,9 @@ build
 mapper
 libstreetmap.a
 test_libstreetmap
+nbproject
+.nbproject_*
+build
+mapper
+libstreetmap.a
+test_libstreetmap
