@@ -194,19 +194,41 @@ void LoadPOINameListOfPOIsList(){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
-//void LoadTypeListOfSegsList(){
-//    for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
-//        OSMID OSM=SegsInfoList[segIdx].segInfo.wayOSMID;
-//        int OSM_64=uint64_t(OSM);
-//        const OSMWay* curWay = getWayByIndex(OSM_64);
-//        for(unsigned j=0;j<getTagCount(curWay);j++) {
-//            std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
-//            if(tagPair.first=="highway"&&tagPair.second=="motorway")
-//
-//        }
-//    }
-//
-//}
+void LoadTypeListOfSegsList(){
+    for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
+        OSMID OSM=SegsInfoList[segIdx].segInfo.wayOSMID;
+        int OSM_64=uint64_t(OSM);
+        const OSMWay* curWay = getWayByIndex(OSM_64);
+        for(unsigned j=0;j<getTagCount(curWay);j++) {
+            std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
+            if(tagPair.first=="highway"&&tagPair.second=="motorway"){
+
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="trunk"){
+
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="primary"){
+
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="secondary"){
+
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="tertiary"){
+
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="unclassified"){
+
+            }
+            else if(tagPair.first=="highway"&&tagPair.second=="residential"){
+
+            }else{
+                
+            }
+
+        }
+    }
+
+}
 ///Load Helper End
 
 
