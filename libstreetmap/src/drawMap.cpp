@@ -117,32 +117,34 @@ void draw_legend(ezgl::renderer *g){
 void draw_streetSeg(ezgl::renderer *g) {
     //std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
     //std::vector<POIIdx> POIList = POINameListOfPOIsList.at(POIname);
-    std::vector<StreetSegmentIdx>> StrSegList= SegmentTypeList.at("motorway")
-    for(auto i = 0;i <=StrSegList.size();i++) {
-            ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
-            ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
 
-
-
-            int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
-            if(numCurvePoints != 0){
-                //start of fromPos connect first curvePoint
-                ezgl::point2d lastCurvePos = fromPos;
-
-                //for loop through all curvePoint
-                for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
-                    ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
-
-                    g->draw_line(tempCurvePos,lastCurvePos);
-                    lastCurvePos = tempCurvePos;
-                }
-                //draw the last curvePoint to toPos
-                g->draw_line(lastCurvePos,toPos);
-
-            }else{
-                g->draw_line(fromPos,toPos);
-            }
-    }
+    //std::vector<StreetSegmentIdx> motorWaySegList= SegmentTypeList.at("motorway");
+//    for(auto i = 0;i <motorWaySegList.size();i++) {
+//            int segIdx= motorWaySegList[i];
+//            ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
+//            ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
+//
+//
+//
+//            int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+//            if(numCurvePoints != 0){
+//                //start of fromPos connect first curvePoint
+//                ezgl::point2d lastCurvePos = fromPos;
+//
+//                //for loop through all curvePoint
+//                for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
+//                    ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
+//
+//                    g->draw_line(tempCurvePos,lastCurvePos);
+//                    lastCurvePos = tempCurvePos;
+//                }
+//                //draw the last curvePoint to toPos
+//                g->draw_line(lastCurvePos,toPos);
+//
+//            }else{
+//                g->draw_line(fromPos,toPos);
+//            }
+//    }
 
 
 
