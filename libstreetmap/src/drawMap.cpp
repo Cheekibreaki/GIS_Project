@@ -241,7 +241,7 @@ void draw_naturalFeature(ezgl::renderer *g){
 
 }
 void draw_intersection(ezgl::renderer *g){
-    /*for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
         float x = IntersectInfoList[id].curPosXY.x;
         float y = IntersectInfoList[id].curPosXY.y;
 
@@ -254,13 +254,13 @@ void draw_intersection(ezgl::renderer *g){
         float width = 5;
         float height = width;
         g->fill_rectangle({x, y},{x + width, y + height});
-    }*/
+    }
 
-    std::vector<ezgl::point2d> tempList;
+    /*std::vector<ezgl::point2d> tempList;
     for(IntersectionIdx id = 0; id < 10; id++){
         tempList.push_back(IntersectInfoList[id].curPosXY);
     }
-    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_pos.png");
+    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_pos.png");*/
 }
 
 /*User interaction*/

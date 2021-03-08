@@ -22,6 +22,7 @@
 #include "m1.h"
 #include "DBstruct.h"
 #include <limits>
+#include <OSMDatabaseAPI.h>
 
 //using namespace std;
 /*
@@ -146,10 +147,10 @@ void LoadStructurePackage(){
 
         double length = findStreetSegmentLength(curSegIdx);
         double speed = SegsInfoList[curSegIdx].segInfo.speedLimit;
-
         SegsInfoList[curSegIdx].length = length;
         SegsInfoList[curSegIdx].time = (length/speed);
-
+        SegsInfoList[curSegIdx].toXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.from]);
+        SegsInfoList[curSegIdx].fromXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.to]);
 
         StreetIdx curStreetIdx = SegsInfoList[curSegIdx].segInfo.streetID;
         StreetListOfSegsList[curStreetIdx].push_back(curSegIdx);
@@ -194,11 +195,15 @@ void LoadPOINameListOfPOIsList(){
     }
 }
 //void LoadTypeListOfSegsList(){
-//    for(int segIdx=0; segIdx<SegListSegInfo.size();segIdx++){
-//        OSMID OSM=SegListSegInfo[segIdx].wayOSMID;
+//    for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
+//        OSMID OSM=SegsInfoList[segIdx].segInfo.wayOSMID;
 //        int OSM_64=uint64_t(OSM);
-//        OSMWay* way = getWayByIndex(OSM_64);
+//        const OSMWay* curWay = getWayByIndex(OSM_64);
+//        for(unsigned j=0;j<getTagCount(curWay);j++) {
+//            std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
+//            if(tagPair.first=="highway"&&tagPair.second=="motorway")
 //
+//        }
 //    }
 //
 //}
