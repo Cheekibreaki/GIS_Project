@@ -241,7 +241,7 @@ void draw_naturalFeature(ezgl::renderer *g){
 
 }
 void draw_intersection(ezgl::renderer *g){
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+    /*for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
         float x = IntersectInfoList[id].curPosXY.x;
         float y = IntersectInfoList[id].curPosXY.y;
 
@@ -254,26 +254,14 @@ void draw_intersection(ezgl::renderer *g){
         float width = 5;
         float height = width;
         g->fill_rectangle({x, y},{x + width, y + height});
-    }
+    }*/
 
-    /*std::vector<ezgl::point2d> tempList;
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
+    std::vector<ezgl::point2d> tempList;
+    for(IntersectionIdx id = 0; id < 10; id++){
         tempList.push_back(IntersectInfoList[id].curPosXY);
     }
-    drawLabelList(g, tempList, "libstreetmap/resources/labels/small_image.png");*/
+    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_pos.png");
 }
-
-void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path){
-    ezgl::surface *png_surface = ezgl::renderer::load_png(png_path.c_str());
-
-    for(int i=0; i< point_list.size(); i++){
-        g->draw_surface(png_surface, point_list.at(i));
-    }
-
-    ezgl::renderer::free_surface(png_surface);
-}
-
-
 
 /*User interaction*/
 
@@ -357,4 +345,13 @@ void calcLegendLength(ezgl::renderer *g){
     legendLength = 100 * (currentWorld.right()-currentWorld.left())/(currentScreen.right()-currentScreen.left());
 }
 
+void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path){
+    ezgl::surface *png_surface = ezgl::renderer::load_png(png_path.c_str());
+
+    for(int i=0; i< point_list.size(); i++){
+        g->draw_surface(png_surface, point_list.at(i));
+    }
+
+    ezgl::renderer::free_surface(png_surface);
+}
 
