@@ -1,6 +1,7 @@
 #pragma once //protects against multiple inclusions of this header file
 #include <vector>
 #include <set>
+#include <map>
 #include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
@@ -85,11 +86,19 @@ struct StrSeg_Info{
     bool highlight = false;
 };
 
+struct naturalFeature{
+    std::string name;
+    FeatureType type;
+    std::vector<ezgl::point2d> polyList;
+    bool isPoly = false;
+};
 
+extern std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
+extern std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
 
 
 /* External structures */
-
+extern std::vector<naturalFeature> NaturalFeatureList;
 extern std::vector <OSMID> OSMWayofOSMIDList;
 /**
  * Segment type contains all belonged segment ID
@@ -151,6 +160,8 @@ extern std::vector <poi_info> PoiInfoList;
 
 /* Load Functions Start */
 void LoadOSMWayofOSMIDList();
+void LoadNaturalFeatureTypeList();
+void LoadNaturalFeatureList();
 /**
  * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
  */

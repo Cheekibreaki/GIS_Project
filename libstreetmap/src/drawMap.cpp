@@ -11,15 +11,6 @@
 #include "DBstruct.h"
 #include "m2.h"
 
-//struct naturalFeature{
-//    std::string name;
-//    FeatureType type;
-//    std::vector<ezgl::point2d> polyList;
-//    bool isPoly = false;
-//};
-
-//std::vector<naturalFeature> naturalFeatureList;
-
 float legendLength;
 void calcLegendLength(ezgl::renderer *g);
 
@@ -29,35 +20,16 @@ void draw_intersection(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
+
+
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
 void initial_setup(ezgl::application *application, bool new_window);
-
+void TextInput_Enter_Key_action(GtkWidget *, gpointer data);
 
 void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
 void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
-//void set_up_naturalFeature();
-
-//void set_up_naturalFeature(){
-//    naturalFeatureList.resize(getNumFeatures());
-//    for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
-//        naturalFeatureList[feature_id].name=getFeatureName(feature_id);
-//        naturalFeatureList[feature_id].type=getFeatureType(feature_id);
-//        naturalFeatureList[feature_id].polyList.resize(getNumFeaturePoints(feature_id));
-//
-//            for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
-//                LatLon temp=getFeaturePoint(feature_id,i);
-//                double x= x_from_lon(temp.longitude());
-//                double y= y_from_lat(temp.latitude());
-//                naturalFeatureList[feature_id].polyList[i]= ezgl::point2d(x,y);
-//            }
-//        if(findFeatureArea(feature_id)!=-1 && naturalFeatureList[feature_id].polyList.size()>1){
-//            naturalFeatureList[feature_id].isPoly=true;
-//        }
-//    }
-//
-//}
 
 void drawMap(){
 
@@ -89,7 +61,7 @@ void drawMap(){
 
 void draw_main_canvas(ezgl::renderer *g){
     draw_intersection(g);
-    //draw_naturalFeature(g);
+    draw_naturalFeature(g);
     draw_streetSeg(g);
     draw_legend(g);
 }
@@ -150,111 +122,44 @@ void draw_streetSeg(ezgl::renderer *g) {
     std::vector<StreetSegmentIdx> MotorWaySegsList= SegmentTypeList.at("motorway");
     g->set_color(255,255,255,255);
     drawLineHelper(k,255,255,255,255,MotorWaySegsList,2);
-//    if(MotorWaySegsList.size()==0){
-//        continue;
-//    }
-//    for(int curSeg = 0; curSeg<MotorWaySegsList.size(); curSeg++){
-////        double curSegSpeed = SegsInfoList[segIdx].segInfo.speedLimit;
-////        //SegListSegInfo[segIdx].speedLimit;
-////        if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
-////            continue;
-////        }else{
-////            g->set_color(255,255,255,255);
-////            if(curSegSpeed > 16.7){
-////                g->set_color(250,226,211,255);
-////            }
-////        }
-//        g->set_line_width(2);
-//        int segIdx=MotorWaySegsList[curSeg];
-//        ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
-//        ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
-//
-//
-//
-//        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
-//        if(numCurvePoints != 0){
-//            //start of fromPos connect first curvePoint
-//            ezgl::point2d lastCurvePos = fromPos;
-//
-//            //for loop through all curvePoint
-//            for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
-//                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
-//
-//                g->draw_line(tempCurvePos,lastCurvePos);
-//                lastCurvePos = tempCurvePos;
-//            }
-//            //draw the last curvePoint to toPos
-//            g->draw_line(lastCurvePos,toPos);
-//
-//        }else{
-//            g->draw_line(fromPos,toPos);
-//        }
-//    }
 }
+void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
+    switch(tempFeatureType){
+        case UNKNOWN:       g->set_color(255,228,225);  break;
+        case PARK:          g->set_color(206,222,175);  break;
+        case BEACH:         g->set_color(251,239,199);  break;
+        case LAKE:          g->set_color(185,208,251);  break;
+        case RIVER:         g->set_color(185,208,251);  break;
+        case ISLAND:        g->set_color(230,230,230);  break;
+        case BUILDING:      g->set_color(206,222,175);  break;
+        case GREENSPACE:    g->set_color(206,222,175);  break;
+        case GOLFCOURSE:    g->set_color(206,222,175);  break;
+        case STREAM:        g->set_color(185,208,251);  break;
+    }
+}
+
 void draw_naturalFeature(ezgl::renderer *g){
-    for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
+    std::vector<FeatureIdx> tempFeatureList;
 
-        std::vector<ezgl::point2d>polyList;
-        polyList.resize(getNumFeaturePoints(feature_id));
+    for(int curIndex = UNKNOWN; curIndex <= STREAM; curIndex++){
+        setFeatureColor(curIndex, g);
+        FeatureType curType = (FeatureType)curIndex;
+        tempFeatureList = PolyFeatureList[curType];
+        for(int i = 0; i< tempFeatureList.size(); i++){
 
-        for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
-            LatLon temp=getFeaturePoint(feature_id,i);
-            double x= x_from_lon(temp.longitude());
-            double y= y_from_lat(temp.latitude());
-            polyList[i]= ezgl::point2d(x,y);
-        }
-
-        if(getFeatureType(feature_id)==0) {
-            g->set_color(255,228,225);
-        }
-        if(getFeatureType(feature_id)==1){
-            g->set_color(128,128,0);
-        }
-        if(getFeatureType(feature_id)==2){
-            g->set_color(251,239,199);
-        }
-        if(getFeatureType(feature_id)==3){
-            g->set_color(185,208,251);
-        }
-        if(getFeatureType(feature_id)==4){
-            g->set_color(185,208,251);
-        }
-        if(getFeatureType(feature_id)==5){
-            g->set_color(105,105,105);
-        }
-        if(getFeatureType(feature_id)==6){
-            g->set_color(214,214,214);
-        }
-        if(getFeatureType(feature_id)==7){
-            g->set_color(206,222,175);
-        }
-        if(getFeatureType(feature_id)==8){
-            g->set_color(50,205,50);
+            g->fill_poly(NaturalFeatureList[tempFeatureList[i]].polyList);
         }
 
-        if(polyList[0]==polyList[getNumFeaturePoints(feature_id)-1]&& polyList.size()>1) {
-            if (legendLength < 300 && getFeatureType(feature_id) == 6){
-                g->fill_poly(polyList);
-            }
-            else {g->fill_poly(polyList);}
+        tempFeatureList = LineFeatureList[curType];
+        for(int i = 0; i < tempFeatureList.size(); i++){
 
-        }
-        if(polyList[0]!=polyList[getNumFeaturePoints(feature_id)-1]) {
-            if(getFeatureType(feature_id)!=6) {
-                for (int i = 0; i < polyList.size() - 1; i++) {
-                    g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
-                }
-            }else if(getFeatureType(feature_id)==6 && legendLength<300){
-                for (int i = 0; i < polyList.size() - 1; i++) {
-                    g->draw_line({polyList[i].x, polyList[i].y}, {polyList[i + 1].x, polyList[i + 1].y});
-                }
+            for(int pointIdx= 0; pointIdx < NaturalFeatureList[tempFeatureList[i]].polyList.size() - 1; pointIdx++) {
+                g->draw_line(NaturalFeatureList[tempFeatureList[i]].polyList[pointIdx],
+                             NaturalFeatureList[tempFeatureList[i]].polyList[pointIdx + 1]);
             }
         }
 
     }
-
-
-
 }
 void draw_intersection(ezgl::renderer *g){
     for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
@@ -276,7 +181,7 @@ void draw_intersection(ezgl::renderer *g){
     for(IntersectionIdx id = 0; id < 10; id++){
         tempList.push_back(IntersectInfoList[id].curPosXY);
     }
-    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_pos.png");*/
+    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_point.png");*/
 }
 
 /*User interaction*/
@@ -303,6 +208,40 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
+}
+
+void initial_setup(ezgl::application *application, bool new_window){
+    application->update_message("EZGL Application");
+
+    g_signal_connect(
+            application->get_object("TextInput"),
+            "activate",
+            G_CALLBACK(TextInput_Enter_Key_action),
+            application
+    );
+}
+
+// Find function
+// Input One: StreetName (Enter to autoComplete)
+// Input Two: StreetName (Enter to autoComplete)
+
+void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
+    auto app = static_cast<ezgl::application *>(data);
+    std::cout << "testCallBack excuting" << std::endl;
+    GtkEntry* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+    const char * text = gtk_entry_get_text(text_Entry);
+
+    // determine which search mode it will excute
+    // STREETNAME (highlight the Street)
+    // STREETNAME, STREETNAME (find Intersection of Two street and then)
+
+
+    std::vector<StreetIdx> tempStreetIDList = findStreetIdsFromPartialStreetName(std::string(text));
+    if(!tempStreetIDList.size()){
+        app->update_message("Name No Found");
+    }else{
+        //app->update_message(getStreetName(tempStreetIDList[0]));
+    }
 }
 /*Supportive Helper Functions*/
 
