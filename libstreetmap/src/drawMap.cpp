@@ -126,14 +126,14 @@ void draw_streetSeg(ezgl::renderer *g) {
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
     switch(tempFeatureType){
         case UNKNOWN:       g->set_color(255,228,225);  break;
-        case PARK:          g->set_color(206,222,175);  break;
+        case PARK:          g->set_color(148,176,117);  break;
         case BEACH:         g->set_color(251,239,199);  break;
         case LAKE:          g->set_color(185,208,251);  break;
         case RIVER:         g->set_color(185,208,251);  break;
         case ISLAND:        g->set_color(230,230,230);  break;
-        case BUILDING:      g->set_color(206,222,175);  break;
+        case BUILDING:      g->set_color(205,205,205);  break;
         case GREENSPACE:    g->set_color(206,222,175);  break;
-        case GOLFCOURSE:    g->set_color(206,222,175);  break;
+        case GOLFCOURSE:    g->set_color(148,176,117);  break;
         case STREAM:        g->set_color(185,208,251);  break;
     }
 }
@@ -193,9 +193,7 @@ void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, do
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name){
 
 }
-void initial_setup(ezgl::application *application, bool new_window){
 
-}
 
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     std::cout << "Mouse clicked at (" <<x<< "," <<y<< ")\n";
