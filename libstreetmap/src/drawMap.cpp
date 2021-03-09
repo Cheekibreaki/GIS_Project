@@ -17,6 +17,7 @@ void calcLegendLength(ezgl::renderer *g);
 
 void draw_main_canvas (ezgl::renderer *g);
 void draw_intersection(ezgl::renderer *g);
+void draw_streetSeg_OSM(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
@@ -29,7 +30,7 @@ void initial_setup(ezgl::application *application, bool new_window);
 void TextInput_Enter_Key_action(GtkWidget *, gpointer data);
 
 void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
-void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
+int drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
 
 void drawMap(){
 
@@ -86,11 +87,14 @@ void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::WORLD);
 }
 
-void drawLineHelper(ezgl::renderer *g,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width){
-    for(int curSeg = 0; curSeg<StrIDList.size(); curSeg++) {
+int drawLineHelper(ezgl::renderer *g,int R,int G,int B, int D, std::vector<StreetSegmentIdx> strIDList,double width){
+    if(strIDList.size()==0){
+        return -1;
+    }
+    for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
         g->set_color(R,G,B,D);
         g->set_line_width(width);
-        int segIdx = StrIDList[curSeg];
+        int segIdx = strIDList[curSeg];
         ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
         ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
 
@@ -114,14 +118,29 @@ void drawLineHelper(ezgl::renderer *g,int R,int G,int B, int D, std::vector<Stre
             g->draw_line(fromPos, toPos);
         }
     }
+    return 0;
+}
+void draw_streetSeg(ezgl::renderer *g){
+    //Optional:For OSM
+    //draw_streetSeg_OSM(g);
+
 }
 ///Find osm for further modification Not Finished
-void draw_streetSeg(ezgl::renderer *g) {
-    ezgl::renderer *k=g;
-    //std::vector<POIIdx> POIList = POINameListOfPOIsList.at(POIname);
-    std::vector<StreetSegmentIdx> MotorWaySegsList= SegmentTypeList.at("motorway");
-    g->set_color(255,255,255,255);
-    drawLineHelper(k,255,255,255,255,MotorWaySegsList,2);
+void draw_streetSeg_OSM(ezgl::renderer *g) {
+    std::vector<StreetSegmentIdx> level1List= SegmentTypeList.at("level1");//residential
+    drawLineHelper(g,230,230,230,255,level1List,2);
+    std::vector<StreetSegmentIdx> level2List= SegmentTypeList.at("level2");//large residential
+    drawLineHelper(g,255,255,255,255,level2List,2);
+    std::vector<StreetSegmentIdx> level3List= SegmentTypeList.at("level3");//major road
+    drawLineHelper(g,0,255,0,255,level3List,2);
+    std::vector<StreetSegmentIdx> level4List= SegmentTypeList.at("level4");//highway
+    drawLineHelper(g,255,255,77,255,level4List,2);
+    std::vector<StreetSegmentIdx> pedestrianList= SegmentTypeList.at("pedestrian");//pedestrain
+    drawLineHelper(g,102,0,255,255,pedestrianList,2);
+    std::vector<StreetSegmentIdx> serviceList= SegmentTypeList.at("service");//service
+    drawLineHelper(g,217,217,217,255,serviceList,2);
+    std::vector<StreetSegmentIdx> unknownList= SegmentTypeList.at("unknown");//unknown
+    drawLineHelper(g,51,51,51,255,unknownList,2);
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
     switch(tempFeatureType){
@@ -191,9 +210,6 @@ void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, do
 
 }
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name){
-
-}
-void initial_setup(ezgl::application *application, bool new_window){
 
 }
 
