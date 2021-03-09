@@ -397,7 +397,7 @@ void LoadTypeListOfSegsList(std::string OSMpath){
  * @return loadMap Successful (bool)
  */
 bool loadMap(std::string map_streets_database_filename) {
-    loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
+    //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     bool load_successful = false; //Indicates whether the map has loaded
     //successfully
 
@@ -423,9 +423,9 @@ bool loadMap(std::string map_streets_database_filename) {
 
     LoadPOINameListOfPOIsList();
 
-    LoadOSMWayofOSMIDList();
+    //LoadOSMWayofOSMIDList();
 
-    LoadTypeListOfSegsList(map_streets_database_filename);
+    //LoadTypeListOfSegsList(map_streets_database_filename);
 
     LoadIntersectInfoList();
 
@@ -435,7 +435,7 @@ bool loadMap(std::string map_streets_database_filename) {
 
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
-    closeOSMDatabase();
+    //closeOSMDatabase();
     return load_successful;
 }
 

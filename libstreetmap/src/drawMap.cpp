@@ -62,7 +62,7 @@ void drawMap(){
 void draw_main_canvas(ezgl::renderer *g){
     draw_intersection(g);
     draw_naturalFeature(g);
-    draw_streetSeg(g);
+    //draw_streetSeg(g);
     draw_legend(g);
 }
 
@@ -196,13 +196,11 @@ void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *
 
 
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
-    std::cout << "Mouse clicked at (" <<x<< "," <<y<< ")\n";
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-    for(int i=0;i<IntersectListOfSegsList[id].size();i++)
-        std::cout << "Closest Seg speed "<< getStreetSegmentInfo(IntersectListOfSegsList[id][i]).speedLimit << "\n";
+
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
@@ -217,29 +215,89 @@ void initial_setup(ezgl::application *application, bool new_window){
             G_CALLBACK(TextInput_Enter_Key_action),
             application
     );
+
 }
 
-// Find function
-// Input One: StreetName (Enter to autoComplete)
-// Input Two: StreetName (Enter to autoComplete)
+StreetIdx check_StreetIdx_PartialStN(std::string& partialName){
+    auto tempStreetIdxList = findStreetIdsFromPartialStreetName(partialName);
+    if(tempStreetIdxList.empty()) return -1;
+    return tempStreetIdxList[0];
+}
+
+bool draw_twoStreet_Intersection(ezgl::renderer* g, std::string& firstStName, std::string& secondStName){
+
+    StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStName);
+    StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStName);
+
+    if(firstStreetIdx == -1){
+        std::cout << "Name of First Street No Found" << std::endl;
+        return false;
+    }
+    if(secondStreetIdx == -1){
+        std::cout << "Name of Second Street No Found" << std::endl;
+        return false;
+    }
+
+    firstStName = getStreetName(firstStreetIdx);
+    secondStName = getStreetName(secondStreetIdx);
+
+
+    auto IntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
+
+    if(IntersectList.empty()){
+        std::cout << "Intersection No Found" << std::endl;
+        return false;
+    }
+    /*for(auto a:IntersectList){
+        std::cout << a<<std::endl;
+    }*/
+    std::vector<ezgl::point2d> tempPointList;
+
+    for(int id : IntersectList){
+        tempPointList.push_back(IntersectInfoList[id].curPosXY);
+    }
+    drawLabelList(g, tempPointList, "libstreetmap/resources/labels/pin_point.png");
+
+    return true;
+}
 
 void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
     auto app = static_cast<ezgl::application *>(data);
-    std::cout << "testCallBack excuting" << std::endl;
     GtkEntry* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+
     const char * text = gtk_entry_get_text(text_Entry);
 
-    // determine which search mode it will excute
-    // STREETNAME (highlight the Street)
-    // STREETNAME, STREETNAME (find Intersection of Two street and then)
+    std::string str = text;
+    int idx = str.find("&");
 
 
-    std::vector<StreetIdx> tempStreetIDList = findStreetIdsFromPartialStreetName(std::string(text));
-    if(!tempStreetIDList.size()){
-        app->update_message("Name No Found");
-    }else{
-        //app->update_message(getStreetName(tempStreetIDList[0]));
-    }
+    //Find Two Street Intersection
+    /*if(idx != -1){
+        std::string firstStreet = str.substr(0, idx);
+        std::string secondStreet = str.substr(idx+1, str.size());
+
+        bool nameFound = draw_twoStreet_Intersection(app->get_renderer(), firstStreet, secondStreet);
+
+        gtk_entry_set_text(text_Entry, (firstStreet+"&"+secondStreet).c_str());
+
+        if(!nameFound){
+            app->update_message("Intersecion of two Street No Found");
+        }else{
+            app->update_message((firstStreet+" and "+secondStreet+"Intersection found"));
+        }
+    }*/
+    /*else{
+        auto IdxList = findStreetIdsFromPartialStreetName(str);
+        if(IdxList.empty()){
+
+            return;
+        }
+        gtk_entry_set_text(text_Entry, getStreetName(IdxList[0]).c_str());
+    }*/
+}
+
+void TextInput_Change_action(GtkEntry* entry, gchar* /*preedit*/, gpointer user_data){
+
 }
 /*Supportive Helper Functions*/
 
