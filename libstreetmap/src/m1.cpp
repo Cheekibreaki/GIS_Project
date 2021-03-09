@@ -79,6 +79,9 @@ std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 CharTree StNameTreeForPrefix;
+std::vector<naturalFeature> NaturalFeatureList;
+std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
+std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
 /// CharTree "StNameTreeForPrefix" included
 
 /// CharTree Member function & used Function
@@ -155,6 +158,71 @@ ezgl::point2d LatLon_to_point2d(LatLon curLatLon){
 
 
 /* Load Helper Start */
+void LoadNaturalFeatureList(){
+    NaturalFeatureList.resize(getNumFeatures());
+    for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
+        NaturalFeatureList[feature_id].name=getFeatureName(feature_id);
+        NaturalFeatureList[feature_id].type=getFeatureType(feature_id);
+        NaturalFeatureList[feature_id].polyList.resize(getNumFeaturePoints(feature_id));
+
+            for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
+                LatLon temp=getFeaturePoint(feature_id,i);
+                double x= x_from_lon(temp.longitude());
+                double y= y_from_lat(temp.latitude());
+                NaturalFeatureList[feature_id].polyList[i]= ezgl::point2d(x,y);
+            }
+        if(NaturalFeatureList[feature_id].polyList[0]
+        == NaturalFeatureList[feature_id].polyList[getNumFeaturePoints(feature_id)-1]
+        && NaturalFeatureList[feature_id].polyList.size()>1){
+            NaturalFeatureList[feature_id].isPoly=true;
+        }
+
+    }
+}
+void LoadNaturalFeatureTypeList(){
+
+    //Initalize LineFeatureList
+    //Initalize PolyFeatureList
+
+    /*PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(UNKNOWN,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(PARK,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BEACH,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(LAKE,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(RIVER,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(ISLAND,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BUILDING,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GREENSPACE,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GOLFCOURSE,{}));
+    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(STREAM,{}));
+
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(UNKNOWN,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(PARK,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BEACH,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(LAKE,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(RIVER,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(ISLAND,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BUILDING,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GREENSPACE,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GOLFCOURSE,{}));
+    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(STREAM,{}));*/
+
+    for(int feature_id=0; feature_id < getNumFeatures(); feature_id++ ) {
+        if (NaturalFeatureList[feature_id].isPoly) {
+
+            PolyFeatureList[NaturalFeatureList[feature_id].type].push_back(feature_id);
+
+        } else {
+
+            LineFeatureList[NaturalFeatureList[feature_id].type].push_back(feature_id);
+
+        }
+
+    }
+
+
+
+}
+
 
 void LoadIntersectInfoList(){
     IntersectInfoList.resize(getNumIntersections());
@@ -181,6 +249,8 @@ void LoadIntersectListOfInfo(){
         }
     }
 }
+
+
 
 void LoadStructurePackage(){
     //resize all List before loaded
@@ -331,6 +401,10 @@ bool loadMap(std::string map_streets_database_filename) {
 
     LoadIntersectInfoList();
 
+    LoadNaturalFeatureList();
+
+    LoadNaturalFeatureTypeList();
+
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
 
@@ -357,6 +431,11 @@ void closeMap() {
     POINameListOfPOIsList.clear();
 
     IntersectInfoList.clear();
+
+    NaturalFeatureList.clear();
+
+    PolyFeatureList.clear();
+    LineFeatureList.clear();
 }
 
 /// Tested Functions implemtation from m1.h
