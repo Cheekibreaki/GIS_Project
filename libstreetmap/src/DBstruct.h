@@ -90,6 +90,7 @@ struct StrSeg_Info{
 
 /* External structures */
 
+extern std::vector <OSMID> OSMWayofOSMIDList;
 /**
  * Segment type contains all belonged segment ID
  */
@@ -149,6 +150,7 @@ extern std::vector <poi_info> PoiInfoList;
 
 
 /* Load Functions Start */
+void LoadOSMWayofOSMIDList();
 /**
  * Load all streetSegments and LatLon and IntersectName of current intersection in to relative list
  */

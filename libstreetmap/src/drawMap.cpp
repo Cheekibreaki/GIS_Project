@@ -29,13 +29,14 @@ void draw_intersection(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
-void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
-
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
 void initial_setup(ezgl::application *application, bool new_window);
 
+
+void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
+void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
 //void set_up_naturalFeature();
 
 //void set_up_naturalFeature(){
@@ -88,7 +89,7 @@ void drawMap(){
 
 void draw_main_canvas(ezgl::renderer *g){
     draw_intersection(g);
-    draw_naturalFeature(g);
+    //draw_naturalFeature(g);
     draw_streetSeg(g);
     draw_legend(g);
 }
@@ -113,45 +114,82 @@ void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::WORLD);
 }
 
-///Find osm for further modification Not Finished
-void draw_streetSeg(ezgl::renderer *g) {
-
-    for(int segIdx = 0; segIdx<SegsInfoList.size(); segIdx++){
-        double curSegSpeed = SegsInfoList[segIdx].segInfo.speedLimit;
-        //SegListSegInfo[segIdx].speedLimit;
-        if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
-            continue;
-        }else{
-            g->set_color(255,255,255,255);
-            if(curSegSpeed > 16.7){
-                g->set_color(250,226,211,255);
-            }
-        }
-
-        ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
-        ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
-
+void drawLineHelper(ezgl::renderer *g,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width){
+    for(int curSeg = 0; curSeg<StrIDList.size(); curSeg++) {
+        g->set_color(R,G,B,D);
+        g->set_line_width(width);
+        int segIdx = StrIDList[curSeg];
+        ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
+        ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
 
 
         int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
-        if(numCurvePoints != 0){
+        if (numCurvePoints != 0) {
             //start of fromPos connect first curvePoint
             ezgl::point2d lastCurvePos = fromPos;
 
             //for loop through all curvePoint
-            for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
-                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
+            for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
+                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
 
-                g->draw_line(tempCurvePos,lastCurvePos);
+                g->draw_line(tempCurvePos, lastCurvePos);
                 lastCurvePos = tempCurvePos;
             }
             //draw the last curvePoint to toPos
-            g->draw_line(lastCurvePos,toPos);
+            g->draw_line(lastCurvePos, toPos);
 
-        }else{
-            g->draw_line(fromPos,toPos);
+        } else {
+            g->draw_line(fromPos, toPos);
         }
     }
+}
+///Find osm for further modification Not Finished
+void draw_streetSeg(ezgl::renderer *g) {
+    ezgl::renderer *k=g;
+    //std::vector<POIIdx> POIList = POINameListOfPOIsList.at(POIname);
+    std::vector<StreetSegmentIdx> MotorWaySegsList= SegmentTypeList.at("motorway");
+    g->set_color(255,255,255,255);
+    drawLineHelper(k,255,255,255,255,MotorWaySegsList,2);
+//    if(MotorWaySegsList.size()==0){
+//        continue;
+//    }
+//    for(int curSeg = 0; curSeg<MotorWaySegsList.size(); curSeg++){
+////        double curSegSpeed = SegsInfoList[segIdx].segInfo.speedLimit;
+////        //SegListSegInfo[segIdx].speedLimit;
+////        if( legendLength > 1000 && (curSegSpeed-13.888) <0.1 && (curSegSpeed-13.888)>0.0){
+////            continue;
+////        }else{
+////            g->set_color(255,255,255,255);
+////            if(curSegSpeed > 16.7){
+////                g->set_color(250,226,211,255);
+////            }
+////        }
+//        g->set_line_width(2);
+//        int segIdx=MotorWaySegsList[curSeg];
+//        ezgl::point2d fromPos=SegsInfoList[segIdx].fromXY;
+//        ezgl::point2d toPos=SegsInfoList[segIdx].toXY;
+//
+//
+//
+//        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+//        if(numCurvePoints != 0){
+//            //start of fromPos connect first curvePoint
+//            ezgl::point2d lastCurvePos = fromPos;
+//
+//            //for loop through all curvePoint
+//            for(int curCurvePointNum=0;curCurvePointNum < numCurvePoints;curCurvePointNum++){
+//                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx,curCurvePointNum));
+//
+//                g->draw_line(tempCurvePos,lastCurvePos);
+//                lastCurvePos = tempCurvePos;
+//            }
+//            //draw the last curvePoint to toPos
+//            g->draw_line(lastCurvePos,toPos);
+//
+//        }else{
+//            g->draw_line(fromPos,toPos);
+//        }
+//    }
 }
 void draw_naturalFeature(ezgl::renderer *g){
     for(FeatureIdx feature_id=0; feature_id<getNumFeatures() ; feature_id++){
