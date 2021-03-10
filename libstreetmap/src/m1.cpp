@@ -310,71 +310,38 @@ void LoadTypeListOfSegsList(std::string OSMpath){
         }
         for(unsigned j=0;j<getTagCount(curWay);j++) {
             std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
-            if(tagPair.first=="highway"){
-                if(tagPair.second=="residential"||tagPair.second=="unclassified"){
+
+            if(tagPair.first[0]=='h'){
+                if(tagPair.second[3]=='i'||tagPair.second[3]=='l') {//unclassified residential living_road cycleway
                     SegmentTypeList["level1"].push_back(segIdx);
                     //std::cout << "Level1 segIdx:" << segIdx << std::endl;
                     break;
-                }else if(tagPair.second=="tertiary"||tagPair.second=="tertiary_link"){
+
+                }else if(tagPair.second[3]=='t'){//tertiary or tertiary_link
                     SegmentTypeList["level2"].push_back(segIdx);
                     //std::cout << "level2 segIdx:" << segIdx << std::endl;
                     break;
-                }else if(tagPair.second=="primary"||tagPair.second=="secondary"||tagPair.second=="primary_link"||tagPair.second=="secondary_link"){
+                }else if(tagPair.second[3]=='m'||(tagPair.second[3]=='o'&&tagPair.second[4]=='n')){//primary or primary_link, secondary or secondary_link
                     SegmentTypeList["level3"].push_back(segIdx);
                     //std::cout << "level3 segIdx:" << segIdx << std::endl;
                     break;
-                }else if(tagPair.second=="motorway"||tagPair.second=="trunk"||tagPair.second=="motorway_link"||tagPair.second=="trunk_link"){
+                }else if(tagPair.second[3]=='o'||tagPair.second[3]=='n'){//motorway or motorway_link, trunk or trunk_link
                     SegmentTypeList["level4"].push_back(segIdx);
                     break;
-                }else if(tagPair.second=="living_street"||tagPair.second=="pedestrian"||tagPair.second=="pedestrian"||tagPair.second=="cycleway"||tagPair.second=="footway"||tagPair.second=="sidewalk"||tagPair.second=="path"){
+                }else if(tagPair.second[3]=='e'){//||tagPair.second=="cycleway"||tagPair.second=="footway"||tagPair.second=="sidewalk"||tagPair.second=="path"){
                     SegmentTypeList["pedestrian"].push_back(segIdx);
                     break;
-                }else if(tagPair.second=="service"){
+                }else if(tagPair.second[3]=='v'){
                     SegmentTypeList["service"].push_back(segIdx);
                     break;
-                }else if(tagPair.second=="road"||tagPair.second=="raceway"||tagPair.second=="track") {
+                }else if(tagPair.second[3]=='d'||tagPair.second[3]=='c') {//track or road
                     SegmentTypeList["unknown"].push_back(segIdx);
                     break;
-                }else if(tagPair.second=="bus_guideway") {
+                }else if(tagPair.second[3]=='_') {
                     SegmentTypeList["bus"].push_back(segIdx);
-                    break;
+                    std::cout << "bus segIdx:" << segIdx << std::endl;
                 }
             }
-//            else if(tagPair.first=="highway"&&tagPair.second=="trunk"){
-//                SegmentTypeList["trunk"].push_back(segIdx);
-//                std::cout<<"trunk segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="primary"){
-//                SegmentTypeList["primary"].push_back(segIdx);
-//                std::cout<<"primary segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="secondary"){
-//                SegmentTypeList["secondary"].push_back(segIdx);
-//                std::cout<<"secondary segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="tertiary"){
-//                SegmentTypeList["tertiary"].push_back(segIdx);
-//                std::cout<<"tertiary segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="unclassified"){
-//                SegmentTypeList["unclassified"].push_back(segIdx);
-//                std::cout<<"unclassified segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="residential"){
-//                SegmentTypeList["residential"].push_back(segIdx);
-//                std::cout<<"residential segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }else{
-//                SegmentTypeList["unknown"].push_back(segIdx);
-//                std::cout<<"unknown segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-
         }
     }
     //closeOSMDatabase();
@@ -433,10 +400,10 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadNaturalFeatureList();
 
     LoadNaturalFeatureTypeList();
-
+    //Optional:OSM
+    //closeOSMDatabase();
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
-    //closeOSMDatabase();
     return load_successful;
 }
 
