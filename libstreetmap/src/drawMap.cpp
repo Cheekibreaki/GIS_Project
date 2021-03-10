@@ -41,12 +41,14 @@ void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, d
 void initial_setup(ezgl::application *application, bool new_window);
 
 // Singal Callback Functions
-void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
-void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data);
-void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
-void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
-void TextInput_Enter_Key_action_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
-void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data);
+void gtk_Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
+void gtk_ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data);
+void gtk_CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data);
+void gtk_ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
+void gtk_ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
+void gtk_Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
+/// For both Entry key and Find button
+void gtk_Entry_search_Enter_Key(GtkWidget *wid, gpointer data);
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
@@ -272,7 +274,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     app->refresh_drawing();
 }
 
-void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
+void gtk_Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     if(DisplayOSM){
         DisplayOSM = false;
@@ -298,36 +300,36 @@ void initial_setup(ezgl::application *application, bool new_window){
     g_signal_connect(
             application->get_object("ChangeMap"),
             "changed",
-            G_CALLBACK(ChangeMap_Reload_Map),
+            G_CALLBACK(gtk_ComboBoxText_Reload_Map),
             application
     );
 
     g_signal_connect(
-            application->get_object("ComboBox"),
+            application->get_object("FuncMode"),
             "changed",
-            G_CALLBACK(ComboBox_Change_Search_Mode),
+            G_CALLBACK(gtk_ComboBoxText_Change_Search_Mode),
             application
     );
 
 
     /* Three Same Signal execute same function */
     g_signal_connect(
-            application->get_object("TextInput"),
+            application->get_object("UserInput"),
             "activate",
-            G_CALLBACK(TextInput_Enter_Key_action),
+            G_CALLBACK(gtk_Entry_search_Enter_Key),
             application
     );
 
     g_signal_connect(
-            application->get_object("TextInput"),
+            application->get_object("UserInput"),
             "icon-press",
-            G_CALLBACK(TextInput_Enter_Key_action_icon),
+            G_CALLBACK(gtk_Entry_search_icon),
             application
     );
     g_signal_connect(
             application->get_object("Find"),
             "clicked",
-            G_CALLBACK(TextInput_Enter_Key_action),
+            G_CALLBACK(gtk_Entry_search_Enter_Key),
             application
     );
 
@@ -336,19 +338,25 @@ void initial_setup(ezgl::application *application, bool new_window){
     g_signal_connect(
             application->get_object("DisplayOSM"),
             "button-press-event",
-            G_CALLBACK(Switch_set_OSM_display),
+            G_CALLBACK(gtk_Switch_set_OSM_display),
             application
     );
 
     g_signal_connect(
             application->get_object("DisplayColor"),
             "toggled",
-            G_CALLBACK(ToogleButton_set_Display_Color),
+            G_CALLBACK(gtk_ToogleButton_set_Display_Color),
+            application
+    );
+    g_signal_connect(
+            application->get_object("DisplayPOI"),
+            "toggled",
+            G_CALLBACK(gtk_CheckButton_set_POI_display),
             application
     );
 }
 
-void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
+void gtk_ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("ChangeMap");
     std::string text = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
@@ -382,15 +390,15 @@ void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     app->refresh_drawing();
 
 }
-void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
+void gtk_ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
-    auto* combo_Box = (GtkComboBoxText * ) app->get_object("ComboBox");
+    auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
 }
-void TextInput_Enter_Key_action_icon (GtkEntry *, GtkEntryIconPosition, GdkEvent *, gpointer user_data){
-    TextInput_Enter_Key_action(NULL, user_data);
+void gtk_Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data){
+    gtk_Entry_search_Enter_Key(NULL, user_data);
 }
-void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
+void gtk_Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
     // Check if user select One Search MODE
@@ -402,7 +410,7 @@ void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
     }
 
     // Get User input Text
-    auto* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+    auto* text_Entry = (GtkEntry* ) app->get_object("UserInput");
     std::string text = (std::string)gtk_entry_get_text(text_Entry);
 
     if(searchMode == "STREET"){
@@ -467,7 +475,7 @@ void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
 
 
 }
-void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data){
+void gtk_ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     auto* colorButton = (GtkButton *)app->get_object("DisplayColor");
     auto* DayImg = (GtkWidget *)app->get_object("DayImg");
@@ -480,6 +488,18 @@ void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointe
         DisplayColor = true;
         app->update_message("Switching to Day Mode");
         gtk_button_set_image(colorButton, DayImg);
+    }
+    app->refresh_drawing();
+}
+void gtk_CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    if(DisplayPOI){
+        DisplayPOI = false;
+        app->update_message("POI Display disabled");
+    }
+    else{
+        DisplayPOI = true;
+        app->update_message("POI Display enabled");
     }
     app->refresh_drawing();
 }
