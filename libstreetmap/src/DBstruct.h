@@ -104,8 +104,8 @@ extern std::vector <OSMID> OSMWayofOSMIDList;
 /**
  * Segment type contains all belonged segment ID
  */
-extern std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
-
+extern std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList_OSM;
+extern std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList_Normal;
 /**
  * Intersection List of StreetSegments List (streetSegments belongs to Current Intersection)
  */
@@ -156,7 +156,24 @@ extern std::vector<intersect_info> IntersectInfoList;
  */
 extern std::vector <poi_info> PoiInfoList;
 
+enum segType_OSM {
+    OSM_level1 = 0,
+    OSM_level2,
+    OSM_level3,
+    OSM_level4,
+    OSM_pedestrian,
+    OSM_service,
+    OSM_unknown,
+    OSM_bus,
+};
 
+enum segType_Normal {
+    Normal_level1 = 0,
+    Normal_level2,
+    Normal_level3,
+    Normal_level4,
+    Normal_level5,
+};
 
 
 /* Load Functions Start */
@@ -200,8 +217,8 @@ void LoadIntersectInfoList();
  */
 void LoadPoiInfoList();
 
-void LoadTypeListOfSegsList(std::string OSMpath);
-
+void LoadTypeListOfSegsList_OSM(std::string OSMpath);
+void LoadTypeListOfSegsList_Normal();
 /* Supportive Func */
 
 

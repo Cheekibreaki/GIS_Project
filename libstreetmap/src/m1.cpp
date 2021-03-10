@@ -68,8 +68,8 @@ double min_lat, max_lat, min_lon, max_lon;
 std::vector <OSMID> OSMWayofOSMIDList;
 std::vector <StrSeg_Info> SegsInfoList;
 
-std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList;
-
+std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList_OSM;
+std::unordered_map<std::string,std::vector<StreetSegmentIdx>> SegmentTypeList_Normal;
 std::vector<intersect_info> IntersectInfoList;
 
 std::vector <std::vector<StreetSegmentIdx>> IntersectListOfSegsList;
@@ -176,7 +176,6 @@ void LoadNaturalFeatureList(){
         && NaturalFeatureList[feature_id].polyList.size()>1){
             NaturalFeatureList[feature_id].isPoly=true;
         }
-
     }
 }
 void LoadNaturalFeatureTypeList(){
@@ -296,7 +295,44 @@ void LoadOSMWayofOSMIDList(){
     }
     //closeOSMDatabase();
 }
-void LoadTypeListOfSegsList(std::string OSMpath){
+void LoadTypeListOfSegsList_Normal(){
+    float s4=100/3.6;
+    float s3=90/3.6;
+    float s2=50/3.6;
+    float s1=30/3.6;
+    for(int strIdx=0;strIdx<StreetListOfSegsList.size();strIdx++){
+        int maxSpeed=0;
+        for(int curSeg=0;curSeg<StreetListOfSegsList[strIdx].size();curSeg++){
+            if(SegsInfoList[StreetListOfSegsList[strIdx][curSeg]].segInfo.speedLimit>maxSpeed)
+                maxSpeed=SegsInfoList[StreetListOfSegsList[strIdx][curSeg]].segInfo.speedLimit;
+        }
+        if(maxSpeed<s1){
+            for(int curSeg=0;curSeg<StreetListOfSegsList[strIdx].size();curSeg++){
+                SegmentTypeList_Normal["level1"].push_back(StreetListOfSegsList[strIdx][curSeg]);
+            }
+        }
+        else if(s1<maxSpeed&&maxSpeed<s2){
+            for(int curSeg=0;curSeg<StreetListOfSegsList[strIdx].size();curSeg++){
+                SegmentTypeList_Normal["level2"].push_back(StreetListOfSegsList[strIdx][curSeg]);
+            }
+        }else if(s2<maxSpeed&&maxSpeed<s3){
+            for (int curSeg = 0; curSeg < StreetListOfSegsList[strIdx].size(); curSeg++) {
+                SegmentTypeList_Normal["level3"].push_back(StreetListOfSegsList[strIdx][curSeg]);
+            }
+        }
+        else if(s3<maxSpeed&&maxSpeed<s4){
+            for (int curSeg = 0; curSeg < StreetListOfSegsList[strIdx].size(); curSeg++) {
+                SegmentTypeList_Normal["level4"].push_back(StreetListOfSegsList[strIdx][curSeg]);
+            }
+        }
+        else if(maxSpeed>s4){
+            for (int curSeg = 0; curSeg < StreetListOfSegsList[strIdx].size(); curSeg++) {
+                SegmentTypeList_Normal["level5"].push_back(StreetListOfSegsList[strIdx][curSeg]);
+            }
+        }
+    }
+}
+void LoadTypeListOfSegsList_OSM(std::string OSMpath){
     std::cout<<"path:"<<OSMpath<<std::endl;
     const OSMWay *curWay;
     //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
@@ -313,32 +349,32 @@ void LoadTypeListOfSegsList(std::string OSMpath){
 
             if(tagPair.first[0]=='h'){
                 if(tagPair.second[3]=='i'||tagPair.second[3]=='l') {//unclassified residential living_road cycleway
-                    SegmentTypeList["level1"].push_back(segIdx);
+                    SegmentTypeList_OSM["level1"].push_back(segIdx);
                     //std::cout << "Level1 segIdx:" << segIdx << std::endl;
                     break;
 
                 }else if(tagPair.second[3]=='t'){//tertiary or tertiary_link
-                    SegmentTypeList["level2"].push_back(segIdx);
+                    SegmentTypeList_OSM["level2"].push_back(segIdx);
                     //std::cout << "level2 segIdx:" << segIdx << std::endl;
                     break;
                 }else if(tagPair.second[3]=='m'||(tagPair.second[3]=='o'&&tagPair.second[4]=='n')){//primary or primary_link, secondary or secondary_link
-                    SegmentTypeList["level3"].push_back(segIdx);
+                    SegmentTypeList_OSM["level3"].push_back(segIdx);
                     //std::cout << "level3 segIdx:" << segIdx << std::endl;
                     break;
                 }else if(tagPair.second[3]=='o'||tagPair.second[3]=='n'){//motorway or motorway_link, trunk or trunk_link
-                    SegmentTypeList["level4"].push_back(segIdx);
+                    SegmentTypeList_OSM["level4"].push_back(segIdx);
                     break;
                 }else if(tagPair.second[3]=='e'){//||tagPair.second=="cycleway"||tagPair.second=="footway"||tagPair.second=="sidewalk"||tagPair.second=="path"){
-                    SegmentTypeList["pedestrian"].push_back(segIdx);
+                    SegmentTypeList_OSM["pedestrian"].push_back(segIdx);
                     break;
                 }else if(tagPair.second[3]=='v'){
-                    SegmentTypeList["service"].push_back(segIdx);
+                    SegmentTypeList_OSM["service"].push_back(segIdx);
                     break;
                 }else if(tagPair.second[3]=='d'||tagPair.second[3]=='c') {//track or road
-                    SegmentTypeList["unknown"].push_back(segIdx);
+                    SegmentTypeList_OSM["unknown"].push_back(segIdx);
                     break;
                 }else if(tagPair.second[3]=='_') {
-                    SegmentTypeList["bus"].push_back(segIdx);
+                    SegmentTypeList_OSM["bus"].push_back(segIdx);
                     std::cout << "bus segIdx:" << segIdx << std::endl;
                 }
             }
@@ -393,13 +429,15 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadPOINameListOfPOIsList();
     //Optional:For OSM
     //LoadOSMWayofOSMIDList();
-    //LoadTypeListOfSegsList(map_streets_database_filename);
+    //LoadTypeListOfSegsList_OSM(map_streets_database_filename);
 
     LoadIntersectInfoList();
 
     LoadNaturalFeatureList();
 
     LoadNaturalFeatureTypeList();
+    //Optional:Normal
+    LoadTypeListOfSegsList_Normal();
     //Optional:OSM
     //closeOSMDatabase();
     load_successful = true; //Make sure this is updated to reflect whether
