@@ -63,6 +63,7 @@ void drawMap(){
 
     ezgl::color backgroundColor = ezgl::color(220,220,220,255);
 
+
     application.add_canvas("MainCanvas", draw_main_canvas, initial_world,backgroundColor);
 
 
@@ -275,7 +276,41 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     app->refresh_drawing();
 }
 
+void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
+void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    auto* combo_Box = (GtkComboBoxText * ) app->get_object("ChangeMap");
+    std::string text = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
+    std::cout <<text <<std::endl;
+    std::string map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
+    if(text == "Beijing, China")            map_path = "/cad2/ece297s/public/maps/beijing_china.streets.bin";
+    if(text == "Cairo, Egypt")              map_path = "/cad2/ece297s/public/maps/cairo_egypt.streets.bin";
+    if(text == "Cape-Town, South-Africa")   map_path = "/cad2/ece297s/public/maps/cape-town_south-africa.streets.bin";
+    if(text == "Golden-Horseshoe, Canada")  map_path = "/cad2/ece297s/public/maps/golden-horseshoe_canada.streets.bin";
+    if(text == "Hamilton, Canada")          map_path = "/cad2/ece297s/public/maps/hamilton_canada.streets.bin";
+    if(text == "Hong-Kong, China")          map_path = "/cad2/ece297s/public/maps/hong-kong_china.streets.bin";
+    if(text == "Iceland")                   map_path = "/cad2/ece297s/public/maps/iceland.streets.bin";
+    if(text == "Interlaken, Switzerland")   map_path = "/cad2/ece297s/public/maps/interlaken_switzerland.streets.bin";
+    if(text == "London, England")           map_path = "/cad2/ece297s/public/maps/london_england.streets.bin";
+    if(text == "Moscow, Russia")            map_path = "/cad2/ece297s/public/maps/moscow_russia.streets.bin";
+    if(text == "New-Delhi, India")          map_path = "/cad2/ece297s/public/maps/new-delhi_india.streets.bin";
+    if(text == "New-York, USA")             map_path = "/cad2/ece297s/public/maps/new-york_usa.streets.bin";
+    if(text == "Rio-De-Janeiro, Brazil")    map_path = "/cad2/ece297s/public/maps/rio-de-janeiro_brazil.streets.bin";
+    if(text == "Saint-Helena")              map_path = "/cad2/ece297s/public/maps/saint-helena.streets.bin";
+    if(text == "Singapore")                 map_path = "/cad2/ece297s/public/maps/singapore.streets.bin";
+    if(text == "Sydney, Australia")         map_path = "/cad2/ece297s/public/maps/sydney_australia.streets.bin";
+    if(text == "Tehran, Iran")              map_path = "/cad2/ece297s/public/maps/tehran_iran.streets.bin";
+    if(text == "Tokyo, Japan")              map_path = "/cad2/ece297s/public/maps/tokyo_japan.streets.bin";
+    if(text == "Toronto, Canada")           map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
 
+    closeMap();
+    loadMap(map_path);
+    ezgl::rectangle new_world = ezgl::rectangle{{x_from_lon(min_lon),y_from_lat(min_lat)},
+                                                    {x_from_lon(max_lon),y_from_lat(max_lat)}};
+    app->change_canvas_world_coordinates("MainCanvas", new_world);
+    app->refresh_drawing();
+
+}
 
 void initial_setup(ezgl::application *application, bool new_window){
     searchMode = "Select MODE ...";
@@ -296,6 +331,13 @@ void initial_setup(ezgl::application *application, bool new_window){
             application->get_object("ComboBox"),
             "changed",
             G_CALLBACK(ComboBox_Change_Search_Mode),
+            application
+    );
+
+    g_signal_connect(
+            application->get_object("ChangeMap"),
+            "changed",
+            G_CALLBACK(ChangeMap_Reload_Map),
             application
     );
 }
