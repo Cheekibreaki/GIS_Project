@@ -24,12 +24,19 @@ void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 
+void highlight_intersection(ezgl::renderer *g);
+void highlight_streetseg(ezgl::renderer *g);
+void highlight_poi(ezgl::renderer *g);
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
 void initial_setup(ezgl::application *application, bool new_window);
 void TextInput_Enter_Key_action(GtkWidget *, gpointer data);
+std::string highlight_twoStreet_Intersection(std::string& firstStName, std::string& secondStName);
+StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
+void clear_Intersect_highlight();
+
 
 void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
 void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx> StrIDList,double width);
@@ -63,9 +70,10 @@ void drawMap(){
 /*Render drawing main Canvas*/
 
 void draw_main_canvas(ezgl::renderer *g){
-    draw_intersection(g);
     draw_naturalFeature(g);
-    draw_streetSeg(g);
+    //draw_streetSeg(g);
+    highlight_intersection(g);
+    highlight_streetseg(g);
     draw_legend(g);
 }
 
@@ -184,14 +192,14 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
     switch(tempFeatureType){
         case UNKNOWN:       g->set_color(255,228,225);  break;
-        case PARK:          g->set_color(206,222,175);  break;
+        case PARK:          g->set_color(148,176,117);  break;
         case BEACH:         g->set_color(251,239,199);  break;
         case LAKE:          g->set_color(185,208,251);  break;
         case RIVER:         g->set_color(185,208,251);  break;
         case ISLAND:        g->set_color(230,230,230);  break;
-        case BUILDING:      g->set_color(206,222,175);  break;
+        case BUILDING:      g->set_color(205,205,205);  break;
         case GREENSPACE:    g->set_color(206,222,175);  break;
-        case GOLFCOURSE:    g->set_color(206,222,175);  break;
+        case GOLFCOURSE:    g->set_color(148,176,117);  break;
         case STREAM:        g->set_color(185,208,251);  break;
     }
 }
@@ -219,29 +227,39 @@ void draw_naturalFeature(ezgl::renderer *g){
 
     }
 }
-void draw_intersection(ezgl::renderer *g){
-    for(IntersectionIdx id = 0; id < IntersectListOfLatLon.size(); id++){
-        float x = IntersectInfoList[id].curPosXY.x;
-        float y = IntersectInfoList[id].curPosXY.y;
-
-        if(IntersectInfoList[id].highlight){
-            g->set_color(ezgl::RED);
-        }else{
-            g->set_color(ezgl::CYAN);
-        }
-
-        float width = 5;
-        float height = width;
-        g->fill_rectangle({x, y},{x + width, y + height});
+void clear_Intersect_highlight(){
+    for(auto & intersectInfo: IntersectInfoList){
+        intersectInfo.highlight = false;
     }
-
-    /*std::vector<ezgl::point2d> tempList;
-    for(IntersectionIdx id = 0; id < 10; id++){
-        tempList.push_back(IntersectInfoList[id].curPosXY);
+    for(auto & segsInfo : SegsInfoList){
+        segsInfo.highlight = false;
     }
-    drawLabelList(g, tempList, "libstreetmap/resources/labels/pin_point.png");*/
+    /*for(auto & poiInfo : PoiInfoList){
+        poiInfo.highlight = false;
+    }*/
 }
 
+void highlight_intersection(ezgl::renderer *g){
+    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/pin_point.png");
+
+    for(auto & intersectInfo : IntersectInfoList){
+        if(intersectInfo.highlight){
+            g->draw_surface(png_surface, intersectInfo.curPosXY);
+        }
+    }
+    ezgl::renderer::free_surface(png_surface);
+}
+
+void highlight_streetseg(ezgl::renderer *g){
+    for(auto & intersectInfo : IntersectInfoList){
+        if(intersectInfo.highlight){
+
+        }
+    }
+}
+void highlight_poi(ezgl::renderer *g){
+
+}
 /*User interaction*/
 
 
@@ -253,13 +271,13 @@ void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *
 }
 
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
-    std::cout << "Mouse clicked at (" <<x<< "," <<y<< ")\n";
+    clear_Intersect_highlight();
+
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-    for(int i=0;i<IntersectListOfSegsList[id].size();i++)
-        std::cout << "Closest Seg speed "<< getStreetSegmentInfo(IntersectListOfSegsList[id][i]).speedLimit << "\n";
+
     IntersectInfoList[id].highlight = true;
 
     app->refresh_drawing();
@@ -274,35 +292,60 @@ void initial_setup(ezgl::application *application, bool new_window){
             G_CALLBACK(TextInput_Enter_Key_action),
             application
     );
+
 }
 
-// Find function
-// Input One: StreetName (Enter to autoComplete)
-// Input Two: StreetName (Enter to autoComplete)
+
 
 void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
     auto app = static_cast<ezgl::application *>(data);
-    std::cout << "testCallBack excuting" << std::endl;
     GtkEntry* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+
     const char * text = gtk_entry_get_text(text_Entry);
 
-    // determine which search mode it will excute
-    // STREETNAME (highlight the Street)
-    // STREETNAME, STREETNAME (find Intersection of Two street and then)
+    std::string str = text;
+    int idx = str.find("&");
 
 
-    std::vector<StreetIdx> tempStreetIDList = findStreetIdsFromPartialStreetName(std::string(text));
-    if(!tempStreetIDList.size()){
-        app->update_message("Name No Found");
-    }else{
-        //app->update_message(getStreetName(tempStreetIDList[0]));
+    //Find Two Street Intersection
+    if(idx != -1){
+        std::string firstStreet = str.substr(0, idx);
+        std::string secondStreet = str.substr(idx+1, str.size());
+
+        std::string errorMessage = highlight_twoStreet_Intersection(firstStreet, secondStreet);
+
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+
+        if(!errorMessage.empty()){
+            app->update_message(errorMessage);
+        }else{
+            app->update_message((firstStreet+" and "+secondStreet+"Intersection found"));
+        }
     }
+    else{
+        auto StreetIdxList = findStreetIdsFromPartialStreetName(str);
+        if(StreetIdxList.empty()){
+            app->update_message("Street Name Not Found");
+            return;
+        }
+        StreetIdx curStId = StreetIdxList[0];
+        gtk_entry_set_text(text_Entry, getStreetName(curStId).c_str());
+
+        for(auto segIdx : StreetListOfSegsList[curStId]){
+            SegsInfoList[segIdx].highlight = true;
+        }
+    }
+    app->refresh_drawing();
+}
+
+void TextInput_Change_action(GtkEntry* entry, gchar* /*preedit*/, gpointer user_data){
+
 }
 /*Supportive Helper Functions*/
 
 
 
-
+/*Legend*/
 void calcLegendLength(ezgl::renderer *g){
     // Calculate LegendLength
     // (visibleWorld.right-visibleWorld.left)/(visibleScreen.right-visibleScreen.left) * 100
@@ -313,6 +356,7 @@ void calcLegendLength(ezgl::renderer *g){
     legendLength = 100 * (currentWorld.right()-currentWorld.left())/(currentScreen.right()-currentScreen.left());
 }
 
+/*PNG helper*/
 void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path){
     ezgl::surface *png_surface = ezgl::renderer::load_png(png_path.c_str());
 
@@ -321,4 +365,44 @@ void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std
     }
 
     ezgl::renderer::free_surface(png_surface);
+}
+
+
+
+std::string highlight_twoStreet_Intersection(std::string& firstStName, std::string& secondStName){
+
+    clear_Intersect_highlight();
+
+    StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStName);
+    StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStName);
+
+    if(firstStreetIdx == -1){
+        if(secondStreetIdx != -1) secondStName = getStreetName(secondStreetIdx);
+        return "Name of First Street No Found";
+    }
+    if(secondStreetIdx == -1){
+        firstStName = getStreetName(firstStreetIdx);
+        return "Name of Second Street No Found";
+    }
+
+    firstStName = getStreetName(firstStreetIdx);
+    secondStName = getStreetName(secondStreetIdx);
+
+
+    auto IntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
+
+    if(IntersectList.empty()){
+        return "Intersection No Found";
+    }
+
+    for(int id : IntersectList){
+        IntersectInfoList[id].highlight = true;
+    }
+
+    return "";
+}
+StreetIdx check_StreetIdx_PartialStN(std::string& partialName){
+    auto tempStreetIdxList = findStreetIdsFromPartialStreetName(partialName);
+    if(tempStreetIdxList.empty()) return -1;
+    return tempStreetIdxList[0];
 }
