@@ -24,7 +24,8 @@
           </object>
           <packing>
             <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="width">5</property>
           </packing>
         </child>
         <child>
@@ -171,8 +172,8 @@
             </child>
           </object>
           <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">2</property>
+            <property name="left_attach">5</property>
+            <property name="top_attach">1</property>
           </packing>
         </child>
         <child>
@@ -184,15 +185,34 @@
           </object>
           <packing>
             <property name="left_attach">0</property>
-            <property name="top_attach">3</property>
-            <property name="width">2</property>
+            <property name="top_attach">2</property>
+            <property name="width">6</property>
           </packing>
         </child>
         <child>
           <object class="GtkEntry" id="TextInput">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="primary_icon_name">edit-find</property>
             <signal name="activate" handler="TextInput_Enter_Key_action" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxText" id="ComboBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="active">0</property>
+            <items>
+              <item translatable="yes">Select MODE ...</item>
+              <item translatable="yes">STREET</item>
+              <item translatable="yes">TWOSTREET</item>
+              <item translatable="yes">POI</item>
+            </items>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -200,22 +220,119 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTextView" id="TextOutput">
+          <object class="GtkComboBoxText" id="ChangeMap">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+            <property name="active">0</property>
+            <items>
+              <item translatable="yes">Toronto, Canada</item>
+              <item translatable="yes">Beijing, China</item>
+              <item translatable="yes">Cairo, Egypt</item>
+              <item translatable="yes">Cape-Town, South-Africa</item>
+              <item translatable="yes">Golden-Horseshoe, Canada</item>
+              <item translatable="yes">Hamilton, Canada</item>
+              <item translatable="yes">Hong-Kong, China</item>
+              <item translatable="yes">Iceland</item>
+              <item translatable="yes">Interlaken, Switzerland</item>
+              <item translatable="yes">London, England</item>
+              <item translatable="yes">Moscow, Russia</item>
+              <item translatable="yes">New-Delhi, India</item>
+              <item translatable="yes">New-York, USA</item>
+              <item translatable="yes">Rio-De-Janeiro, Brazil</item>
+              <item translatable="yes">Saint-Helena</item>
+              <item translatable="yes">Singapore</item>
+              <item translatable="yes">Sydney, Australia</item>
+              <item translatable="yes">Tehran, Iran</item>
+              <item translatable="yes">Tokyo, Japan</item>
+            </items>
           </object>
           <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">1</property>
+            <property name="left_attach">4</property>
+            <property name="top_attach">0</property>
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkButton" id="Find">
+            <property name="label" translatable="yes">Find</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">0</property>
+          </packing>
         </child>
         <child>
           <placeholder/>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <!-- column-name map_name -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Beijing, China</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Cairo, Egypt</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Cape-Town, South-Africa</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Golden-Horseshoe, Canada</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Hamilton, Canada</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Hong-Kong, China</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Iceland</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Interlaken, Switzerland</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">London, England</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Moscow, Russia</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">New-Delhi, India</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">New-York, USA</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Rio-De-Janeiro, Brazil</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Saint-Helena</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Singapore</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Sydney, Australia</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Tehran, Iran</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Tokyo, Japan</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Toronto, Canada</col>
+      </row>
+    </data>
   </object>
 </interface>
