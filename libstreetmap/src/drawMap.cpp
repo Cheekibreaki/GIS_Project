@@ -234,6 +234,9 @@ void draw_naturalFeature(ezgl::renderer *g){
 }
 
 void highlight_intersection(ezgl::renderer *g){
+    if(highlightIntersectList.empty()) {
+        return;
+    }
     ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/pin_point.png");
 
     for(auto intersectId : highlightIntersectList){
@@ -243,6 +246,7 @@ void highlight_intersection(ezgl::renderer *g){
 }
 
 void highlight_streetseg(ezgl::renderer *g){
+    // DrawSomething
 
 }
 void highlight_poi(ezgl::renderer *g){
