@@ -182,32 +182,6 @@ void LoadNaturalFeatureList(){
     }
 }
 void LoadNaturalFeatureTypeList(){
-
-    //Initalize LineFeatureList
-    //Initalize PolyFeatureList
-
-    /*PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(UNKNOWN,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(PARK,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BEACH,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(LAKE,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(RIVER,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(ISLAND,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BUILDING,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GREENSPACE,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GOLFCOURSE,{}));
-    PolyFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(STREAM,{}));
-
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(UNKNOWN,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(PARK,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BEACH,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(LAKE,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(RIVER,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(ISLAND,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(BUILDING,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GREENSPACE,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(GOLFCOURSE,{}));
-    LineFeatureList.insert(std::pair<FeatureType,std::vector<FeatureIdx>>(STREAM,{}));*/
-
     for(int feature_id=0; feature_id < getNumFeatures(); feature_id++ ) {
         if (NaturalFeatureList[feature_id].isPoly) {
 
@@ -388,48 +362,38 @@ void LoadTypeListOfSegsList(std::string OSMpath){
         }
         for(unsigned j=0;j<getTagCount(curWay);j++) {
             std::pair<std::string, std::string> tagPair = getTagPair(curWay, j);
-            if(tagPair.first=="highway"){
-                if(tagPair.second=="residential"/*||tagPair.second=="unclassified"||tagPair.second=="trunk"||tagPair.second=="tertiary"||tagPair.second=="primary"||tagPair.second=="motorway"||tagPair.second=="secondary"*/) {
-                    SegmentTypeList["motorway"].push_back(segIdx);
-                    //std::cout << "motorway segIdx:" << segIdx << std::endl;
+
+            if(tagPair.first[0]=='h'){
+                if(tagPair.second[3]=='i'||tagPair.second[3]=='l') {//unclassified residential living_road cycleway
+                    SegmentTypeList["level1"].push_back(segIdx);
+                    //std::cout << "Level1 segIdx:" << segIdx << std::endl;
                     break;
+
+                }else if(tagPair.second[3]=='t'){//tertiary or tertiary_link
+                    SegmentTypeList["level2"].push_back(segIdx);
+                    //std::cout << "level2 segIdx:" << segIdx << std::endl;
+                    break;
+                }else if(tagPair.second[3]=='m'||(tagPair.second[3]=='o'&&tagPair.second[4]=='n')){//primary or primary_link, secondary or secondary_link
+                    SegmentTypeList["level3"].push_back(segIdx);
+                    //std::cout << "level3 segIdx:" << segIdx << std::endl;
+                    break;
+                }else if(tagPair.second[3]=='o'||tagPair.second[3]=='n'){//motorway or motorway_link, trunk or trunk_link
+                    SegmentTypeList["level4"].push_back(segIdx);
+                    break;
+                }else if(tagPair.second[3]=='e'){//||tagPair.second=="cycleway"||tagPair.second=="footway"||tagPair.second=="sidewalk"||tagPair.second=="path"){
+                    SegmentTypeList["pedestrian"].push_back(segIdx);
+                    break;
+                }else if(tagPair.second[3]=='v'){
+                    SegmentTypeList["service"].push_back(segIdx);
+                    break;
+                }else if(tagPair.second[3]=='d'||tagPair.second[3]=='c') {//track or road
+                    SegmentTypeList["unknown"].push_back(segIdx);
+                    break;
+                }else if(tagPair.second[3]=='_') {
+                    SegmentTypeList["bus"].push_back(segIdx);
+                    std::cout << "bus segIdx:" << segIdx << std::endl;
                 }
             }
-//            else if(tagPair.first=="highway"&&tagPair.second=="trunk"){
-//                SegmentTypeList["trunk"].push_back(segIdx);
-//                std::cout<<"trunk segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="primary"){
-//                SegmentTypeList["primary"].push_back(segIdx);
-//                std::cout<<"primary segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="secondary"){
-//                SegmentTypeList["secondary"].push_back(segIdx);
-//                std::cout<<"secondary segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="tertiary"){
-//                SegmentTypeList["tertiary"].push_back(segIdx);
-//                std::cout<<"tertiary segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="unclassified"){
-//                SegmentTypeList["unclassified"].push_back(segIdx);
-//                std::cout<<"unclassified segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-//            else if(tagPair.first=="highway"&&tagPair.second=="residential"){
-//                SegmentTypeList["residential"].push_back(segIdx);
-//                std::cout<<"residential segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }else{
-//                SegmentTypeList["unknown"].push_back(segIdx);
-//                std::cout<<"unknown segIdx:"<<segIdx<<std::endl;
-//                break;
-//            }
-
         }
     }
     //closeOSMDatabase();
@@ -449,7 +413,12 @@ void LoadTypeListOfSegsList(std::string OSMpath){
  * @return loadMap Successful (bool)
  */
 bool loadMap(std::string map_streets_database_filename) {
-    //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
+    std::string str_database=map_streets_database_filename;
+    std::string osm_database=str_database.replace(str_database.end()-11,str_database.end(),"osm.bin");
+
+    //Optional:For OSM
+    //loadOSMDatabaseBIN(osm_database);
+
     bool load_successful = false; //Indicates whether the map has loaded
     //successfully
 
@@ -474,9 +443,8 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadStNameTreeForPrefix();
 
     LoadPOINameListOfPOIsList();
-
+    //Optional:For OSM
     //LoadOSMWayofOSMIDList();
-
     //LoadTypeListOfSegsList(map_streets_database_filename);
 
     LoadIntersectInfoList();
@@ -484,12 +452,10 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadNaturalFeatureList();
 
     LoadNaturalFeatureTypeList();
-
-    LoadPoiInfoList();
-
+    //Optional:OSM
+    //closeOSMDatabase();
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
-    //closeOSMDatabase();
     return load_successful;
 }
 
