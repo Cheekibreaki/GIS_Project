@@ -44,6 +44,7 @@ StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
+void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 
 void drawMap(){
 
@@ -101,7 +102,42 @@ void draw_legend(ezgl::renderer *g){
 
     g->set_coordinate_system(ezgl::WORLD);
 }
+void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
+    if(strIDList.empty()==true){
+        return;
+    }
+    for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
+        int segIdx = strIDList[curSeg];
+        double speed=SegsInfoList[segIdx].segInfo.speedLimit;
+        if(speed<=20){
+            g->set_color(232, 232, 232);
+        }else{
+            g->set_color(204, 202, 55);
+        }
+        ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
+        ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
 
+
+        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+        if (numCurvePoints != 0) {
+            //start of fromPos connect first curvePoint
+            ezgl::point2d lastCurvePos = fromPos;
+
+            //for loop through all curvePoint
+            for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
+                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
+
+                g->draw_line(tempCurvePos, lastCurvePos);
+                lastCurvePos = tempCurvePos;
+            }
+            //draw the last curvePoint to toPos
+            g->draw_line(lastCurvePos, toPos);
+
+        } else {
+            g->draw_line(fromPos, toPos);
+        }
+    }
+}
 void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
     if(strIDList.empty()==true){
         return;
@@ -160,48 +196,54 @@ void draw_streetSeg_Normal(ezgl::renderer *g){
     got= SegmentTypeList_Normal.find("level4");//unknown
     if(got!=SegmentTypeList_OSM.end()) {
         setSegColor_Normal(Normal_level4,g);
-        drawLineHelper(g,got->second);
+        drawLineHelper_highway(g,got->second);
     }
     got= SegmentTypeList_Normal.find("level5");//unknown
     if(got!=SegmentTypeList_OSM.end()) {
         setSegColor_Normal(Normal_level5,g);
-        drawLineHelper(g,got->second);
+        drawLineHelper_highway(g,got->second);
     }
 }
 void draw_streetSeg_OSM(ezgl::renderer *g) {
-//    std::unordered_map<std::string,std::vector<StreetSegmentIdx>>::const_iterator got;
-//    got= SegmentTypeList_OSM.find("level1");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 255,64,0,255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("level2");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("level3");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("level4");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("pedestrian");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("service");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("unknown");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
-//    got= SegmentTypeList_OSM.find("bus");//unknown
-//    if(got!=SegmentTypeList_OSM.end()) {
-//        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
-//    }
+    g->set_line_cap(ezgl::line_cap::round);
+    std::unordered_map<std::string,std::vector<StreetSegmentIdx>>::const_iterator got;
+    got= SegmentTypeList_OSM.find("level1");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level1,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_OSM.find("level2");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level2,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_OSM.find("level3");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level3,g);
+    }
+    got= SegmentTypeList_OSM.find("level4");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level4,g);
+    }
+    got= SegmentTypeList_OSM.find("pedestrian");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_pedestrian,g);
+    }
+    got= SegmentTypeList_OSM.find("service");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_service,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_OSM.find("unknown");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_unknown,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_OSM.find("bus");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_bus,g);
+        drawLineHelper(g,got->second);
+    }
 
 //    std::vector<StreetSegmentIdx> level1List= SegmentTypeList_OSM.at("level1");//residential
 //    drawLineHelper(g,230,230,230,255,level1List,2);
