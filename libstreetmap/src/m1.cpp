@@ -82,6 +82,8 @@ CharTree StNameTreeForPrefix;
 std::vector<naturalFeature> NaturalFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
+std::vector <poi_info> PoiInfoList;
+std::set <std::string>  TypeList;
 /// CharTree "StNameTreeForPrefix" included
 
 /// CharTree Member function & used Function
@@ -308,11 +310,61 @@ void LoadStNameTreeForPrefix(){
     }
 }
 
+void LoadPoiInfoList(){
+    PoiInfoList.resize(getNumPointsOfInterest());
+    for(int Idx=0 ; Idx < getNumPointsOfInterest(); Idx++) {
+        PoiInfoList[Idx].name = getPOIName(Idx);
+        PoiInfoList[Idx].type = getPOIType(Idx);
+
+        PoiInfoList[Idx].curPosXY = LatLon_to_point2d(getPOIPosition(Idx));
+        TypeList.insert(getPOIType(Idx));
+////DISPLAY
+//        if(PoiInfoList[Idx].name.size()==0)
+//        std::cout<<"no name"<<std::endl;
+    }
+
+
+//    std::cout<<TypeList.size()<<std::endl;
+    std::set<std::string>::iterator it;
+    for(it=TypeList.begin(); it!=TypeList.end() ; it++){
+
+        std::cout<<*it<<std::endl;
+    }
+
+}
+
 void LoadPOINameListOfPOIsList(){
     for(POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++ ){
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
+
     }
+
 }
+
+bool CheckTypeIconForPOI(std::string Type,std::string POIType){
+    bool IsThisIcon=false;
+
+        if(Type.length()<=POIType.length()) {
+            for (int i = 0; i < POIType.length()-Type.length(); i++) {
+                int k =0;
+                if(POIType[i]==Type[k]){
+                    IsThisIcon=true;
+                    for( ;k < Type.length() && IsThisIcon==true; k++){
+                        if( POIType[i+k]==Type[k]){
+                            IsThisIcon=true;
+                        }else{
+                            IsThisIcon=false;
+                        }
+                }
+                }
+            }
+    }
+   return IsThisIcon;
+}
+
+
+
+
 void LoadOSMWayofOSMIDList(){
     //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     for(unsigned i=0; i<getNumberOfWays();i++){
@@ -323,7 +375,7 @@ void LoadOSMWayofOSMIDList(){
     //closeOSMDatabase();
 }
 void LoadTypeListOfSegsList(std::string OSMpath){
-    std::cout<<"path:"<<OSMpath<<std::endl;
+    //std::cout<<"path:"<<OSMpath<<std::endl;
     const OSMWay *curWay;
     //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
@@ -339,7 +391,7 @@ void LoadTypeListOfSegsList(std::string OSMpath){
             if(tagPair.first=="highway"){
                 if(tagPair.second=="residential"/*||tagPair.second=="unclassified"||tagPair.second=="trunk"||tagPair.second=="tertiary"||tagPair.second=="primary"||tagPair.second=="motorway"||tagPair.second=="secondary"*/) {
                     SegmentTypeList["motorway"].push_back(segIdx);
-                    std::cout << "motorway segIdx:" << segIdx << std::endl;
+                    //std::cout << "motorway segIdx:" << segIdx << std::endl;
                     break;
                 }
             }
@@ -397,7 +449,7 @@ void LoadTypeListOfSegsList(std::string OSMpath){
  * @return loadMap Successful (bool)
  */
 bool loadMap(std::string map_streets_database_filename) {
-    loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
+    //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     bool load_successful = false; //Indicates whether the map has loaded
     //successfully
 
@@ -423,9 +475,9 @@ bool loadMap(std::string map_streets_database_filename) {
 
     LoadPOINameListOfPOIsList();
 
-    LoadOSMWayofOSMIDList();
+    //LoadOSMWayofOSMIDList();
 
-    LoadTypeListOfSegsList(map_streets_database_filename);
+    //LoadTypeListOfSegsList(map_streets_database_filename);
 
     LoadIntersectInfoList();
 
@@ -433,9 +485,11 @@ bool loadMap(std::string map_streets_database_filename) {
 
     LoadNaturalFeatureTypeList();
 
+    LoadPoiInfoList();
+
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
-    closeOSMDatabase();
+    //closeOSMDatabase();
     return load_successful;
 }
 
@@ -464,6 +518,8 @@ void closeMap() {
 
     PolyFeatureList.clear();
     LineFeatureList.clear();
+    PoiInfoList.clear();
+    TypeList.clear();
 }
 
 /// Tested Functions implemtation from m1.h

@@ -20,6 +20,7 @@ void draw_intersection(ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
+void draw_POI(ezgl::renderer *g);
 
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
@@ -62,7 +63,7 @@ void drawMap(){
 void draw_main_canvas(ezgl::renderer *g){
     draw_intersection(g);
     draw_naturalFeature(g);
-    draw_streetSeg(g);
+    //draw_streetSeg(g);
     draw_legend(g);
 }
 
@@ -159,6 +160,13 @@ void draw_naturalFeature(ezgl::renderer *g){
             }
         }
 
+    }
+}
+void draw_POI(ezgl::renderer *g){
+    for(int idx = 0; idx < PoiInfoList.size(); idx++){
+        if(PoiInfoList[idx].highlight){
+            drawLabelList(g,PoiInfoList[idx].curPosXY, "libstreetmap/resources/labels/pin_point.png");
+        }
     }
 }
 void draw_intersection(ezgl::renderer *g){

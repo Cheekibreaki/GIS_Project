@@ -68,6 +68,7 @@ struct poi_info{
     ezgl::point2d curPosXY;
     std::string name;
     std::string type;
+    std::string icon;
     bool highlight = false;
 };
 /*
@@ -154,6 +155,7 @@ extern std::vector<intersect_info> IntersectInfoList;
  * POI information list contains lower level structure poi_info (curPosXY, name, type, highlight)
  */
 extern std::vector <poi_info> PoiInfoList;
+extern std::set <std::string>  TypeList;
 
 
 
@@ -200,6 +202,8 @@ void LoadIntersectInfoList();
 void LoadPoiInfoList();
 
 void LoadTypeListOfSegsList(std::string OSMpath);
+
+bool CheckTypeIconForPOI(std::string IconType,std::string POIType);
 
 /* Supportive Func */
 
