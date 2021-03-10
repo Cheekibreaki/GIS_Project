@@ -68,9 +68,19 @@ struct poi_info{
     ezgl::point2d curPosXY;
     std::string name;
     std::string type;
-    std::string icon;
+    //char *icon="a";
+//    int Icon = 4;
     bool highlight = false;
 };
+
+//enum POIType{
+//    park=0,
+//    bank,
+//    restaurant,
+//    shop,
+//    noIcon
+//
+//};
 /*
  * @struct structure Point of Segment Information
  * @content     length
@@ -156,7 +166,7 @@ extern std::vector<intersect_info> IntersectInfoList;
  * POI information list contains lower level structure poi_info (curPosXY, name, type, highlight)
  */
 extern std::vector <poi_info> PoiInfoList;
-extern std::set <std::string>  TypeList;
+extern std::vector <std::string>  TypeList;
 
 
 
