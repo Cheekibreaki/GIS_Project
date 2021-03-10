@@ -31,18 +31,13 @@ void highlight_streetseg(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
-void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
-void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
 void initial_setup(ezgl::application *application, bool new_window);
 
 void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
-void TextInput_Enter_Key_action(GtkWidget *, gpointer data);
-void TextInput_Change_action(GtkEntry* entry, gchar* /*preedit*/, gpointer user_data);
+void TextInput_Enter_Key_action_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
+void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data);
 
-std::string highlight_twoStreet_Intersection(std::string& firstStName, std::string& secondStName);
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
-void clear_Intersect_highlight();
-
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
@@ -69,7 +64,7 @@ void drawMap(){
 
 
     application.run(initial_setup, act_on_mouse_press,
-                    act_on_mouse_move, act_on_key_press);
+                    NULL, NULL);
 }
 
 
@@ -254,15 +249,6 @@ void highlight_poi(ezgl::renderer *g){
 
 }
 /*User interaction*/
-
-
-void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y){
-
-}
-void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name){
-
-}
-
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     highlightIntersectList.clear();
 
@@ -321,12 +307,21 @@ void initial_setup(ezgl::application *application, bool new_window){
             G_CALLBACK(TextInput_Enter_Key_action),
             application
     );
-    /*g_signal_connect(
+
+    g_signal_connect(
             application->get_object("TextInput"),
-            "changed",
-            G_CALLBACK(TextInput_Change_action),
+            "icon-press",
+            G_CALLBACK(TextInput_Enter_Key_action_icon),
             application
-    );*/
+    );
+
+    g_signal_connect(
+            application->get_object("Find"),
+            "clicked",
+            G_CALLBACK(TextInput_Enter_Key_action),
+            application
+    );
+
     g_signal_connect(
             application->get_object("ComboBox"),
             "changed",
@@ -347,13 +342,15 @@ void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("ComboBox");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
 }
-
-void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
+void TextInput_Enter_Key_action_icon (GtkEntry *, GtkEntryIconPosition, GdkEvent *, gpointer user_data){
+    TextInput_Enter_Key_action(NULL, user_data);
+}
+void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
+    // Check if user select One Search MODE
     auto app = static_cast<ezgl::application *>(data);
 
-    // Check if user select One Search MODE
     if(searchMode == "Select MODE ..."){
         app->update_message("Please Select Mode Before Searching ...");
         return;
@@ -422,15 +419,7 @@ void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
 
 
     app->refresh_drawing();
-}
 
-void TextInput_Change_action(GtkEntry* entry, gchar* /*preedit*/, gpointer user_data){
-    // after key in TextBar been pressed, reload the Textview widget (no need to render)
-    // g_connected in the init
-    auto app = static_cast<ezgl::application *>(user_data);
-    auto* text_Entry = (GtkEntry* ) app->get_object("TextInput");
-
-    const char * text = gtk_entry_get_text(text_Entry);
 
 }
 /*Supportive Helper Functions*/
