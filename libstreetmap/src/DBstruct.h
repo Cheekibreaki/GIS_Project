@@ -13,6 +13,8 @@
 
 /* External constants */
 
+extern std::string osm_file_path;
+extern bool is_osm_Loaded;
 
 /* Support Lower Level Structures */
 

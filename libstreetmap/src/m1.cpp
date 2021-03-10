@@ -61,6 +61,7 @@
  *          unordered_map<string, vector<POIIdx>> POINameListOfPOIsList
  */
 /*Global Structure Load Begin*/
+std::string osm_file_path;
 double avg_lat;
 double min_lat, max_lat, min_lon, max_lon;
 
@@ -397,8 +398,9 @@ void LoadTypeListOfSegsList_OSM(std::string OSMpath){
  * @return loadMap Successful (bool)
  */
 bool loadMap(std::string map_streets_database_filename) {
-    std::string str_database=map_streets_database_filename;
-    std::string osm_database=str_database.replace(str_database.end()-11,str_database.end(),"osm.bin");
+    osm_file_path=map_streets_database_filename;
+//    std::string str_database=map_streets_database_filename;
+//    std::string osm_database=str_database.replace(str_database.end()-11,str_database.end(),"osm.bin");
 
     //Optional:For OSM
     //loadOSMDatabaseBIN(osm_database);
@@ -436,10 +438,10 @@ bool loadMap(std::string map_streets_database_filename) {
     LoadNaturalFeatureList();
 
     LoadNaturalFeatureTypeList();
-    //Optional:Normal
+
     LoadTypeListOfSegsList_Normal();
     //Optional:OSM
-    //closeOSMDatabase();
+
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
     return load_successful;
@@ -447,9 +449,9 @@ bool loadMap(std::string map_streets_database_filename) {
 
 void closeMap() {
     //Clean-up your map related data structures here
-
-    // call this API to close the currently opened map
     closeStreetDatabase();
+    // call this API to close the currently opened map
+    SegmentTypeList_Normal.clear();
 
     IntersectListOfSegsList.clear();
     IntersectListOfLatLon.clear();
@@ -470,6 +472,13 @@ void closeMap() {
 
     PolyFeatureList.clear();
     LineFeatureList.clear();
+
+    if(is_osm_Loaded==true) {
+        closeOSMDatabase();
+        SegmentTypeList_OSM.clear();
+        OSMWayofOSMIDList.clear();
+    }
+
 }
 
 /// Tested Functions implemtation from m1.h
