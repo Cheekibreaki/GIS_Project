@@ -202,12 +202,14 @@ void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *
 }
 
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
-    clear_Intersect_highlight();
+    highlightIntersectList.clear();
 
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
+
+    highlightIntersectList.push_back(id);
 
     app->refresh_drawing();
 }
