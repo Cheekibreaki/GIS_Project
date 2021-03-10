@@ -14,6 +14,7 @@
 float legendLength;
 void calcLegendLength(ezgl::renderer *g);
 
+std::string searchMode;
 
 void draw_main_canvas (ezgl::renderer *g);
 void draw_streetSeg(ezgl::renderer *g);
@@ -29,13 +30,16 @@ void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, do
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
 void initial_setup(ezgl::application *application, bool new_window);
 
+void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void TextInput_Enter_Key_action(GtkWidget *, gpointer data);
+void TextInput_Change_action(GtkEntry* entry, gchar* /*preedit*/, gpointer user_data);
+
 std::string highlight_twoStreet_Intersection(std::string& firstStName, std::string& secondStName);
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
 void clear_Intersect_highlight();
 
 
-void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path);
+void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
 
 void drawMap(){
@@ -151,19 +155,19 @@ void draw_naturalFeature(ezgl::renderer *g){
 
     for(int curIndex = UNKNOWN; curIndex <= STREAM; curIndex++){
         setFeatureColor(curIndex, g);
-        FeatureType curType = (FeatureType)curIndex;
+        auto curType = (FeatureType)curIndex;
         tempFeatureList = PolyFeatureList[curType];
-        for(int i = 0; i< tempFeatureList.size(); i++){
+        for(int i : tempFeatureList){
 
-            g->fill_poly(NaturalFeatureList[tempFeatureList[i]].polyList);
+            g->fill_poly(NaturalFeatureList[i].polyList);
         }
 
         tempFeatureList = LineFeatureList[curType];
-        for(int i = 0; i < tempFeatureList.size(); i++){
+        for(int i : tempFeatureList){
 
-            for(int pointIdx= 0; pointIdx < NaturalFeatureList[tempFeatureList[i]].polyList.size() - 1; pointIdx++) {
-                g->draw_line(NaturalFeatureList[tempFeatureList[i]].polyList[pointIdx],
-                             NaturalFeatureList[tempFeatureList[i]].polyList[pointIdx + 1]);
+            for(int pointIdx= 0; pointIdx < NaturalFeatureList[i].polyList.size() - 1; pointIdx++) {
+                g->draw_line(NaturalFeatureList[i].polyList[pointIdx],
+                             NaturalFeatureList[i].polyList[pointIdx + 1]);
             }
         }
 
@@ -225,8 +229,10 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     app->refresh_drawing();
 }
 
+
+
 void initial_setup(ezgl::application *application, bool new_window){
-    application->update_message("EZGL Application");
+    application->update_message("Initialize Finished");
 
     g_signal_connect(
             application->get_object("TextInput"),
@@ -234,25 +240,99 @@ void initial_setup(ezgl::application *application, bool new_window){
             G_CALLBACK(TextInput_Enter_Key_action),
             application
     );
-
+    g_signal_connect(
+            application->get_object("TextInput"),
+            "changed",
+            G_CALLBACK(TextInput_Change_action),
+            application
+    );
+    g_signal_connect(
+            application->get_object("ComboBox"),
+            "changed",
+            G_CALLBACK(ComboBox_Change_Search_Mode),
+            application
+    );
 }
 
-
+void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    auto* combo_Box = (GtkComboBoxText * ) app->get_object("ComboBox");
+    searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
+}
 
 void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
+    // Catch User Invalid Input
+    // Set Highlight Object & tell map to reDraw
     auto app = static_cast<ezgl::application *>(data);
-    GtkEntry* text_Entry = (GtkEntry* ) app->get_object("TextInput");
 
-    const char * text = gtk_entry_get_text(text_Entry);
+    // Check if user select One Search MODE
+    if(searchMode == "Select MODE ..."){
+        app->update_message("Please Select Mode Before Searching ...");
+        return;
+    }
 
-    std::string str = text;
-    int idx = str.find("&");
+    // Get User input Text
+    auto* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+    std::string text = (std::string)gtk_entry_get_text(text_Entry);
 
+    if(searchMode == "STREETNAME"){
+        std::cout << "MODE: STREETNAME SEARCHING......" << std::endl;
+        auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
+        if(StreetIdxList.empty()){
+            app->update_message("Street Name Not Found");
+            std::cout << "STREETNAME ERROR (NAME NO FOUND)" << std::endl;
+            return;
+        }
+        StreetIdx curStId = StreetIdxList[0];
+        gtk_entry_set_text(text_Entry, getStreetName(curStId).c_str());
+
+        for(auto segIdx : StreetListOfSegsList[curStId]){
+            SegsInfoList[segIdx].highlight = true;
+        }
+        std::cout << "MODE: STREETNAME SEARCHING FINISHED" << std::endl;
+        return;
+    }
+
+    if(searchMode == "TWOSTREETINTERSECT"){
+        int idx = text.find('&');
+        if(idx == -1){
+            app->update_message("TwoStreetIntersect & no found");
+            std::cout << "MODE: TWOSTREETINTERSECT ERROR INPUT" << std::endl;
+            return;
+        }
+        std::string firstStreet = text.substr(0, idx);
+        std::string secondStreet = text.substr(idx+1, text.size());
+
+        StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStreet);
+        StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStreet);
+
+        if(firstStreetIdx == -1){
+            if(secondStreetIdx != -1) secondStreet = getStreetName(secondStreetIdx);
+            return "Name of First Street No Found";
+        }
+        if(secondStreetIdx == -1){
+            firstStreet = getStreetName(firstStreetIdx);
+            return "Name of Second Street No Found";
+        }
+
+        firstStreet = getStreetName(firstStreetIdx);
+        secondStreet = getStreetName(secondStreetIdx);
+
+
+        auto IntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
+
+        if(IntersectList.empty()){
+            return "Intersection No Found";
+        }
+
+        for(int id : IntersectList){
+            IntersectInfoList[id].highlight = true;
+        }
+    }
 
     //Find Two Street Intersection
     if(idx != -1){
-        std::string firstStreet = str.substr(0, idx);
-        std::string secondStreet = str.substr(idx+1, str.size());
+
 
         std::string errorMessage = highlight_twoStreet_Intersection(firstStreet, secondStreet);
 
@@ -265,22 +345,18 @@ void TextInput_Enter_Key_action(GtkWidget *, gpointer data){
         }
     }
     else{
-        auto StreetIdxList = findStreetIdsFromPartialStreetName(str);
-        if(StreetIdxList.empty()){
-            app->update_message("Street Name Not Found");
-            return;
-        }
-        StreetIdx curStId = StreetIdxList[0];
-        gtk_entry_set_text(text_Entry, getStreetName(curStId).c_str());
 
-        for(auto segIdx : StreetListOfSegsList[curStId]){
-            SegsInfoList[segIdx].highlight = true;
-        }
     }
     app->refresh_drawing();
 }
 
 void TextInput_Change_action(GtkEntry* entry, gchar* /*preedit*/, gpointer user_data){
+    // after key in TextBar been pressed, reload the Textview widget (no need to render)
+    // g_connected in the init
+    auto app = static_cast<ezgl::application *>(user_data);
+    auto* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+
+    const char * text = gtk_entry_get_text(text_Entry);
 
 }
 /*Supportive Helper Functions*/
@@ -299,11 +375,11 @@ void calcLegendLength(ezgl::renderer *g){
 }
 
 /*PNG helper*/
-void drawLabelList(ezgl::renderer *g, std::vector<ezgl::point2d> point_list, std::string png_path){
+void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path){
     ezgl::surface *png_surface = ezgl::renderer::load_png(png_path.c_str());
 
-    for(int i=0; i< point_list.size(); i++){
-        g->draw_surface(png_surface, point_list.at(i));
+    for(auto & i : point_list){
+        g->draw_surface(png_surface, i);
     }
 
     ezgl::renderer::free_surface(png_surface);
@@ -315,33 +391,7 @@ std::string highlight_twoStreet_Intersection(std::string& firstStName, std::stri
 
     clear_Intersect_highlight();
 
-    StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStName);
-    StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStName);
 
-    if(firstStreetIdx == -1){
-        if(secondStreetIdx != -1) secondStName = getStreetName(secondStreetIdx);
-        return "Name of First Street No Found";
-    }
-    if(secondStreetIdx == -1){
-        firstStName = getStreetName(firstStreetIdx);
-        return "Name of Second Street No Found";
-    }
-
-    firstStName = getStreetName(firstStreetIdx);
-    secondStName = getStreetName(secondStreetIdx);
-
-
-    auto IntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
-
-    if(IntersectList.empty()){
-        return "Intersection No Found";
-    }
-
-    for(int id : IntersectList){
-        IntersectInfoList[id].highlight = true;
-    }
-
-    return "";
 }
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName){
     auto tempStreetIdxList = findStreetIdsFromPartialStreetName(partialName);
