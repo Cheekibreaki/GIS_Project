@@ -6,7 +6,7 @@
 
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
-
+#include <math.h>
 #include "m1.h"
 #include "DBstruct.h"
 #include "m2.h"
@@ -91,11 +91,14 @@ void drawMap(){
 /*Render drawing main Canvas*/
 
 void draw_main_canvas(ezgl::renderer *g){
+    calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
     highlight_intersection(g);
     //asdasdas
-    draw_oneWay(g);
+    if(legendLength<500){
+        draw_oneWay(g);
+    }
     if(highlightStreet != -1){
         highlight_streetseg(g);
     }
@@ -114,7 +117,6 @@ void draw_legend(ezgl::renderer *g){
     g->draw_line({20, 25}, {20, 20});
     g->draw_line({120, 25}, {120, 20});
 
-    calcLegendLength(g);
     std::string legendText = std::to_string(legendLength);
 
     g->draw_text({70,18},legendText);
@@ -157,11 +159,24 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         }
     }
 }
-void draw_oneWay(ezgl::renderer *g){
+void draw_arrow(ezgl::renderer *g, ezgl::point2d fromPos, ezgl::point2d toPos){
     g->set_color(0,0,0);
     g->set_line_width(2);
+    g->draw_line(fromPos, toPos);
+    double fromX=fromPos.x;
+    double fromY=fromPos.y;
+    double toX=toPos.x;
+    double toY=toPos.y;
+    double distanceX=toX-fromX;
+    double distanceY=toY-fromY;
+    double degree=tan(distanceY/distanceX);
+
+
+}
+void draw_oneWay(ezgl::renderer *g){
+    g->set_color(0,0,0);
     for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
-        if(SegsInfoList[segIdx].segInfo.oneWay==true){
+        if(SegsInfoList[segIdx].segInfo.oneWay==true&&findStreetSegmentLength(segIdx)>100){
             ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
             ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
 
@@ -173,14 +188,18 @@ void draw_oneWay(ezgl::renderer *g){
                 //for loop through all curvePoint
                 for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
                     ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
-                    g->draw_line(tempCurvePos, lastCurvePos);
+                    if(curCurvePointNum==numCurvePoints-1){
+
+                        //g->draw_text(tempCurvePos,"⟶");
+                    }
+                     //g->draw_line(tempCurvePos, lastCurvePos);
                     lastCurvePos = tempCurvePos;
                 }
                 //draw the last curvePoint to toPos
-                g->draw_line(lastCurvePos, toPos);
+                //g->draw_line(lastCurvePos, toPos);
 
             } else {
-                g->draw_line(fromPos, toPos);
+                g->draw_text(fromPos,"⟶");
             }
         }
     }
