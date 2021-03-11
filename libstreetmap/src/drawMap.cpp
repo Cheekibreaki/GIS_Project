@@ -51,6 +51,8 @@ void highlight_poi(ezgl::renderer *g);
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void initial_setup(ezgl::application *application, bool new_window);
 
+std::string font;
+
 // Singal Callback Functions
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
 void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data);
@@ -109,6 +111,7 @@ void drawMap(){
 /*Render drawing main Canvas*/
 void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
+    g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
@@ -116,8 +119,10 @@ void draw_main_canvas(ezgl::renderer *g){
 
     highlight_intersection(g);
     //asdasdas
-    if(legendLength<500){
-        //draw_oneWay(g);
+    if(legendLength<1000){
+        g->format_font("monospace",ezgl::font_slant::normal, ezgl::font_weight::normal);
+        draw_oneWay(g);
+        g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     }
     if(highlightStreet != -1){
         highlight_streetseg(g);
@@ -644,10 +649,6 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 
 void initial_setup(ezgl::application *application, bool new_window){
 
-    // Set Up Font
-    application->get_renderer()->format_font(
-            "Noto Sans CJK SC", ezgl::font_slant::normal, ezgl::font_weight::normal, 10);
-
     DisplayColor = true;
     DisplayPOI = false;
     DisplayOSM = false;
@@ -719,25 +720,67 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     std::string text = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
     std::cout <<text <<std::endl;
     std::string map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
-    if(text == "Beijing, China")            map_path = "/cad2/ece297s/public/maps/beijing_china.streets.bin";
-    if(text == "Cairo, Egypt")              map_path = "/cad2/ece297s/public/maps/cairo_egypt.streets.bin";
-    if(text == "Cape-Town, South-Africa")   map_path = "/cad2/ece297s/public/maps/cape-town_south-africa.streets.bin";
-    if(text == "Golden-Horseshoe, Canada")  map_path = "/cad2/ece297s/public/maps/golden-horseshoe_canada.streets.bin";
-    if(text == "Hamilton, Canada")          map_path = "/cad2/ece297s/public/maps/hamilton_canada.streets.bin";
-    if(text == "Hong-Kong, China")          map_path = "/cad2/ece297s/public/maps/hong-kong_china.streets.bin";
-    if(text == "Iceland")                   map_path = "/cad2/ece297s/public/maps/iceland.streets.bin";
-    if(text == "Interlaken, Switzerland")   map_path = "/cad2/ece297s/public/maps/interlaken_switzerland.streets.bin";
-    if(text == "London, England")           map_path = "/cad2/ece297s/public/maps/london_england.streets.bin";
-    if(text == "Moscow, Russia")            map_path = "/cad2/ece297s/public/maps/moscow_russia.streets.bin";
-    if(text == "New-Delhi, India")          map_path = "/cad2/ece297s/public/maps/new-delhi_india.streets.bin";
-    if(text == "New-York, USA")             map_path = "/cad2/ece297s/public/maps/new-york_usa.streets.bin";
-    if(text == "Rio-De-Janeiro, Brazil")    map_path = "/cad2/ece297s/public/maps/rio-de-janeiro_brazil.streets.bin";
-    if(text == "Saint-Helena")              map_path = "/cad2/ece297s/public/maps/saint-helena.streets.bin";
-    if(text == "Singapore")                 map_path = "/cad2/ece297s/public/maps/singapore.streets.bin";
-    if(text == "Sydney, Australia")         map_path = "/cad2/ece297s/public/maps/sydney_australia.streets.bin";
-    if(text == "Tehran, Iran")              map_path = "/cad2/ece297s/public/maps/tehran_iran.streets.bin";
-    if(text == "Tokyo, Japan")              map_path = "/cad2/ece297s/public/maps/tokyo_japan.streets.bin";
-    if(text == "Toronto, Canada")           map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
+    font = "monospace";
+    if(text == "Beijing, China"){
+        font = "Noto Sans CJK SC";
+        map_path = "/cad2/ece297s/public/maps/beijing_china.streets.bin";
+    }
+    if(text == "Cairo, Egypt"){
+        map_path = "/cad2/ece297s/public/maps/cairo_egypt.streets.bin";
+    }
+    if(text == "Cape-Town, South-Africa"){
+        map_path = "/cad2/ece297s/public/maps/cape-town_south-africa.streets.bin";
+    }
+    if(text == "Golden-Horseshoe, Canada"){
+        map_path = "/cad2/ece297s/public/maps/golden-horseshoe_canada.streets.bin";
+    }
+    if(text == "Hamilton, Canada"){
+        map_path = "/cad2/ece297s/public/maps/hamilton_canada.streets.bin";
+    }
+    if(text == "Hong-Kong, China"){
+        font = "Noto Sans CJK SC";
+        map_path = "/cad2/ece297s/public/maps/hong-kong_china.streets.bin";
+    }
+    if(text == "Iceland"){
+        map_path = "/cad2/ece297s/public/maps/iceland.streets.bin";
+    }
+    if(text == "Interlaken, Switzerland"){
+        map_path = "/cad2/ece297s/public/maps/interlaken_switzerland.streets.bin";
+    }
+    if(text == "London, England"){
+        map_path = "/cad2/ece297s/public/maps/london_england.streets.bin";
+    }
+    if(text == "Moscow, Russia"){
+        map_path = "/cad2/ece297s/public/maps/moscow_russia.streets.bin";
+    }
+    if(text == "New-Delhi, India"){
+        map_path = "/cad2/ece297s/public/maps/new-delhi_india.streets.bin";
+    }
+    if(text == "New-York, USA"){
+        map_path = "/cad2/ece297s/public/maps/new-york_usa.streets.bin";
+    }
+    if(text == "Rio-De-Janeiro, Brazil"){
+        map_path = "/cad2/ece297s/public/maps/rio-de-janeiro_brazil.streets.bin";
+    }
+    if(text == "Saint-Helena"){
+        map_path = "/cad2/ece297s/public/maps/saint-helena.streets.bin";
+    }
+    if(text == "Singapore"){
+        map_path = "/cad2/ece297s/public/maps/singapore.streets.bin";
+    }
+    if(text == "Sydney, Australia"){
+        map_path = "/cad2/ece297s/public/maps/sydney_australia.streets.bin";
+    }
+    if(text == "Tehran, Iran"){
+        map_path = "/cad2/ece297s/public/maps/tehran_iran.streets.bin";
+    }
+    if(text == "Tokyo, Japan"){
+        font = "Noto Sans CJK SC";
+        map_path = "/cad2/ece297s/public/maps/tokyo_japan.streets.bin";
+    }
+    if(text == "Toronto, Canada"){
+        map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
+    }
 
     closeMap();
     loadMap(map_path);
