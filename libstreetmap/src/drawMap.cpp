@@ -190,6 +190,7 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         }
     }
 }
+
 void draw_oneWay(ezgl::renderer *g){
     g->set_color(0,0,0);
     for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
@@ -401,17 +402,73 @@ void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
     }
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
-    switch(tempFeatureType){
-        case UNKNOWN:       g->set_color(255,228,225);  break;
-        case PARK:          g->set_color(148,176,117);  break;
-        case BEACH:         g->set_color(251,239,199);  break;
-        case LAKE:          g->set_color(185,208,251);  break;
-        case RIVER:         g->set_color(185,208,251);  break;
-        case ISLAND:        g->set_color(230,230,230);  break;
-        case BUILDING:      g->set_color(205,205,205);  break;
-        case GREENSPACE:    g->set_color(206,222,175);  break;
-        case GOLFCOURSE:    g->set_color(148,176,117);  break;
-        case STREAM:        g->set_color(185,208,251);  break;
+    if(DisplayColor==true) {
+        switch (tempFeatureType) {
+            case UNKNOWN:
+                g->set_color(255, 228, 225);
+                break;
+            case PARK:
+                g->set_color(148, 176, 117);
+                break;
+            case BEACH:
+                g->set_color(251, 239, 199);
+                break;
+            case LAKE:
+                g->set_color(185, 208, 251);
+                break;
+            case RIVER:
+                g->set_color(185, 208, 251);
+                break;
+            case ISLAND:
+                g->set_color(230, 230, 230);
+                break;
+            case BUILDING:
+                g->set_color(205, 205, 205);
+                break;
+            case GREENSPACE:
+                g->set_color(206, 222, 175);
+                break;
+            case GOLFCOURSE:
+                g->set_color(148, 176, 117);
+                break;
+            case STREAM:
+                g->set_color(185, 208, 251);
+                break;
+        }
+    }
+    else if(DisplayColor==false) {
+        switch (tempFeatureType) {
+            case UNKNOWN:
+                g->set_color(255, 228, 225);
+                break;
+            case PARK:
+                g->set_color(38, 46, 45);
+                break;
+            case BEACH:
+                g->set_color(44, 38, 46);
+                break;
+            case LAKE:
+                g->set_color(36, 43, 54);
+                break;
+            case RIVER:
+                g->set_color(36, 43, 54);
+                break;
+            case ISLAND:
+                g->set_color(230, 230, 230);
+                break;
+            case BUILDING:
+                g->set_color(176, 196, 222);
+                break;
+            case GREENSPACE:
+                g->set_color(140, 185, 161);
+                break;
+            case GOLFCOURSE:
+                g->set_color(140, 185, 161);
+                break;
+            case STREAM:
+                g->set_color(36, 43, 54);
+                break;
+        }
     }
 }
 
@@ -459,63 +516,71 @@ double CalDistance(POIIdx POI_first,POIIdx POI_second){
 void draw_POI(ezgl::renderer *g) {
     std::vector<POIIdx> tempList = {};
 //    std::vector<POIIdx> tempList2 = {};
-
-    bool NeedPush=false;
+if(DisplayPOI) {
+    bool NeedPush = false;
 
     for (int idx = 0; idx < PoiInfoList.size(); idx++) {
 
-            ezgl::rectangle temp = g->get_visible_world();
+        ezgl::rectangle temp = g->get_visible_world();
 
-            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
-                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
-                temp.right() > PoiInfoList[idx].curPosXY.x &&
-                temp.top() > PoiInfoList[idx].curPosXY.y) {
+        if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+            temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+            temp.right() > PoiInfoList[idx].curPosXY.x &&
+            temp.top() > PoiInfoList[idx].curPosXY.y) {
 
 //                tempList2.push_back(idx);
 
-                if (tempList.empty()) {
+            if (tempList.empty()) {
+                tempList.push_back(idx);
+            } else {
+                for (int i = 0; i < tempList.size(); ++i) {
+
+                    if (CalDistance(tempList[i], idx) > legendLength * 1) {
+                        NeedPush = true;
+
+                    } else {
+                        NeedPush = false;
+                        break;
+                    }
+                }
+                if (NeedPush == true) {
                     tempList.push_back(idx);
-                } else {
-                    for (int i = 0; i < tempList.size(); ++i) {
-
-                        if (CalDistance(tempList[i], idx) > legendLength*1) {
-                            NeedPush = true;
-
-                        } else {
-                            NeedPush = false;
-                            break;
-                        }
-                    }
-                    if (NeedPush == true) {
-                        tempList.push_back(idx);
-
-                    }
 
                 }
 
             }
 
-
         }
 
-    if(!tempList.empty()) {
+
+    }
+
+    if (!tempList.empty()) {
 //        std::cout<<tempList.size()<<std::endl;
 //        std::cout<<tempList2.size()<<std::endl;
         for (int idx = 0; idx < tempList.size(); idx++) {
-            if (PoiInfoList[tempList[idx]].icon!="noIcon") {
-                ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon);
-                g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
-                ezgl::renderer::free_surface(png_surface);
-                PoiInfoList[tempList[idx]].IsDisplay = true;
+            if (PoiInfoList[tempList[idx]].icon_day != "noIcon") {
+                if(DisplayColor) {
+                    ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_day);
+                    g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                    ezgl::renderer::free_surface(png_surface);
                 g->set_font_size(10);
                 g->set_color(ezgl::BLACK);
-                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x+3, PoiInfoList[tempList[idx]].curPosXY.y + 5} ,
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
                              getPOIName(tempList[idx]));
+                }else if (!DisplayColor) {
+                    ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
+                    g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                    ezgl::renderer::free_surface(png_surface);
+                    g->set_font_size(10);
+                    g->set_color(ezgl::BLACK);
+                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                                 getPOIName(tempList[idx]));
+                }
+            } else {
+                g->set_color(168, 168, 168, 120);
+                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
 
-            }else {
-                g->set_color(168,168,168,120);
-                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY,7,0,360);
-                PoiInfoList[tempList[idx]].IsDisplay = true;
                 g->set_font_size(10);
                 g->set_color(ezgl::BLACK);
                 g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
@@ -525,6 +590,7 @@ void draw_POI(ezgl::renderer *g) {
         }
 
     }
+}
 
 }
 
