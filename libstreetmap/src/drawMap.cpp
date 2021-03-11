@@ -13,7 +13,7 @@
 #include <OSMDatabaseAPI.h>
 
 float legendLength;
-
+StreetIdx highlightStreet = -1;
 void calcLegendLength(ezgl::renderer *g);
 
 std::string searchMode;
@@ -36,6 +36,7 @@ void draw_streetSeg_OSM(ezgl::renderer *g);
 void draw_streetSeg_controller(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
+void draw_oneWay(ezgl::renderer *g);
 
 std::vector<StreetSegmentIdx> highlightStSegList;
 std::vector<IntersectionIdx> highlightIntersectList;
@@ -62,7 +63,6 @@ void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 
 void drawMap(){
-
     ezgl::application::settings settings;
     settings.main_ui_resource   =   "libstreetmap/resources/main.ui";
     settings.window_identifier  =   "MainWindow";
@@ -153,6 +153,34 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         }
     }
 }
+void draw_oneWay(ezgl::renderer *g){
+    g->set_color(0,0,0);
+    g->set_line_width(2);
+    for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
+        if(SegsInfoList[segIdx].segInfo.oneWay==true){
+            ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
+            ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
+
+            int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+            if (numCurvePoints != 0) {
+                //start of fromPos connect first curvePoint
+                ezgl::point2d lastCurvePos = fromPos;
+
+                //for loop through all curvePoint
+                for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
+                    ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
+                    g->draw_line(tempCurvePos, lastCurvePos);
+                    lastCurvePos = tempCurvePos;
+                }
+                //draw the last curvePoint to toPos
+                g->draw_line(lastCurvePos, toPos);
+
+            } else {
+                g->draw_line(fromPos, toPos);
+            }
+        }
+    }
+}
 void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
     if(strIDList.empty()==true){
         return;
@@ -162,9 +190,6 @@ void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
         int segIdx = strIDList[curSeg];
         ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
         ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
-        if(SegsInfoList[segIdx].segInfo.oneWay==true){
-
-        }
 
         int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
         if (numCurvePoints != 0) {
@@ -174,7 +199,6 @@ void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
             //for loop through all curvePoint
             for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
                 ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
-
                 g->draw_line(tempCurvePos, lastCurvePos);
                 lastCurvePos = tempCurvePos;
             }
@@ -184,6 +208,8 @@ void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
         } else {
             g->draw_line(fromPos, toPos);
         }
+
+
     }
 }
 void draw_streetSeg_controller(ezgl::renderer *g){
