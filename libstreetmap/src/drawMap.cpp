@@ -20,7 +20,7 @@ bool is_osm_Loaded;
 /**
  * True == Day, False == Night
  */
-bool DisplayColor;
+bool DisplayColor = true;
 
 void draw_main_canvas (ezgl::renderer *g);
 
