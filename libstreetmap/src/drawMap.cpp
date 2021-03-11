@@ -78,6 +78,9 @@ void calcLegendLength(ezgl::renderer *g);
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
+void drawNightColor(ezgl::renderer *g);
+
+
 
 void drawMap(){
     ezgl::application::settings settings;
@@ -92,9 +95,7 @@ void drawMap(){
                                                     {x_from_lon(max_lon),y_from_lat(max_lat)}};
 
 
-    ezgl::color backgroundColor = ezgl::color(220,220,220,255);
-
-
+    ezgl::color backgroundColor = ezgl::color(ezgl::WHITE);
     application.add_canvas("MainCanvas", draw_main_canvas, initial_world,backgroundColor);
 
 
@@ -108,6 +109,7 @@ void drawMap(){
 /*Render drawing main Canvas*/
 void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
+    drawNightColor(g);
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
@@ -125,6 +127,18 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_legend(g);
     draw_POI(g);
 //    draw_POI_text(g);
+}
+
+void drawNightColor(ezgl::renderer *g){
+    ezgl::rectangle temp=g->get_visible_world();
+    if(DisplayColor){
+        g->set_color(230,230,230,255);
+        g->fill_rectangle(temp.bottom_left(),temp.top_right());
+    }else if(!DisplayColor){
+        g->set_color(25,25,25,255);
+        g->fill_rectangle(temp.bottom_left(),temp.top_right());
+    }
+
 }
 
 void draw_street_Name(ezgl::renderer *g){
@@ -541,8 +555,8 @@ void draw_POI(ezgl::renderer *g) {
                     g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
                     ezgl::renderer::free_surface(png_surface);
                 g->set_font_size(10);
-                g->set_color(ezgl::BLACK);
-                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                g->set_color(63,71,70);
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 6},
                              getPOIName(tempList[idx]));
                 }else if (!DisplayColor) {
                     ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
@@ -554,13 +568,16 @@ void draw_POI(ezgl::renderer *g) {
                                  getPOIName(tempList[idx]));
                 }
             } else {
-                g->set_color(168, 168, 168, 120);
-                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
+                if(DisplayColor){
+                    g->set_color(168, 168, 168, 120);
+                    g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
 
-                g->set_font_size(10);
-                g->set_color(ezgl::BLACK);
-                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
-                             getPOIName(tempList[idx]));
+                    g->set_font_size(10);
+                    g->set_color(ezgl::BLACK);
+                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                                 getPOIName(tempList[idx]));
+                }
+
             }
 
         }
