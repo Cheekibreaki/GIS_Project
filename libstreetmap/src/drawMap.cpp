@@ -13,10 +13,6 @@
 #include <OSMDatabaseAPI.h>
 
 float legendLength;
-StreetIdx highlightStreet = -1;
-void calcLegendLength(ezgl::renderer *g);
-
-std::string searchMode;
 
 bool DisplayOSM;
 bool DisplayPOI;
@@ -38,17 +34,19 @@ void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 void draw_POI(ezgl::renderer *g);
 void draw_oneWay(ezgl::renderer *g);
-void highlight_mouse_press(ezgl::renderer *g);
 
+
+StreetIdx highlightStreet = -1;
 std::vector<StreetSegmentIdx> highlightStSegList;
-
 std::vector<ezgl::point2d> highlightIntersectList;
-
 std::vector<ezgl::point2d> highlightMousePress;
 
+void highlight_mouse_press(ezgl::renderer *g);
 void highlight_intersection(ezgl::renderer *g);
 void highlight_streetseg(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
+
+
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void initial_setup(ezgl::application *application, bool new_window);
@@ -60,15 +58,22 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
 void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
-/// For both Entry key and Find button search Controller
+
+
+
+std::string searchMode;
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
 void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 
-void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
+
+void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
+double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second);
+double calc_two_POI_distance(POIIdx POI_first, POIIdx POI_second);
+void calcLegendLength(ezgl::renderer *g);
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
@@ -155,7 +160,7 @@ void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::WORLD);
 }
 void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
-    if(strIDList.empty()==true){
+    if(strIDList.empty()){
         return;
     }
     for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
@@ -201,20 +206,13 @@ void draw_oneWay(ezgl::renderer *g){
             if (numCurvePoints != 0) {
                 //start of fromPos connect first curvePoint
                 ezgl::point2d lastCurvePos = fromPos;
-
                 //for loop through all curvePoint
                 for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
                     ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
                     if(curCurvePointNum==numCurvePoints-1){
-
-                        //g->draw_text(tempCurvePos,"⟶");
                     }
-                     //g->draw_line(tempCurvePos, lastCurvePos);
                     lastCurvePos = tempCurvePos;
                 }
-                //draw the last curvePoint to toPos
-                //g->draw_line(lastCurvePos, toPos);
-
             } else {
                 g->draw_text(fromPos,"⟶");
             }
@@ -444,63 +442,41 @@ void draw_naturalFeature(ezgl::renderer *g){
 
     }
 }
-double CalDistance(POIIdx POI_first,POIIdx POI_second){
-
-    ezgl::point2d POI1=PoiInfoList[POI_first].curPosXY;
-    ezgl::point2d POI2=PoiInfoList[POI_second].curPosXY;
-
-    double temp_x= POI1.x-POI2.x;
-    double temp_y= POI1.y-POI2.y;
-    double distance=temp_x*temp_x+temp_y*temp_y;
-
-    return sqrt(distance);
-}
 
 void draw_POI(ezgl::renderer *g) {
     std::vector<POIIdx> tempList = {};
-//    std::vector<POIIdx> tempList2 = {};
 
     bool NeedPush=false;
 
     for (int idx = 0; idx < PoiInfoList.size(); idx++) {
 
-            ezgl::rectangle temp = g->get_visible_world();
+        ezgl::rectangle temp = g->get_visible_world();
 
-            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
-                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
-                temp.right() > PoiInfoList[idx].curPosXY.x &&
-                temp.top() > PoiInfoList[idx].curPosXY.y) {
+        if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+            temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+            temp.right() > PoiInfoList[idx].curPosXY.x &&
+            temp.top() > PoiInfoList[idx].curPosXY.y) {
 
-//                tempList2.push_back(idx);
+            if (tempList.empty()) {
+                tempList.push_back(idx);
+            } else {
+                for (int i = 0; i < tempList.size(); ++i) {
+                    if (calc_two_POI_distance(tempList[i], idx) > legendLength * 1) {
+                        NeedPush = true;
 
-                if (tempList.empty()) {
-                    tempList.push_back(idx);
-                } else {
-                    for (int i = 0; i < tempList.size(); ++i) {
-
-                        if (CalDistance(tempList[i], idx) > legendLength*1) {
-                            NeedPush = true;
-
-                        } else {
-                            NeedPush = false;
-                            break;
-                        }
+                    } else {
+                        NeedPush = false;
+                        break;
                     }
-                    if (NeedPush == true) {
-                        tempList.push_back(idx);
-
-                    }
-
                 }
-
+                if (NeedPush == true) {
+                    tempList.push_back(idx);
+                }
             }
-
-
         }
+    }
 
     if(!tempList.empty()) {
-//        std::cout<<tempList.size()<<std::endl;
-//        std::cout<<tempList2.size()<<std::endl;
         for (int idx = 0; idx < tempList.size(); idx++) {
             if (PoiInfoList[tempList[idx]].icon!="noIcon") {
                 ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon);
@@ -540,22 +516,12 @@ void highlight_intersection(ezgl::renderer *g){
 }
 
 void highlight_streetseg(ezgl::renderer *g){
-    // DrawSomething
-    //std::vector<StreetSegmentIdx> highlightStSegList;
-    //highlightStSegList<StreetSegIdx>;
     g->set_color(255,0,0,200);
     g->set_line_width(10);
 
-
-
-    //LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
-    //ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
-    //ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
-
-    //g->m_camera->set_world({minPoint,maxPoint});
-    //drawLineHelper(g,highlightStSegList);
     drawLineHelper(g,StreetListOfSegsList[highlightStreet]);
 }
+
 void highlight_poi(ezgl::renderer *g){
 
 }
@@ -567,6 +533,8 @@ void highlight_clear(){
     highlightStSegList.clear();
     highlightStreet = -1;
 }
+
+
 /*User interaction*/
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     ezgl::point2d mousePos(x,y);
@@ -588,8 +556,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
                 ezgl::point2d closest;
                 double closestLength = 9999;
                 for(auto point : highlightIntersectList){
-                    ezgl::rectangle area(mousePos, point);
-                    double tempLength = sqrt(area.width()*area.width() + area.height()*area.height());
+                    double tempLength = calc_distance_point2d(mousePos, point);
                     if(tempLength < closestLength){
                         closestLength = tempLength;
                         closest = point;
@@ -607,34 +574,6 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     app->refresh_drawing();
 }
 
-void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
-    auto app = static_cast<ezgl::application *>(user_data);
-    if(DisplayOSM){
-        DisplayOSM = false;
-        app->update_message("CLOSING OSM PLEASE WAIT.........");
-
-        app->update_message("CLOSING OSM FINISHED");
-
-    }else{
-        DisplayOSM = true;
-        app->update_message("LOADING OSM PLEASE WAIT.........");
-
-        osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
-
-        if(is_osm_Loaded){
-            app->update_message("OSM ALREADY LOADED");
-        }else{
-            is_osm_Loaded = true;
-            loadOSMDatabaseBIN(osm_file_path);
-            LoadOSMWayofOSMIDList();
-            LoadTypeListOfSegsList_OSM(osm_file_path);
-        }
-
-        app->update_message("LOADING OSM FINISHED");
-
-    }
-    app->refresh_drawing();
-}
 
 void initial_setup(ezgl::application *application, bool new_window){
     DisplayColor = true;
@@ -744,8 +683,8 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
                                                 {x_from_lon(max_lon),y_from_lat(max_lat)}};
     app->change_canvas_world_coordinates("MainCanvas", new_world);
     app->refresh_drawing();
-
 }
+
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     highlight_clear();
     auto app = static_cast<ezgl::application *>(user_data);
@@ -753,10 +692,10 @@ void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
     app->refresh_drawing();
 }
+
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data){
     Entry_search_Controller(NULL, user_data);
 }
-
 void Entry_search_Controller(GtkWidget *wid, gpointer data){
     highlight_clear();
     // Catch User Invalid Input
@@ -781,15 +720,38 @@ void Entry_search_Controller(GtkWidget *wid, gpointer data){
     if(searchMode == "STREET"){
         search_Mode_STREET(app, text_Entry, text);
     }
-
     if(searchMode == "TWOSTREET"){
         search_Mode_TWOSTREET(app, text_Entry, text);
     }
-
-
     app->refresh_drawing();
+}
+void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    if(DisplayOSM){
+        DisplayOSM = false;
+        app->update_message("CLOSING OSM PLEASE WAIT.........");
 
+        app->update_message("CLOSING OSM FINISHED");
 
+    }else{
+        DisplayOSM = true;
+        app->update_message("LOADING OSM PLEASE WAIT.........");
+
+        osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
+
+        if(is_osm_Loaded){
+            app->update_message("OSM ALREADY LOADED");
+        }else{
+            is_osm_Loaded = true;
+            loadOSMDatabaseBIN(osm_file_path);
+            LoadOSMWayofOSMIDList();
+            LoadTypeListOfSegsList_OSM(osm_file_path);
+        }
+
+        app->update_message("LOADING OSM FINISHED");
+
+    }
+    app->refresh_drawing();
 }
 void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
@@ -807,6 +769,7 @@ void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointe
     }
     app->refresh_drawing();
 }
+
 void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     if(DisplayPOI){
@@ -819,6 +782,8 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
     }
     app->refresh_drawing();
 }
+
+
 /*Supportive Helper Functions*/
 void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text){
     // ReadFrom Intersect Tree
@@ -833,10 +798,12 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::s
     }
     //highlightIntersectList.push_back();
 }
+
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
     // ReadFrom POI Tree
 
 }
+
 void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
     auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
     if(StreetIdxList.empty()){
@@ -855,6 +822,7 @@ void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::stri
 
     calc_screen_fit(app, setScreen);
 }
+
 void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
     int idx = text.find('&');
     if(idx == -1){
@@ -895,6 +863,8 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
 
     gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
 }
+
+
 void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
     auto initScreen = app->get_renderer()->get_visible_screen();
 
@@ -912,7 +882,18 @@ void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
     }
     ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
 }
+double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second){
+    ezgl::rectangle temp(first, second);
+    return sqrt(temp.width()*temp.width() + temp.height() * temp.height());
+}
 
+double calc_two_POI_distance(POIIdx POI_first, POIIdx POI_second){
+
+    ezgl::point2d POI1=PoiInfoList[POI_first].curPosXY;
+    ezgl::point2d POI2=PoiInfoList[POI_second].curPosXY;
+
+    return calc_distance_point2d(POI1, POI2);
+}
 /*Legend*/
 void calcLegendLength(ezgl::renderer *g){
     // Calculate LegendLength
