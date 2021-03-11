@@ -567,7 +567,7 @@ void draw_POI(ezgl::renderer *g) {
                     g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
                     ezgl::renderer::free_surface(png_surface);
                     g->set_font_size(10);
-                    g->set_color(ezgl::BLACK);
+                    g->set_color(ezgl::WHITE);
                     g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
                                  getPOIName(tempList[idx]));
                 }
@@ -580,6 +580,15 @@ void draw_POI(ezgl::renderer *g) {
                     g->set_color(ezgl::BLACK);
                     g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
                                  getPOIName(tempList[idx]));
+                }else if(!DisplayColor){
+                    g->set_color(168, 168, 168, 120);
+                    g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
+
+                    g->set_font_size(10);
+                    g->set_color(ezgl::WHITE);
+                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                                 getPOIName(tempList[idx]));
+
                 }
 
             }
