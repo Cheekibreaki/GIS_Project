@@ -558,10 +558,10 @@ bool loadMap(std::string map_streets_database_filename) {
     std::cout << "Loading: IntersectInfoList...." << std::endl;
     LoadIntersectInfoList();
 
-    std::cout << "Loading: IntersectInfoList...." << std::endl;
+    std::cout << "Loading: NaturalFeatureList...." << std::endl;
     LoadNaturalFeatureList();
 
-    std::cout << "Loading: IntersectInfoList...." << std::endl;
+    std::cout << "Loading: NaturalFeatureTypeList...." << std::endl;
     LoadNaturalFeatureTypeList();
     LoadPoiInfoList();
     std::cout << "Loading: TypeListOfSegsList_Normal...." << std::endl;
