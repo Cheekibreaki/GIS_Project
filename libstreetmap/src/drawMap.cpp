@@ -89,20 +89,35 @@ void drawMap(){
 //pullsdqdfqsdd
 
 /*Render drawing main Canvas*/
-
+void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
+    draw_street_Name(g);
+
     highlight_intersection(g);
     //asdasdas
     //draw_oneWay(g);
     if(highlightStreet != -1){
         highlight_streetseg(g);
     }
+
     draw_legend(g);
 }
+void draw_street_Name(ezgl::renderer *g){
+    for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
+        std::string StName = getStreetName(StIdx);
+        for(auto SegIdx : StreetListOfSegsList[StIdx]){
+            g->set_color(ezgl::BLACK);
+            g->set_font_size(8);
+            ezgl::point2d midPoint = (SegsInfoList[SegIdx].toXY+SegsInfoList[SegIdx].fromXY) * ezgl::point2d(0.5,0.5);
+            g->draw_text(midPoint,StName,legendLength,legendLength);
 
+
+        }
+    }
+}
 void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::SCREEN);
 
