@@ -294,21 +294,46 @@ void LoadPoiInfoList(){
 
         PoiInfoList[Idx].curPosXY = LatLon_to_point2d(getPOIPosition(Idx));
         temp.insert(getPOIType(Idx));
-//        if(CheckTypeIconForPOI("park", PoiInfoList[Idx].type)){
-//            PoiInfoList[Idx].icon="libstreetmap/resources/labels/park.png";
-//        }
-//        if(CheckTypeIconForPOI("bank", PoiInfoList[Idx].type)){
-//            PoiInfoList[Idx].icon="libstreetmap/resources/labels/bank.png";
-//        }
-//        if(CheckTypeIconForPOI("shop", PoiInfoList[Idx].type)){
-//            PoiInfoList[Idx].icon="libstreetmap/resources/labels/shop.png";
-//            }
-    std::set<std::string>::iterator it;
-    for(it=temp.begin(); it!=temp.end() ; it++){
-        if(CheckTypeIconForPOI("bank", *it)||CheckTypeIconForPOI("shop", *it)||CheckTypeIconForPOI("park", *it)){
-            TypeList.push_back(*it);
+
+        double temp_distance=0;
+        double min_distance=1000;
+        int min_idx=0;
+        for(int idx=0; idx< getNumPointsOfInterest(); idx++) {
+            if (idx!=Idx){
+                temp_distance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(Idx), getPOIPosition(idx)));
+            if (temp_distance < min_distance) {
+                min_idx=idx;
+                min_distance=temp_distance;
+            }
         }
-    }
+
+        }
+        PoiInfoList[Idx].ClosetPOI=min_idx;
+
+        if (CheckTypeIconForPOI("bank", PoiInfoList[Idx].type) == true) {
+
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/bank.png";
+
+        } else if (CheckTypeIconForPOI("shop", PoiInfoList[Idx].type) == true) {
+
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/shop.png";
+
+        } else if (CheckTypeIconForPOI("school", PoiInfoList[Idx].type) == true) {
+                        PoiInfoList[Idx].icon="libstreetmap/resources/labels/school.png";
+
+        } else if (CheckTypeIconForPOI("hospital", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/hospital.png";
+
+
+        } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/park.png";
+
+
+        } else if (CheckTypeIconForPOI("restaurant", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/restaurant.png";
+        }
+
+
 
 //    for(int idx =0; idx < getNumPointsOfInterest(); idx++){
 //        for(int i =0; i< TypeList.size(); i++){
@@ -320,7 +345,12 @@ void LoadPoiInfoList(){
 //    }
     }
 
-
+    std::set<std::string>::iterator it;
+    for(it=temp.begin(); it!=temp.end() ; it++){
+        if(CheckTypeIconForPOI("bank", *it)||CheckTypeIconForPOI("shop", *it)||CheckTypeIconForPOI("park", *it)){
+            TypeList.push_back(*it);
+        }
+    }
 
 
 //    std::cout<<TypeList.size()<<std::endl;
@@ -338,39 +368,7 @@ void LoadPOINameListOfPOIsList() {
     }
 
 
-//    std::set<std::string>::iterator it;
-//    for(it=TypeList.begin(); it!=TypeList.end() ; it++){
-//
-//        if(CheckTypeIconForPOI("park",*it)==true){
-//            for(int i=0; i< POINameListOfPOIsList[*it].size(); i++){
-////                PoiInfoList[POINameListOfPOIsList[*it][i]].icon="libstreetmap/resources/labels/park.png";
-//                PoiInfoList[POINameListOfPOIsList[*it][i]].Icon=0;
-//                std::cout<<"yes"<<std::endl;
-//                std::cout<<PoiInfoList[POINameListOfPOIsList[*it][i]].Icon<<std::endl;
-//            }
-//        }
-//        if(CheckTypeIconForPOI("bank",*it)==true){
-//                for(int i=0; i< POINameListOfPOIsList[*it].size(); i++) {
-//                    PoiInfoList[POINameListOfPOIsList[*it][i]].Icon = 1;
-//                }
-//        }
-//        if(CheckTypeIconForPOI("school",*it)==true){
-//            for(int i=0; i< POINameListOfPOIsList[*it].size(); i++) {
-//                PoiInfoList[POINameListOfPOIsList[*it][i]].Icon = 2;
-//            }
-//        }
-//        if(CheckTypeIconForPOI("shop",*it)==true){
-//            for(int i=0; i< POINameListOfPOIsList[*it].size(); i++) {
-//                PoiInfoList[POINameListOfPOIsList[*it][i]].Icon = 3;
-//            }
-//        }
-//        std::cout<<PoiInfoList[POINameListOfPOIsList[*it][0]].Icon<<std::endl;
-////            else {
-////            for(int i=0; i< POINameListOfPOIsList[*it].size(); i++){
-//////                PoiInfoList[POINameListOfPOIsList[*it][i]].icon="";
-////
-////            }
-////        }
+
 
     }
 
@@ -960,11 +958,13 @@ POIIdx findClosestPOI(LatLon my_position, std::string POIname){
     double minDistance = std::numeric_limits<double>::max();
     POIIdx closestPOIIdx = -1;
     for(POIIdx curPOI : POIList){
-        double curDistance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(curPOI), my_position));
-        if(curDistance < minDistance){
-            minDistance = curDistance;
-            closestPOIIdx = curPOI;
-        }
+
+            double curDistance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(curPOI), my_position));
+            if (curDistance < minDistance) {
+                minDistance = curDistance;
+                closestPOIIdx = curPOI;
+            }
+
     }
     return closestPOIIdx;
 }

@@ -31,6 +31,7 @@ void draw_streetSeg(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 void draw_POI(ezgl::renderer *g);
+void draw_POI_text(ezgl::renderer *g);
 
 std::vector<StreetSegmentIdx> highlightStSegList;
 std::vector<IntersectionIdx> highlightIntersectList;
@@ -90,6 +91,7 @@ void draw_main_canvas(ezgl::renderer *g){
     highlight_streetseg(g);
     draw_legend(g);
     draw_POI(g);
+    draw_POI_text(g);
 }
 
 void draw_legend(ezgl::renderer *g){
@@ -247,80 +249,92 @@ void draw_naturalFeature(ezgl::renderer *g){
 
     }
 }
+double CalDistance(POIIdx POI_first,POIIdx POI_second){
+
+    ezgl::point2d POI1=PoiInfoList[POI_first].curPosXY;
+    ezgl::point2d POI2=PoiInfoList[POI_second].curPosXY;
+
+    double temp_x= POI1.x-POI2.x;
+    double temp_y= POI1.y-POI2.y;
+    double distance=temp_x*temp_x+temp_y*temp_y;
+
+    return sqrt(distance);
+
+}
 
 
-void draw_POI(ezgl::renderer *g){
-    for(int idx = 0; idx < PoiInfoList.size(); idx++) {
-        if (legendLength < 500) {
+void draw_POI(ezgl::renderer *g) {
+    std::vector<POIIdx> tempList = {};
+    bool NeedPush=false;
 
-            ezgl::rectangle temp=g->get_visible_world();
+    for (int idx = 0; idx < PoiInfoList.size(); idx++) {
+            if(legendLength<500) {
+                ezgl::rectangle temp = g->get_visible_world();
 
-            if(temp.left()<PoiInfoList[idx].curPosXY.x &&
-               temp.bottom() < PoiInfoList[idx].curPosXY.y&&
-               temp.right() > PoiInfoList[idx].curPosXY.x&&
-               temp.top()>PoiInfoList[idx].curPosXY.y) {
+                if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+                    temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+                    temp.right() > PoiInfoList[idx].curPosXY.x &&
+                    temp.top() > PoiInfoList[idx].curPosXY.y) {
 
+                    if (tempList.empty()) {
+                        tempList.push_back(idx);
+                    } else {
+                        for (int i = 0; i < tempList.size(); ++i) {
 
+                            if (CalDistance(tempList[i], idx) > legendLength * 5) {
+                                NeedPush = true;
 
+                            } else {
+                                NeedPush = false;
+                            }
+                        }
+                        if (NeedPush == true) {
+                            tempList.push_back(idx);
+                            //std::cout<<idx<<std::endl;
+                        }
 
-                if (CheckTypeIconForPOI("bank", PoiInfoList[idx].type) == true) {
-                    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/bank.png");
-                    g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-                    ezgl::renderer::free_surface(png_surface);
-                }
-                else if (CheckTypeIconForPOI("shop", PoiInfoList[idx].type) == true) {
-                    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/shop.png");
-                    g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-                    ezgl::renderer::free_surface(png_surface);
-                }
-                else if (CheckTypeIconForPOI("school", PoiInfoList[idx].type) == true) {
-                    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/school.png");
-                    g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-                    ezgl::renderer::free_surface(png_surface);
-                }
-                else if (CheckTypeIconForPOI("hospital", PoiInfoList[idx].type) == true) {
-                    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/hospital.png");
-                    g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-                    ezgl::renderer::free_surface(png_surface);
-                }else{
-                    g->set_color(168,168,168,150);
-//                g->draw_rectangle(PoiInfoList[idx].curPosXY,
-//                                  {PoiInfoList[idx].curPosXY.x + 5, PoiInfoList[idx].curPosXY.y + 5});
-                    g->fill_arc(PoiInfoList[idx].curPosXY,5,0,360);
-                    if(legendLength<60) {
-                        g->set_font_size(10);
-                        g->set_color(ezgl::BLACK);
-                        g->draw_text({PoiInfoList[idx].curPosXY.x, PoiInfoList[idx].curPosXY.y + 7},
-                                     PoiInfoList[idx].name);
                     }
+
                 }
-//                if (CheckTypeIconForPOI("restaurant", PoiInfoList[idx].type) == true) {
-//                    ezgl::surface *png_surface = ezgl::renderer::load_png(
-//                            "libstreetmap/resources/labels/restaurant.png");
-//                    g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-//                    ezgl::renderer::free_surface(png_surface);
-//                }
+
+
+            }
+    }
+
+    if(!tempList.empty()) {
+
+        for (int idx = 0; idx < tempList.size(); idx++) {
+            if (PoiInfoList[tempList[idx]].icon!="noIcon") {
+                ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon);
+                g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                ezgl::renderer::free_surface(png_surface);
+                PoiInfoList[tempList[idx]].IsDisplay = true;
+            }else {
+                g->set_color(168,168,168,120);
+                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY,7,0,360);
+                PoiInfoList[tempList[idx]].IsDisplay = true;
             }
 
-//            }
-
-
-//            if (CheckTypeIconForPOI("school",PoiInfoList[idx].type)) {
-//
-//                ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/small_image.png");
-//                g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-//                ezgl::renderer::free_surface(png_surface);
-//            }
-//            if (CheckTypeIconForPOI("shop",PoiInfoList[idx].type)) {
-//                ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/small_image.png");
-//                g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-//                ezgl::renderer::free_surface(png_surface);
-//            }
-
-
+            }
 
         }
     }
+
+
+void draw_POI_text(ezgl::renderer *g){
+    for(int idx=0; idx < getNumPointsOfInterest(); idx++){
+//        if(legendLength>50){
+//            PoiInfoList[idx].IsDisplay=false;
+//        }
+        if(PoiInfoList[idx].IsDisplay==true&&legendLength<500){
+            g->set_font_size(10);
+            g->set_color(ezgl::BLACK);
+            g->draw_text({PoiInfoList[idx].curPosXY.x+1, PoiInfoList[idx].curPosXY.y + 5},
+                         PoiInfoList[idx].name);
+
+        }
+    }
+
 
 }
 
