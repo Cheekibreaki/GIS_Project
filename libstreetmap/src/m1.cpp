@@ -563,6 +563,7 @@ bool loadMap(std::string map_streets_database_filename) {
 
     std::cout << "Loading: NaturalFeatureTypeList...." << std::endl;
     LoadNaturalFeatureTypeList();
+    std::cout<<"Loading: POIList......"<<std::endl;
     LoadPoiInfoList();
     std::cout << "Loading: TypeListOfSegsList_Normal...." << std::endl;
     LoadTypeListOfSegsList_Normal();

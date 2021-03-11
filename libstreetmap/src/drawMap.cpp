@@ -446,29 +446,29 @@ double CalDistance(POIIdx POI_first,POIIdx POI_second){
 
 void draw_POI(ezgl::renderer *g) {
 
-
+if(DisplayPOI) {
     for (int idx = 0; idx < PoiInfoList.size(); idx++) {
-            if(legendLength<500) {
-                ezgl::rectangle temp = g->get_visible_world();
+        if (legendLength < 500) {
+            ezgl::rectangle temp = g->get_visible_world();
 
-                if (temp.left() < PoiInfoList[idx].curPosXY.x &&
-                    temp.bottom() < PoiInfoList[idx].curPosXY.y &&
-                    temp.right() > PoiInfoList[idx].curPosXY.x &&
-                    temp.top() > PoiInfoList[idx].curPosXY.y) {
-                    if(CalDistance(idx,PoiInfoList[idx].ClosetPOI)> 400 &&
-                    PoiInfoList[PoiInfoList[idx].ClosetPOI].IsDisplay==false||
+            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+                temp.right() > PoiInfoList[idx].curPosXY.x &&
+                temp.top() > PoiInfoList[idx].curPosXY.y) {
+                if (CalDistance(idx, PoiInfoList[idx].ClosetPOI) > 400 &&
+                    PoiInfoList[PoiInfoList[idx].ClosetPOI].IsDisplay == false ||
 
-                    legendLength<50) {
+                    legendLength < 50) {
 
-                        if (PoiInfoList[idx].icon != "noIcon") {
-                            ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[idx].icon);
-                            g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-                            ezgl::renderer::free_surface(png_surface);
-                            PoiInfoList[idx].IsDisplay = true;
-                        } else {
-                            g->set_color(168, 168, 168, 120);
-                            g->fill_arc(PoiInfoList[idx].curPosXY, 7, 0, 360);
-                            PoiInfoList[idx].IsDisplay = true;
+                    if (PoiInfoList[idx].icon != "noIcon") {
+                        ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[idx].icon);
+                        g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
+                        ezgl::renderer::free_surface(png_surface);
+                        PoiInfoList[idx].IsDisplay = true;
+                    } else {
+                        g->set_color(168, 168, 168, 120);
+                        g->fill_arc(PoiInfoList[idx].curPosXY, 7, 0, 360);
+                        PoiInfoList[idx].IsDisplay = true;
                         }
 
                     }
@@ -476,13 +476,14 @@ void draw_POI(ezgl::renderer *g) {
 
 
             }
+        }
     }
 
-
-    }
+}
 
 
 void draw_POI_text(ezgl::renderer *g){
+
     for(int idx=0; idx < getNumPointsOfInterest(); idx++){
         if(legendLength>50){
             PoiInfoList[idx].IsDisplay=false;
