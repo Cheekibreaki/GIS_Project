@@ -634,6 +634,7 @@ void highlight_mouse_press(ezgl::renderer *g){
     drawLabelList(g,highlightMousePress, "libstreetmap/resources/labels/pin_point.png");
 }
 void highlight_clear(){
+    highlightMousePress.clear();
     highlightIntersectList.clear();
     highlightStSegList.clear();
     highlightStreet = -1;
