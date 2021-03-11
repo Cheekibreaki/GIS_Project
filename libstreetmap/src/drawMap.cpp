@@ -6,18 +6,21 @@
 
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
-
+#include <math.h>
 #include "m1.h"
 #include "DBstruct.h"
 #include "m2.h"
+#include <OSMDatabaseAPI.h>
 
 float legendLength;
+StreetIdx highlightStreet = -1;
 void calcLegendLength(ezgl::renderer *g);
 
 std::string searchMode;
 
 bool DisplayOSM;
 bool DisplayPOI;
+bool is_osm_Loaded;
 /**
  * True == Day, False == Night
  */
@@ -25,13 +28,17 @@ bool DisplayColor;
 
 void draw_main_canvas (ezgl::renderer *g);
 
+void setSegColor_Normal(int tempSegType, ezgl::renderer *g);
+void setSegColor_OSM(int tempSegType, ezgl::renderer *g);
+
 void draw_streetSeg_Normal(ezgl::renderer *g);
 void draw_streetSeg_OSM(ezgl::renderer *g);
-void draw_streetSeg(ezgl::renderer *g);
+void draw_streetSeg_controller(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 void draw_POI(ezgl::renderer *g);
 void draw_POI_text(ezgl::renderer *g);
+void draw_oneWay(ezgl::renderer *g);
 
 std::vector<StreetSegmentIdx> highlightStSegList;
 std::vector<IntersectionIdx> highlightIntersectList;
@@ -45,17 +52,19 @@ void initial_setup(ezgl::application *application, bool new_window);
 // Singal Callback Functions
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
 void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data);
-void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
-void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
-void TextInput_Enter_Key_action_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
-void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data);
+void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data);
+void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
+void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
+void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
+/// For both Entry key and Find button
+void Entry_search_Enter_Key(GtkWidget *wid, gpointer data);
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
-void drawLineHelper(ezgl::renderer *g ,int R,int G,int B, int D, std::vector<StreetSegmentIdx>StrIDList,double width);
+void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
+void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 
 void drawMap(){
-
     ezgl::application::settings settings;
     settings.main_ui_resource   =   "libstreetmap/resources/main.ui";
     settings.window_identifier  =   "MainWindow";
@@ -79,21 +88,41 @@ void drawMap(){
                     NULL, NULL);
 }
 
-
+//pullsdqdfqsdd
 
 /*Render drawing main Canvas*/
-
+void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
     calcLegendLength(g);
     draw_naturalFeature(g);
-    draw_streetSeg(g);
+    draw_streetSeg_controller(g);
+    draw_street_Name(g);
+
     highlight_intersection(g);
-    highlight_streetseg(g);
+    //asdasdas
+    if(legendLength<500){
+        draw_oneWay(g);
+    }
+    if(highlightStreet != -1){
+        highlight_streetseg(g);
+    }
     draw_legend(g);
     draw_POI(g);
     draw_POI_text(g);
 }
+void draw_street_Name(ezgl::renderer *g){
+    for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
+        std::string StName = getStreetName(StIdx);
+        for(auto SegIdx : StreetListOfSegsList[StIdx]){
+            g->set_color(ezgl::BLACK);
+            g->set_font_size(8);
+            ezgl::point2d midPoint = (SegsInfoList[SegIdx].toXY+SegsInfoList[SegIdx].fromXY) * ezgl::point2d(0.5,0.5);
+            g->draw_text(midPoint,StName,legendLength,legendLength);
 
+
+        }
+    }
+}
 void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::SCREEN);
 
@@ -106,22 +135,24 @@ void draw_legend(ezgl::renderer *g){
     g->draw_line({20, 25}, {20, 20});
     g->draw_line({120, 25}, {120, 20});
 
-
     std::string legendText = std::to_string(legendLength);
 
     g->draw_text({70,18},legendText);
 
     g->set_coordinate_system(ezgl::WORLD);
 }
-
-void drawLineHelper(ezgl::renderer *g,int R,int G,int B, int D, std::vector<StreetSegmentIdx> strIDList,double width){
+void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
     if(strIDList.empty()==true){
         return;
     }
     for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
-        g->set_color(R,G,B,D);
-        g->set_line_width(width);
         int segIdx = strIDList[curSeg];
+        double speed=SegsInfoList[segIdx].segInfo.speedLimit;
+        if(speed<=20){
+            g->set_color(232, 232, 232);
+        }else{
+            g->set_color(204, 202, 55);
+        }
         ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
         ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
 
@@ -146,64 +177,214 @@ void drawLineHelper(ezgl::renderer *g,int R,int G,int B, int D, std::vector<Stre
         }
     }
 }
-void draw_streetSeg(ezgl::renderer *g){
-    //Optional:For OSM
-    //draw_streetSeg_OSM(g);
+void draw_oneWay(ezgl::renderer *g){
+    g->set_color(0,0,0);
+    for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
+        if(SegsInfoList[segIdx].segInfo.oneWay==true&&findStreetSegmentLength(segIdx)>100){
+            ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
+            ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
 
+            int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+            if (numCurvePoints != 0) {
+                //start of fromPos connect first curvePoint
+                ezgl::point2d lastCurvePos = fromPos;
+
+                //for loop through all curvePoint
+                for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
+                    ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
+                    if(curCurvePointNum==numCurvePoints-1){
+
+                        //g->draw_text(tempCurvePos,"⟶");
+                    }
+                     //g->draw_line(tempCurvePos, lastCurvePos);
+                    lastCurvePos = tempCurvePos;
+                }
+                //draw the last curvePoint to toPos
+                //g->draw_line(lastCurvePos, toPos);
+
+            } else {
+                g->draw_text(fromPos,"⟶");
+            }
+        }
+    }
+}
+void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
+    if(strIDList.empty()==true){
+        return;
+    }
+
+    for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
+        int segIdx = strIDList[curSeg];
+        ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
+        ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
+
+        int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+        if (numCurvePoints != 0) {
+            //start of fromPos connect first curvePoint
+            ezgl::point2d lastCurvePos = fromPos;
+
+            //for loop through all curvePoint
+            for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
+                ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
+                g->draw_line(tempCurvePos, lastCurvePos);
+                lastCurvePos = tempCurvePos;
+            }
+            //draw the last curvePoint to toPos
+            g->draw_line(lastCurvePos, toPos);
+
+        } else {
+            g->draw_line(fromPos, toPos);
+        }
+
+
+    }
+}
+void draw_streetSeg_controller(ezgl::renderer *g){
+    if(DisplayOSM){
+        draw_streetSeg_OSM(g);
+    }else{
+        draw_streetSeg_Normal(g);
+    }
 }
 ///Find osm for further modification Not Finished
 void draw_streetSeg_Normal(ezgl::renderer *g){
-
+    std::unordered_map<std::string,std::vector<StreetSegmentIdx>>::const_iterator got;
+    got= SegmentTypeList_Normal.find("level1");//unknown
+    g->set_line_cap(ezgl::line_cap::round);
+    if(got!=SegmentTypeList_Normal.end()) {
+        setSegColor_Normal(Normal_level1,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_Normal.find("level2");//unknown
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_Normal(Normal_level2,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_Normal.find("level3");//unknown
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_Normal(Normal_level3,g);
+        drawLineHelper(g,got->second);
+    }
+    got= SegmentTypeList_Normal.find("level4");//unknown
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_Normal(Normal_level4,g);
+        drawLineHelper_highway(g,got->second);
+    }
+    got= SegmentTypeList_Normal.find("level5");//unknown
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_Normal(Normal_level5,g);
+        drawLineHelper_highway(g,got->second);
+    }
 }
 void draw_streetSeg_OSM(ezgl::renderer *g) {
+    g->set_line_cap(ezgl::line_cap::round);
     std::unordered_map<std::string,std::vector<StreetSegmentIdx>>::const_iterator got;
-    got= SegmentTypeList.find("level1");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 255,64,0,255, got->second, 2);
+    got= SegmentTypeList_OSM.find("level1");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level1,g);
+        drawLineHelper(g,got->second);
     }
-    got= SegmentTypeList.find("level2");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("level2");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level2,g);
+        drawLineHelper(g,got->second);
     }
-    got= SegmentTypeList.find("level3");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("level3");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level3,g);
     }
-    got= SegmentTypeList.find("level4");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("level4");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_level4,g);
     }
-    got= SegmentTypeList.find("pedestrian");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("pedestrian");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_pedestrian,g);
     }
-    got= SegmentTypeList.find("service");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("service");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_service,g);
+        drawLineHelper(g,got->second);
     }
-    got= SegmentTypeList.find("unknown");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("unknown");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_unknown,g);
+        drawLineHelper(g,got->second);
     }
-    got= SegmentTypeList.find("bus");//unknown
-    if(got!=SegmentTypeList.end()) {
-        drawLineHelper(g, 51, 51, 51, 255, got->second, 2);
+    got= SegmentTypeList_OSM.find("bus");
+    if(got!=SegmentTypeList_OSM.end()) {
+        setSegColor_OSM(OSM_bus,g);
+        drawLineHelper(g,got->second);
     }
-    //    std::vector<StreetSegmentIdx> level1List= SegmentTypeList.at("level1");//residential
+
+//    std::vector<StreetSegmentIdx> level1List= SegmentTypeList_OSM.at("level1");//residential
 //    drawLineHelper(g,230,230,230,255,level1List,2);
-//    std::vector<StreetSegmentIdx> level2List= SegmentTypeList.at("level2");//large residential
+//    std::vector<StreetSegmentIdx> level2List= SegmentTypeList_OSM.at("level2");//large residential
 //    drawLineHelper(g,255,255,255,255,level2List,2);
-//    std::vector<StreetSegmentIdx> level3List= SegmentTypeList.at("level3");//major road
+//    std::vector<StreetSegmentIdx> level3List= SegmentTypeList_OSM.at("level3");//major road
 //    drawLineHelper(g,0,255,0,255,level3List,2);
-//    std::vector<StreetSegmentIdx> level4List= SegmentTypeList.at("level4");//highway
+//    std::vector<StreetSegmentIdx> level4List= SegmentTypeList_OSM.at("level4");//highway
 //    drawLineHelper(g,255,255,77,255,level4List,2);
-//    std::vector<StreetSegmentIdx> pedestrianList= SegmentTypeList.at("pedestrian");//pedestrain
+//    std::vector<StreetSegmentIdx> pedestrianList= SegmentTypeList_OSM.at("pedestrian");//pedestrain
 //    drawLineHelper(g,102,0,255,255,pedestrianList,2);
-//    std::vector<StreetSegmentIdx> serviceList= SegmentTypeList.at("service");//service
+//    std::vector<StreetSegmentIdx> serviceList= SegmentTypeList_OSM.at("service");//service
 //    drawLineHelper(g,217,217,217,255,serviceList,2);
-//    std::vector<StreetSegmentIdx> unknownList= SegmentTypeList.at("unknown");//unknown
+//    std::vector<StreetSegmentIdx> unknownList= SegmentTypeList_OSM.at("unknown");//unknown
 //    drawLineHelper(g,51,51,51,255,unknownList,2);
 //    std::vector<StreetSegmentIdx> busList;
+}
+void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
+    switch (tempSegType) {
+        case Normal_level1:
+            g->set_color(230, 230, 230);
+            g->set_line_width((1 / legendLength) * 1000);
+            break;
+        case Normal_level2:
+            g->set_color(230, 230, 230);
+            g->set_line_width((1.5 / legendLength) * 1000);
+            break;
+        case Normal_level3:
+            g->set_color(255, 255, 255);
+            g->set_line_width((2 / legendLength) * 500);
+            break;
+        case Normal_level4:
+            g->set_color(255, 204, 0);
+            g->set_line_width((2/ legendLength) * 500);
+            break;
+        case Normal_level5:
+            g->set_color(255, 204, 0);
+            g->set_line_width((2/ legendLength) * 500);//((3 / legendLength) * 1000);
+            break;
+    }
+}
+
+void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
+    switch(tempSegType){
+        case OSM_level1: g->set_color(255,255,255,145);
+            g->set_line_width((1/legendLength)*1000);
+            break;
+        case OSM_level2: g->set_color(255,225,225);
+            g->set_line_width((2/legendLength)*1000);
+            break;
+        case OSM_level3: g->set_color(255,204,0);
+            g->set_line_width((3/legendLength)*1000);
+            break;
+        case OSM_level4: g->set_color(255,204,0);
+            g->set_line_width((3/legendLength)*1000);
+            break;
+        case OSM_pedestrian: g->set_color(255,204,0);
+            g->set_line_width((3/legendLength)*1000);
+            break;
+        case OSM_service: g->set_color(255,204,0);
+            g->set_line_width((3/legendLength)*1000);
+            break;
+        case OSM_unknown: g->set_color(255,204,0);
+            g->set_line_width((3/legendLength)*1000);
+            break;
+        case OSM_bus: g->set_color(255,204,0);
+            g->set_line_width((3/legendLength)*1000);
+            break;
+    }
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
     switch(tempFeatureType){
@@ -352,21 +533,39 @@ void highlight_intersection(ezgl::renderer *g){
 
 void highlight_streetseg(ezgl::renderer *g){
     // DrawSomething
+    //std::vector<StreetSegmentIdx> highlightStSegList;
+    //highlightStSegList<StreetSegIdx>;
+    g->set_color(255,0,0,200);
+    g->set_line_width(10);
 
+
+
+    //LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
+    //ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
+    //ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
+
+    //g->m_camera->set_world({minPoint,maxPoint});
+    //drawLineHelper(g,highlightStSegList);
+    drawLineHelper(g,StreetListOfSegsList[highlightStreet]);
 }
 void highlight_poi(ezgl::renderer *g){
 
 }
+void highlight_clear(){
+    highlightIntersectList.clear();
+    highlightStSegList.clear();
+    highlightStreet = -1;
+}
 /*User interaction*/
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
-    highlightIntersectList.clear();
-
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-
-    highlightIntersectList.push_back(id);
+    if(event->button == 1){
+        highlight_clear();
+        highlightIntersectList.push_back(id);
+    }
 
     app->refresh_drawing();
 }
@@ -383,7 +582,19 @@ void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointe
         DisplayOSM = true;
         app->update_message("LOADING OSM PLEASE WAIT.........");
 
+        osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
+
+        if(is_osm_Loaded){
+            app->update_message("OSM ALREADY LOADED");
+        }else{
+            is_osm_Loaded = true;
+            loadOSMDatabaseBIN(osm_file_path);
+            LoadOSMWayofOSMIDList();
+            LoadTypeListOfSegsList_OSM(osm_file_path);
+        }
+
         app->update_message("LOADING OSM FINISHED");
+
     }
     app->refresh_drawing();
 }
@@ -392,41 +603,42 @@ void initial_setup(ezgl::application *application, bool new_window){
     DisplayColor = true;
     DisplayPOI = false;
     DisplayOSM = false;
+    is_osm_Loaded = false;
     searchMode = "Select MODE ...";
 
     g_signal_connect(
             application->get_object("ChangeMap"),
             "changed",
-            G_CALLBACK(ChangeMap_Reload_Map),
+            G_CALLBACK(ComboBoxText_Reload_Map),
             application
     );
 
     g_signal_connect(
-            application->get_object("ComboBox"),
+            application->get_object("FuncMode"),
             "changed",
-            G_CALLBACK(ComboBox_Change_Search_Mode),
+            G_CALLBACK(ComboBoxText_Change_Search_Mode),
             application
     );
 
 
     /* Three Same Signal execute same function */
     g_signal_connect(
-            application->get_object("TextInput"),
+            application->get_object("UserInput"),
             "activate",
-            G_CALLBACK(TextInput_Enter_Key_action),
+            G_CALLBACK(Entry_search_Enter_Key),
             application
     );
 
     g_signal_connect(
-            application->get_object("TextInput"),
+            application->get_object("UserInput"),
             "icon-press",
-            G_CALLBACK(TextInput_Enter_Key_action_icon),
+            G_CALLBACK(Entry_search_icon),
             application
     );
     g_signal_connect(
             application->get_object("Find"),
             "clicked",
-            G_CALLBACK(TextInput_Enter_Key_action),
+            G_CALLBACK(Entry_search_Enter_Key),
             application
     );
 
@@ -445,9 +657,15 @@ void initial_setup(ezgl::application *application, bool new_window){
             G_CALLBACK(ToogleButton_set_Display_Color),
             application
     );
+    g_signal_connect(
+            application->get_object("DisplayPOI"),
+            "toggled",
+            G_CALLBACK(CheckButton_set_POI_display),
+            application
+    );
 }
 
-void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
+void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("ChangeMap");
     std::string text = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
@@ -475,21 +693,32 @@ void ChangeMap_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
 
     closeMap();
     loadMap(map_path);
+
+    highlightStreet = -1;
+    DisplayOSM = false;
+    is_osm_Loaded = false;
+    searchMode = "Select MODE ...";
+
+    gtk_switch_set_active((GtkSwitch *)app->get_object("DisplayOSM"), false);
+    gtk_combo_box_set_active((GtkComboBox *)app->get_object("FuncMode"), 0);
+    gtk_toggle_button_set_active((GtkToggleButton *)app->get_object("DisplayColor"), false);
+
     ezgl::rectangle new_world = ezgl::rectangle{{x_from_lon(min_lon),y_from_lat(min_lat)},
                                                 {x_from_lon(max_lon),y_from_lat(max_lat)}};
     app->change_canvas_world_coordinates("MainCanvas", new_world);
     app->refresh_drawing();
 
 }
-void ComboBox_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
+void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
-    auto* combo_Box = (GtkComboBoxText * ) app->get_object("ComboBox");
+    auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
 }
-void TextInput_Enter_Key_action_icon (GtkEntry *, GtkEntryIconPosition, GdkEvent *, gpointer user_data){
-    TextInput_Enter_Key_action(NULL, user_data);
+void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data){
+    Entry_search_Enter_Key(NULL, user_data);
 }
-void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
+void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
+    highlight_clear();
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
     // Check if user select One Search MODE
@@ -501,7 +730,7 @@ void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
     }
 
     // Get User input Text
-    auto* text_Entry = (GtkEntry* ) app->get_object("TextInput");
+    auto* text_Entry = (GtkEntry* ) app->get_object("UserInput");
     std::string text = (std::string)gtk_entry_get_text(text_Entry);
 
     if(searchMode == "STREET"){
@@ -510,13 +739,31 @@ void TextInput_Enter_Key_action(GtkWidget *wid, gpointer data){
             app->update_message("Street Name Not Found");
             return;
         }
-        StreetIdx curStId = StreetIdxList[0];
-        gtk_entry_set_text(text_Entry, getStreetName(curStId).c_str());
+        highlightStreet = StreetIdxList[0];
+        gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
+        app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
 
-        highlightStSegList.clear();
-        highlightStSegList = StreetListOfSegsList[curStId];
 
-        app->update_message("Street: " + getStreetName(curStId) + " Highlighted");
+        LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
+        ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
+        ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
+        ezgl::rectangle setScreen(minPoint,maxPoint);
+
+        auto initScreen = app->get_renderer()->get_visible_screen();
+
+        double possibleWidth = setScreen.height()/initScreen.height()*initScreen.width();
+        if(setScreen.width() < possibleWidth){
+            double widthDiffer = possibleWidth - setScreen.width();
+            setScreen.m_first.x -= (widthDiffer/2);
+            setScreen.m_second.x += (widthDiffer/2);
+        }
+        double possibleHeight = setScreen.width()/initScreen.width()*initScreen.height();
+        if(setScreen.height() < possibleHeight){
+            double heightDiffer = possibleHeight - setScreen.height();
+            setScreen.m_first.y -= (heightDiffer/2);
+            setScreen.m_second.y += (heightDiffer/2);
+        }
+        ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
     }
 
     if(searchMode == "TWOSTREET"){
@@ -579,6 +826,18 @@ void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointe
         DisplayColor = true;
         app->update_message("Switching to Day Mode");
         gtk_button_set_image(colorButton, DayImg);
+    }
+    app->refresh_drawing();
+}
+void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    if(DisplayPOI){
+        DisplayPOI = false;
+        app->update_message("POI Display disabled");
+    }
+    else{
+        DisplayPOI = true;
+        app->update_message("POI Display enabled");
     }
     app->refresh_drawing();
 }

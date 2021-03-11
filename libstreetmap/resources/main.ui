@@ -2,6 +2,11 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkImage" id="DayImg">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">labels/day.png</property>
+  </object>
   <object class="GtkWindow" id="MainWindow">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -156,6 +161,20 @@
               </packing>
             </child>
             <child>
+              <object class="GtkCheckButton" id="DisplayPOI">
+                <property name="label" translatable="yes">DisplayPOI</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="draw_indicator">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">7</property>
+                <property name="width">3</property>
+              </packing>
+            </child>
+            <child>
               <placeholder/>
             </child>
             <child>
@@ -186,11 +205,11 @@
           <packing>
             <property name="left_attach">0</property>
             <property name="top_attach">2</property>
-            <property name="width">6</property>
+            <property name="width">5</property>
           </packing>
         </child>
         <child>
-          <object class="GtkEntry" id="TextInput">
+          <object class="GtkEntry" id="UserInput">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="primary_icon_name">edit-find</property>
@@ -203,12 +222,13 @@
           </packing>
         </child>
         <child>
-          <object class="GtkComboBoxText" id="ComboBox">
+          <object class="GtkComboBoxText" id="FuncMode">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="active">0</property>
             <items>
               <item translatable="yes">Select MODE ...</item>
+              <item translatable="yes">INTERSECT</item>
               <item translatable="yes">STREET</item>
               <item translatable="yes">TWOSTREET</item>
               <item translatable="yes">POI</item>
@@ -265,74 +285,34 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkSwitch" id="DisplayOSM">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">5</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="DisplayColor">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="image">DayImg</property>
+            <property name="always_show_image">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">5</property>
+            <property name="top_attach">2</property>
+          </packing>
         </child>
       </object>
     </child>
   </object>
-  <object class="GtkListStore" id="liststore1">
-    <columns>
-      <!-- column-name map_name -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Beijing, China</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Cairo, Egypt</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Cape-Town, South-Africa</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Golden-Horseshoe, Canada</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Hamilton, Canada</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Hong-Kong, China</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Iceland</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Interlaken, Switzerland</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">London, England</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Moscow, Russia</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">New-Delhi, India</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">New-York, USA</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Rio-De-Janeiro, Brazil</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Saint-Helena</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Singapore</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Sydney, Australia</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Tehran, Iran</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Tokyo, Japan</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Toronto, Canada</col>
-      </row>
-    </data>
+  <object class="GtkImage" id="NightImg">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">labels/night.png</property>
   </object>
 </interface>
