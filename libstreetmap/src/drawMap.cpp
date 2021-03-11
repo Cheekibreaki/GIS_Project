@@ -157,15 +157,14 @@ void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
     if(strIDList.empty()==true){
         return;
     }
-//    if(SegsInfoList[segIdx].segInfo.oneWay==true){
-//
-//    }
 
     for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
         int segIdx = strIDList[curSeg];
         ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
         ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
+        if(SegsInfoList[segIdx].segInfo.oneWay==true){
 
+        }
 
         int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
         if (numCurvePoints != 0) {
