@@ -106,16 +106,28 @@ void CharTree::clearHelper(CharNode* myRoot){
     myRoot = nullptr;
 }
 
-void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id) const{
+void CharTree::insertNameToTree(std::string curName, int id) const{
     CharNode* cptr = root;
-    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = (curStName[charIdx]&0xff);
+    for(int charIdx = 0; charIdx < curName.length(); charIdx++){
+        int charDec = (curName[charIdx]&0xff);
         if(cptr->nextChar[charDec] == nullptr){
             cptr->nextChar[charDec] = new CharNode();
         }
         cptr = cptr -> nextChar[charDec];
-        cptr ->curPrefixStreetsList.push_back(street_id);
+        cptr ->curIdList.push_back(id);
     }
+}
+std::vector<int> CharTree::getIdList(const std::string &partialName) {
+    std::string prefix = modifyName(partialName);
+    CharNode* cptr = root;
+    for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
+        int charDec = (prefix[charIdx]&0xff);
+        if(cptr->nextChar[charDec] == nullptr) {
+            return {};
+        }
+        cptr = cptr -> nextChar[charDec];
+    }
+    return cptr -> curIdList;
 }
 std::string modifyName(std::string srcName){
     std::string name = srcName;
@@ -739,16 +751,7 @@ std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
  * @return
  */
 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
-    std::string prefix = modifyName(street_prefix);
-    CharNode* cptr = StNameTreeForPrefix.root;
-    for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
-        int charDec = (prefix[charIdx]&0xff);
-        if(cptr->nextChar[charDec] == nullptr) {
-            return {};
-        }
-        cptr = cptr -> nextChar[charDec];
-    }
-    return cptr -> curPrefixStreetsList;
+    return StNameTreeForPrefix.getIdList(street_prefix);
 }
 
 /**

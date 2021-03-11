@@ -23,7 +23,7 @@ extern bool is_osm_Loaded;
  * Char Tree Node contains the next node List(pointer) & vector of current Prefix StreetID
  */
 struct CharNode{
-    std::vector<StreetIdx> curPrefixStreetsList;
+    std::vector<int> curIdList;
     CharNode* nextChar[256];
 };
 /**
@@ -43,10 +43,12 @@ struct CharTree{
     void clearHelper(CharNode* myRoot);
     /**
      * Intsert a String into the CharNodeTree
-     * @param curStName
-     * @param street_id
+     * @param curName
+     * @param id
      */
-    void insertNameToTree(std::string curStName, StreetIdx street_id) const;
+    void insertNameToTree(std::string curName, int id) const;
+
+    std::vector<int> getIdList(const std::string& partialName);
 };
 /**
  * @struct structure intersection Information
