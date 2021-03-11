@@ -94,7 +94,11 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
     highlight_intersection(g);
-    highlight_streetseg(g);
+    //asdasdas
+    draw_oneWay(g);
+    if(highlightStreet != -1){
+        highlight_streetseg(g);
+    }
     draw_legend(g);
 }
 
@@ -412,15 +416,32 @@ void highlight_intersection(ezgl::renderer *g){
 
 void highlight_streetseg(ezgl::renderer *g){
     // DrawSomething
+    //std::vector<StreetSegmentIdx> highlightStSegList;
+    //highlightStSegList<StreetSegIdx>;
+    g->set_color(255,0,0,200);
+    g->set_line_width(10);
 
+
+
+    //LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
+    //ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
+    //ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
+
+    //g->m_camera->set_world({minPoint,maxPoint});
+    //drawLineHelper(g,highlightStSegList);
+    drawLineHelper(g,StreetListOfSegsList[highlightStreet]);
 }
 void highlight_poi(ezgl::renderer *g){
 
 }
+void highlight_clear(){
+    highlightIntersectList.clear();
+    highlightStSegList.clear();
+    highlightStreet = -1;
+}
 /*User interaction*/
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
-    highlightIntersectList.clear();
-
+    highlight_clear();
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
@@ -555,6 +576,7 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     closeMap();
     loadMap(map_path);
 
+    highlightStreet = -1;
     DisplayOSM = false;
     is_osm_Loaded = false;
     searchMode = "Select MODE ...";
@@ -578,6 +600,7 @@ void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent
     Entry_search_Enter_Key(NULL, user_data);
 }
 void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
+    highlight_clear();
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
     // Check if user select One Search MODE
@@ -598,13 +621,20 @@ void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
             app->update_message("Street Name Not Found");
             return;
         }
-        StreetIdx curStId = StreetIdxList[0];
-        gtk_entry_set_text(text_Entry, getStreetName(curStId).c_str());
+        highlightStreet = StreetIdxList[0];
+        gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
 
-        highlightStSegList.clear();
-        highlightStSegList = StreetListOfSegsList[curStId];
+        LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
+        ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
+        ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
+        ezgl::point2d point(0.5,0.5);
+        ezgl::point2d midPoint = (minPoint+maxPoint)*point;
 
-        app->update_message("Street: " + getStreetName(curStId) + " Highlighted");
+        //ezgl::zoom_fit(app->get_canvas("MainCanvas"),{minPoint,maxPoint});
+
+        //ezgl::zoom_in(app->get_canvas("MainCanvas"), minPoint, 1);
+
+        app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
     }
 
     if(searchMode == "TWOSTREET"){
