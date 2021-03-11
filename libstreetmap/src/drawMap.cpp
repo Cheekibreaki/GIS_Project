@@ -441,13 +441,14 @@ void highlight_clear(){
 }
 /*User interaction*/
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
-    highlight_clear();
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-
-    highlightIntersectList.push_back(id);
+    if(event->button == 1){
+        highlight_clear();
+        highlightIntersectList.push_back(id);
+    }
 
     app->refresh_drawing();
 }
@@ -623,18 +624,29 @@ void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
         }
         highlightStreet = StreetIdxList[0];
         gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
+        app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
+
 
         LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
         ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
         ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
-        ezgl::point2d point(0.5,0.5);
-        ezgl::point2d midPoint = (minPoint+maxPoint)*point;
+        ezgl::rectangle setScreen(minPoint,maxPoint);
 
-        //ezgl::zoom_fit(app->get_canvas("MainCanvas"),{minPoint,maxPoint});
+        auto initScreen = app->get_renderer()->get_visible_screen();
 
-        ezgl::zoom_in(app->get_canvas("MainCanvas"), midPoint, 1);
-
-        app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
+        double possibleWidth = setScreen.height()/initScreen.height()*initScreen.width();
+        if(setScreen.width() < possibleWidth){
+            double widthDiffer = possibleWidth - setScreen.width();
+            setScreen.m_first.x -= (widthDiffer/2);
+            setScreen.m_second.x += (widthDiffer/2);
+        }
+        double possibleHeight = setScreen.width()/initScreen.width()*initScreen.height();
+        if(setScreen.height() < possibleHeight){
+            double heightDiffer = possibleHeight - setScreen.height();
+            setScreen.m_first.y -= (heightDiffer/2);
+            setScreen.m_second.y += (heightDiffer/2);
+        }
+        ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
     }
 
     if(searchMode == "TWOSTREET"){
