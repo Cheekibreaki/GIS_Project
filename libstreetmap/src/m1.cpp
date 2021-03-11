@@ -80,6 +80,7 @@ std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 CharTree StNameTreeForPrefix;
+CharTree IntersectNameTree;
 std::vector<naturalFeature> NaturalFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
@@ -104,7 +105,7 @@ void CharTree::clearHelper(CharNode* myRoot){
     myRoot = nullptr;
 }
 
-void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id){
+void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id) const{
     CharNode* cptr = root;
     for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
         int charDec = (curStName[charIdx]&0xff);
@@ -272,6 +273,22 @@ void LoadStreetListOfIntersectsList(){
     }
 }
 
+void LoadIntersectNameTreeForPrefix(){
+    IntersectNameTree.root = new CharNode();
+    for(auto curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++){
+        std::string IntersectName = getIntersectionName(curIntersectIdx);
+        IntersectName = modifyName(IntersectName);
+        IntersectNameTree.insertNameToTree(IntersectName, curIntersectIdx);
+    }
+}
+void LoadPOINameTreeForPrefix(){
+    POINameTree.root = new CharNode();
+    for(auto POIIdx = 0; POIIdx < getNumIntersections(); POIIdx++){
+        std::string POIName = getPOIName(POIIdx);
+        POIName = modifyName(POIName);
+        POINameTree.insertNameToTree(POIName, POIIdx);
+    }
+}
 void LoadStNameTreeForPrefix(){
     StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
@@ -430,8 +447,10 @@ bool loadMap(std::string map_streets_database_filename) {
     std::cout << "Loading: treetListOfIntersectsList...." << std::endl;
     LoadStreetListOfIntersectsList();
 
-    std::cout << "Loading: StNameTreeForPrefix...." << std::endl;
+    std::cout << "Loading: NAMEs...." << std::endl;
     LoadStNameTreeForPrefix();
+    LoadIntersectNameTreeForPrefix();
+    LoadPOINameTreeForPrefix();
 
     std::cout << "Loading: POINameListOfPOIsList...." << std::endl;
     LoadPOINameListOfPOIsList();
@@ -474,8 +493,10 @@ void closeMap() {
     std::cout << "flushing StreetList...." << std::endl;
     StreetListOfIntersectsList.clear();
     StreetListOfSegsList.clear();
-
+    std::cout << "flushing Names...." << std::endl;
     StNameTreeForPrefix.clear();
+    IntersectNameTree.clear();
+    POINameTree.clear();
 
     std::cout << "flushing InfoList...." << std::endl;
     SegsInfoList.clear();

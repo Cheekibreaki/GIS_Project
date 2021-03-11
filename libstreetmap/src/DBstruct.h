@@ -46,7 +46,7 @@ struct CharTree{
      * @param curStName
      * @param street_id
      */
-    void insertNameToTree(std::string curStName, StreetIdx street_id);
+    void insertNameToTree(std::string curStName, StreetIdx street_id) const;
 };
 /**
  * @struct structure intersection Information
@@ -143,6 +143,8 @@ extern std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
  * Partial Street Name Loaded, each node has a vector of current char's StreetName ID
  */
 extern CharTree StNameTreeForPrefix;
+extern CharTree IntersectNameTree;
+extern CharTree POINameTree;
 /**
  * Unordered map of POI Name to find POI Index List, access by using NAME of string
  * <br>Key: POI Name
@@ -206,6 +208,8 @@ void LoadStreetListOfIntersectsList();
  * Load CharNodeTree of all StreetName with insertName function
  */
 void LoadStNameTreeForPrefix();
+void LoadIntersectNameTreeForPrefix();
+void LoadPOINameTreeForPrefix();
 /**
  * Load POI Name List -> POI Index List
  */
