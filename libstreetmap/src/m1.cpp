@@ -85,6 +85,8 @@ CharTree POINameTree;
 std::vector<naturalFeature> NaturalFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
+std::vector <poi_info> PoiInfoList;
+std::vector <std::string>  TypeList;
 /// CharTree "StNameTreeForPrefix" included
 
 /// CharTree Member function & used Function
@@ -312,11 +314,125 @@ void LoadStNameTreeForPrefix(){
     }
 }
 
-void LoadPOINameListOfPOIsList(){
-    for(POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++ ){
+void LoadPoiInfoList(){
+    PoiInfoList.resize(getNumPointsOfInterest());
+    TypeList={};
+    std::set<std::string> temp;
+    for(int Idx=0 ; Idx < getNumPointsOfInterest(); Idx++) {
+        PoiInfoList[Idx].name = getPOIName(Idx);
+        PoiInfoList[Idx].type = getPOIType(Idx);
+
+        PoiInfoList[Idx].curPosXY = LatLon_to_point2d(getPOIPosition(Idx));
+////        temp.insert(getPOIType(Idx));
+
+//        double temp_distance=0;
+//        double min_distance=1000;
+//        int min_idx=0;
+//        for(int idx=0; idx< getNumPointsOfInterest(); idx++) {
+//            if (idx!=Idx){
+//                temp_distance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(Idx), getPOIPosition(idx)));
+//            if (temp_distance < min_distance) {
+//                min_idx=idx;
+//                min_distance=temp_distance;
+//            }
+//        }
+//
+//        }
+//        PoiInfoList[Idx].ClosetPOI=min_idx;
+
+        if (CheckTypeIconForPOI("bank", PoiInfoList[Idx].type) == true) {
+
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/bank.png";
+
+        } else if (CheckTypeIconForPOI("shop", PoiInfoList[Idx].type) == true) {
+
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/shop.png";
+
+        } else if (CheckTypeIconForPOI("school", PoiInfoList[Idx].type) == true) {
+                        PoiInfoList[Idx].icon="libstreetmap/resources/labels/school.png";
+
+        } else if (CheckTypeIconForPOI("hospital", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/hospital.png";
+
+
+        } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/park.png";
+
+
+        } else if (CheckTypeIconForPOI("restaurant", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon="libstreetmap/resources/labels/restaurant.png";
+        }
+
+
+
+//    for(int idx =0; idx < getNumPointsOfInterest(); idx++){
+//        for(int i =0; i< TypeList.size(); i++){
+//            if(PoiInfoList[idx].type==TypeList[i]){
+//
+//            }
+//        }
+//
+//    }
+    }
+
+//    std::set<std::string>::iterator it;
+//    for(it=temp.begin(); it!=temp.end() ; it++){
+//        if(CheckTypeIconForPOI("bank", *it)||CheckTypeIconForPOI("shop", *it)||CheckTypeIconForPOI("park", *it)){
+//            TypeList.push_back(*it);
+//        }
+//    }
+
+
+//    std::cout<<TypeList.size()<<std::endl;
+//    std::set<std::string>::iterator it;
+//    for(it=TypeList.begin(); it!=TypeList.end() ; it++){
+//
+//        std::cout<<*it<<std::endl;
+//    }
+
+}
+
+
+void LoadPOINameListOfPOIsList() {
+    for (POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++) {
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
+
+
+
+
+
+bool CheckTypeIconForPOI(std::string Type, std::string POIType) {
+    bool IsThisIcon = false;
+
+
+    if (Type.length() <= POIType.length()) {
+        for (int i = 0; i <= POIType.length() - Type.length(); i++) {
+            int k = 0;
+
+            if (POIType[i] == Type[k]) {
+                IsThisIcon = true;
+                for (; k < Type.length() && IsThisIcon == true; k++) {
+                    if (POIType[i + k] == Type[k]) {
+                        IsThisIcon = true;
+                    }
+                    else {
+                        IsThisIcon = false;
+                    }
+                }
+            }
+            if (IsThisIcon == true) {
+                return IsThisIcon;
+            }
+        }
+    }
+    return IsThisIcon;
+}
+
+
+
+
 void LoadOSMWayofOSMIDList(){
     //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     for(unsigned i=0; i<getNumberOfWays();i++){
@@ -479,7 +595,8 @@ bool loadMap(std::string map_streets_database_filename) {
 
     std::cout << "Loading: NaturalFeatureTypeList...." << std::endl;
     LoadNaturalFeatureTypeList();
-
+    std::cout<<"Loading: POIList......"<<std::endl;
+    LoadPoiInfoList();
     std::cout << "Loading: TypeListOfSegsList_Normal...." << std::endl;
     LoadTypeListOfSegsList_Normal();
     //Optional:OSM
@@ -522,6 +639,8 @@ void closeMap() {
 
     PolyFeatureList.clear();
     LineFeatureList.clear();
+    PoiInfoList.clear();
+    TypeList.clear();
 
     if(is_osm_Loaded) {
         std::cout << "flushing OSM...." << std::endl;
@@ -529,7 +648,6 @@ void closeMap() {
         SegmentTypeList_OSM.clear();
         OSMWayofOSMIDList.clear();
     }
-
 }
 
 /// Tested Functions implemtation from m1.h

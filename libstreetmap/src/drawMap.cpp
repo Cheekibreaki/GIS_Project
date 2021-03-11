@@ -36,6 +36,8 @@ void draw_streetSeg_OSM(ezgl::renderer *g);
 void draw_streetSeg_controller(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
+void draw_POI(ezgl::renderer *g);
+//void draw_POI_text(ezgl::renderer *g);
 void draw_oneWay(ezgl::renderer *g);
 
 std::vector<StreetSegmentIdx> highlightStSegList;
@@ -94,7 +96,7 @@ void draw_main_canvas(ezgl::renderer *g){
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
-    draw_street_Name(g);
+   // draw_street_Name(g);
 
     highlight_intersection(g);
     //asdasdas
@@ -105,7 +107,10 @@ void draw_main_canvas(ezgl::renderer *g){
         highlight_streetseg(g);
     }
     draw_legend(g);
+    draw_POI(g);
+//    draw_POI_text(g);
 }
+
 void draw_street_Name(ezgl::renderer *g){
     for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
         std::string StName = getStreetName(StIdx);
@@ -119,6 +124,7 @@ void draw_street_Name(ezgl::renderer *g){
         }
     }
 }
+
 void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::SCREEN);
 
@@ -242,6 +248,7 @@ void draw_streetSeg_controller(ezgl::renderer *g){
         draw_streetSeg_Normal(g);
     }
 }
+
 ///Find osm for further modification Not Finished
 void draw_streetSeg_Normal(ezgl::renderer *g){
     std::unordered_map<std::string,std::vector<StreetSegmentIdx>>::const_iterator got;
@@ -405,8 +412,14 @@ void draw_naturalFeature(ezgl::renderer *g){
         auto curType = (FeatureType)curIndex;
         tempFeatureList = PolyFeatureList[curType];
         for(int i : tempFeatureList){
+            if(curIndex!=BUILDING){
+                g->fill_poly(NaturalFeatureList[i].polyList);
+            }else{
+                if(legendLength<500){
+                    g->fill_poly(NaturalFeatureList[i].polyList);
+                }
+            }
 
-            g->fill_poly(NaturalFeatureList[i].polyList);
         }
 
         tempFeatureList = LineFeatureList[curType];
@@ -420,6 +433,144 @@ void draw_naturalFeature(ezgl::renderer *g){
 
     }
 }
+double CalDistance(POIIdx POI_first,POIIdx POI_second){
+
+    ezgl::point2d POI1=PoiInfoList[POI_first].curPosXY;
+    ezgl::point2d POI2=PoiInfoList[POI_second].curPosXY;
+
+    double temp_x= POI1.x-POI2.x;
+    double temp_y= POI1.y-POI2.y;
+    double distance=temp_x*temp_x+temp_y*temp_y;
+
+    return sqrt(distance);
+}
+
+void draw_POI(ezgl::renderer *g) {
+    std::vector<POIIdx> tempList = {};
+//    std::vector<POIIdx> tempList2 = {};
+
+    bool NeedPush=false;
+
+    for (int idx = 0; idx < PoiInfoList.size(); idx++) {
+
+            ezgl::rectangle temp = g->get_visible_world();
+
+            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+                temp.right() > PoiInfoList[idx].curPosXY.x &&
+                temp.top() > PoiInfoList[idx].curPosXY.y) {
+
+//                tempList2.push_back(idx);
+
+                if (tempList.empty()) {
+                    tempList.push_back(idx);
+                } else {
+                    for (int i = 0; i < tempList.size(); ++i) {
+
+                        if (CalDistance(tempList[i], idx) > legendLength*1) {
+                            NeedPush = true;
+
+                        } else {
+                            NeedPush = false;
+                            break;
+                        }
+                    }
+                    if (NeedPush == true) {
+                        tempList.push_back(idx);
+
+                    }
+
+                }
+
+            }
+
+
+        }
+
+    if(!tempList.empty()) {
+//        std::cout<<tempList.size()<<std::endl;
+//        std::cout<<tempList2.size()<<std::endl;
+        for (int idx = 0; idx < tempList.size(); idx++) {
+            if (PoiInfoList[tempList[idx]].icon!="noIcon") {
+                ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon);
+                g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                ezgl::renderer::free_surface(png_surface);
+                PoiInfoList[tempList[idx]].IsDisplay = true;
+                g->set_font_size(10);
+                g->set_color(ezgl::BLACK);
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x+3, PoiInfoList[tempList[idx]].curPosXY.y + 5} ,
+                             getPOIName(tempList[idx]));
+
+            }else {
+                g->set_color(168,168,168,120);
+                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY,7,0,360);
+                PoiInfoList[tempList[idx]].IsDisplay = true;
+                g->set_font_size(10);
+                g->set_color(ezgl::BLACK);
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                             getPOIName(tempList[idx]));
+            }
+
+        }
+
+    }
+
+}
+//void draw_POI(ezgl::renderer *g) {
+//
+//if(DisplayPOI) {
+//    for (int idx = 0; idx < PoiInfoList.size(); idx++) {
+//        if (legendLength < 500) {
+//            ezgl::rectangle temp = g->get_visible_world();
+//
+//            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+//                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+//                temp.right() > PoiInfoList[idx].curPosXY.x &&
+//                temp.top() > PoiInfoList[idx].curPosXY.y) {
+//                if (CalDistance(idx, PoiInfoList[idx].ClosetPOI) > 400 &&
+//                    PoiInfoList[PoiInfoList[idx].ClosetPOI].IsDisplay == false ||
+//
+//                    legendLength < 50) {
+//
+//                    if (PoiInfoList[idx].icon != "noIcon") {
+//                        ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[idx].icon);
+//                        g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
+//                        ezgl::renderer::free_surface(png_surface);
+//                        PoiInfoList[idx].IsDisplay = true;
+//                    } else {
+//                        g->set_color(168, 168, 168, 120);
+//                        g->fill_arc(PoiInfoList[idx].curPosXY, 7, 0, 360);
+//                        PoiInfoList[idx].IsDisplay = true;
+//                        }
+//
+//                    }
+//                }
+//
+//
+//            }
+//        }
+//    }
+//
+//}
+
+
+//void draw_POI_text(ezgl::renderer *g){
+//if()
+//    for(int idx=0; idx < getNumPointsOfInterest(); idx++){
+//        if(legendLength>50){
+//            PoiInfoList[idx].IsDisplay=false;
+//        }
+//        if(PoiInfoList[idx].IsDisplay==true&&legendLength<500){
+//            g->set_font_size(10);
+//            g->set_color(ezgl::BLACK);
+//            g->draw_text({PoiInfoList[idx].curPosXY.x+1, PoiInfoList[idx].curPosXY.y + 5},
+//                         PoiInfoList[idx].name);
+//
+//        }
+//    }
+//
+//
+//}
 
 void highlight_intersection(ezgl::renderer *g){
     if(highlightIntersectList.empty()) {

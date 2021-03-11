@@ -72,7 +72,11 @@ struct poi_info{
     ezgl::point2d curPosXY;
     std::string name;
     std::string type;
-    bool highlight = false;
+    const char* icon="noIcon";
+//    int Icon = 4;
+    POIIdx ClosetPOI;
+    bool IsDisplay=false;
+    bool highlight = true;
 };
 /*
  * @struct structure Point of Segment Information
@@ -161,6 +165,7 @@ extern std::vector<intersect_info> IntersectInfoList;
  * POI information list contains lower level structure poi_info (curPosXY, name, type, highlight)
  */
 extern std::vector <poi_info> PoiInfoList;
+extern std::vector <std::string>  TypeList;
 
 enum segType_OSM {
     OSM_level1 = 0,
@@ -225,6 +230,7 @@ void LoadIntersectInfoList();
  */
 void LoadPoiInfoList();
 
+bool CheckTypeIconForPOI(std::string IconType,std::string POIType);
 void LoadTypeListOfSegsList_OSM(std::string OSMpath);
 void LoadTypeListOfSegsList_Normal();
 /* Supportive Func */
