@@ -96,7 +96,7 @@ void draw_main_canvas(ezgl::renderer *g){
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
-    draw_street_Name(g);
+   // draw_street_Name(g);
 
     highlight_intersection(g);
     //asdasdas
@@ -445,8 +445,7 @@ double CalDistance(POIIdx POI_first,POIIdx POI_second){
 
 
 void draw_POI(ezgl::renderer *g) {
-    std::vector<POIIdx> tempList = {};
-    bool NeedPush=false;
+
 
     for (int idx = 0; idx < PoiInfoList.size(); idx++) {
             if(legendLength<500) {
@@ -456,57 +455,38 @@ void draw_POI(ezgl::renderer *g) {
                     temp.bottom() < PoiInfoList[idx].curPosXY.y &&
                     temp.right() > PoiInfoList[idx].curPosXY.x &&
                     temp.top() > PoiInfoList[idx].curPosXY.y) {
+                    if(CalDistance(idx,PoiInfoList[idx].ClosetPOI)> 400 &&
+                    PoiInfoList[PoiInfoList[idx].ClosetPOI].IsDisplay==false||
 
-                    if (tempList.empty()) {
-                        tempList.push_back(idx);
-                    } else {
-                        for (int i = 0; i < tempList.size(); ++i) {
+                    legendLength<50) {
 
-                            if (CalDistance(tempList[i], idx) > legendLength * 5) {
-                                NeedPush = true;
-
-                            } else {
-                                NeedPush = false;
-                            }
-                        }
-                        if (NeedPush == true) {
-                            tempList.push_back(idx);
-                            //std::cout<<idx<<std::endl;
+                        if (PoiInfoList[idx].icon != "noIcon") {
+                            ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[idx].icon);
+                            g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
+                            ezgl::renderer::free_surface(png_surface);
+                            PoiInfoList[idx].IsDisplay = true;
+                        } else {
+                            g->set_color(168, 168, 168, 120);
+                            g->fill_arc(PoiInfoList[idx].curPosXY, 7, 0, 360);
+                            PoiInfoList[idx].IsDisplay = true;
                         }
 
                     }
-
                 }
 
 
             }
     }
 
-    if(!tempList.empty()) {
 
-        for (int idx = 0; idx < tempList.size(); idx++) {
-            if (PoiInfoList[tempList[idx]].icon!="noIcon") {
-                ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon);
-                g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
-                ezgl::renderer::free_surface(png_surface);
-                PoiInfoList[tempList[idx]].IsDisplay = true;
-            }else {
-                g->set_color(168,168,168,120);
-                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY,7,0,360);
-                PoiInfoList[tempList[idx]].IsDisplay = true;
-            }
-
-            }
-
-        }
     }
 
 
 void draw_POI_text(ezgl::renderer *g){
     for(int idx=0; idx < getNumPointsOfInterest(); idx++){
-//        if(legendLength>50){
-//            PoiInfoList[idx].IsDisplay=false;
-//        }
+        if(legendLength>50){
+            PoiInfoList[idx].IsDisplay=false;
+        }
         if(PoiInfoList[idx].IsDisplay==true&&legendLength<500){
             g->set_font_size(10);
             g->set_color(ezgl::BLACK);
