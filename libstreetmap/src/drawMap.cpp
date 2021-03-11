@@ -37,11 +37,15 @@ void draw_streetSeg_controller(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 void draw_POI(ezgl::renderer *g);
-//void draw_POI_text(ezgl::renderer *g);
 void draw_oneWay(ezgl::renderer *g);
+void highlight_mouse_press(ezgl::renderer *g);
 
 std::vector<StreetSegmentIdx> highlightStSegList;
-std::vector<IntersectionIdx> highlightIntersectList;
+
+std::vector<ezgl::point2d> highlightIntersectList;
+
+std::vector<ezgl::point2d> highlightMousePress;
+
 void highlight_intersection(ezgl::renderer *g);
 void highlight_streetseg(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
@@ -56,8 +60,14 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
 void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
-/// For both Entry key and Find button
-void Entry_search_Enter_Key(GtkWidget *wid, gpointer data);
+/// For both Entry key and Find button search Controller
+void Entry_search_Controller(GtkWidget *wid, gpointer data);
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+
+void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
@@ -96,16 +106,17 @@ void draw_main_canvas(ezgl::renderer *g){
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
-   // draw_street_Name(g);
+    //draw_street_Name(g);
 
     highlight_intersection(g);
     //asdasdas
     if(legendLength<500){
-        draw_oneWay(g);
+        //draw_oneWay(g);
     }
     if(highlightStreet != -1){
         highlight_streetseg(g);
     }
+    highlight_mouse_press(g);
     draw_legend(g);
     draw_POI(g);
 //    draw_POI_text(g);
@@ -516,72 +527,16 @@ void draw_POI(ezgl::renderer *g) {
     }
 
 }
-//void draw_POI(ezgl::renderer *g) {
-//
-//if(DisplayPOI) {
-//    for (int idx = 0; idx < PoiInfoList.size(); idx++) {
-//        if (legendLength < 500) {
-//            ezgl::rectangle temp = g->get_visible_world();
-//
-//            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
-//                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
-//                temp.right() > PoiInfoList[idx].curPosXY.x &&
-//                temp.top() > PoiInfoList[idx].curPosXY.y) {
-//                if (CalDistance(idx, PoiInfoList[idx].ClosetPOI) > 400 &&
-//                    PoiInfoList[PoiInfoList[idx].ClosetPOI].IsDisplay == false ||
-//
-//                    legendLength < 50) {
-//
-//                    if (PoiInfoList[idx].icon != "noIcon") {
-//                        ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[idx].icon);
-//                        g->draw_surface(png_surface, PoiInfoList[idx].curPosXY);
-//                        ezgl::renderer::free_surface(png_surface);
-//                        PoiInfoList[idx].IsDisplay = true;
-//                    } else {
-//                        g->set_color(168, 168, 168, 120);
-//                        g->fill_arc(PoiInfoList[idx].curPosXY, 7, 0, 360);
-//                        PoiInfoList[idx].IsDisplay = true;
-//                        }
-//
-//                    }
-//                }
-//
-//
-//            }
-//        }
-//    }
-//
-//}
-
-
-//void draw_POI_text(ezgl::renderer *g){
-//if()
-//    for(int idx=0; idx < getNumPointsOfInterest(); idx++){
-//        if(legendLength>50){
-//            PoiInfoList[idx].IsDisplay=false;
-//        }
-//        if(PoiInfoList[idx].IsDisplay==true&&legendLength<500){
-//            g->set_font_size(10);
-//            g->set_color(ezgl::BLACK);
-//            g->draw_text({PoiInfoList[idx].curPosXY.x+1, PoiInfoList[idx].curPosXY.y + 5},
-//                         PoiInfoList[idx].name);
-//
-//        }
-//    }
-//
-//
-//}
 
 void highlight_intersection(ezgl::renderer *g){
-    if(highlightIntersectList.empty()) {
-        return;
+    if(highlightIntersectList.empty()) return;
+    if(searchMode == "INTERSECT"){
+        for(auto pos : highlightIntersectList){
+            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.01, legendLength*0.01);
+            g->set_color(ezgl::BLUE);
+            g->draw_rectangle(pos, temp);
+        }
     }
-    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/pin_point.png");
-
-    for(auto intersectId : highlightIntersectList){
-        g->draw_surface(png_surface, IntersectInfoList[intersectId].curPosXY);
-    }
-    ezgl::renderer::free_surface(png_surface);
 }
 
 void highlight_streetseg(ezgl::renderer *g){
@@ -604,6 +559,9 @@ void highlight_streetseg(ezgl::renderer *g){
 void highlight_poi(ezgl::renderer *g){
 
 }
+void highlight_mouse_press(ezgl::renderer *g){
+    drawLabelList(g,highlightMousePress, "libstreetmap/resources/labels/pin_point.png");
+}
 void highlight_clear(){
     highlightIntersectList.clear();
     highlightStSegList.clear();
@@ -611,13 +569,39 @@ void highlight_clear(){
 }
 /*User interaction*/
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
+    ezgl::point2d mousePos(x,y);
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-    if(event->button == 1){
-        highlight_clear();
-        highlightIntersectList.push_back(id);
+
+    if(searchMode == "Select MODE ..."){
+        app->update_message("Please Select Mode Before Searching ...");
+        return;
+    }
+
+    if(searchMode == "INTERSECT"){
+        if(event->button == 1){
+            highlightMousePress.clear();
+
+            if(!highlightIntersectList.empty()){
+                ezgl::point2d closest;
+                double closestLength = 9999;
+                for(auto point : highlightIntersectList){
+                    ezgl::rectangle area(mousePos, point);
+                    double tempLength = sqrt(area.width()*area.width() + area.height()*area.height());
+                    if(tempLength < closestLength){
+                        closestLength = tempLength;
+                        closest = point;
+                    }
+                }
+                highlightMousePress.push_back(closest);
+            }
+            else{
+                highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
+            }
+            app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
+        }
     }
 
     app->refresh_drawing();
@@ -678,7 +662,7 @@ void initial_setup(ezgl::application *application, bool new_window){
     g_signal_connect(
             application->get_object("UserInput"),
             "activate",
-            G_CALLBACK(Entry_search_Enter_Key),
+            G_CALLBACK(Entry_search_Controller),
             application
     );
 
@@ -691,7 +675,7 @@ void initial_setup(ezgl::application *application, bool new_window){
     g_signal_connect(
             application->get_object("Find"),
             "clicked",
-            G_CALLBACK(Entry_search_Enter_Key),
+            G_CALLBACK(Entry_search_Controller),
             application
     );
 
@@ -763,14 +747,17 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
 
 }
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
+    highlight_clear();
     auto app = static_cast<ezgl::application *>(user_data);
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
+    app->refresh_drawing();
 }
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data){
-    Entry_search_Enter_Key(NULL, user_data);
+    Entry_search_Controller(NULL, user_data);
 }
-void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
+
+void Entry_search_Controller(GtkWidget *wid, gpointer data){
     highlight_clear();
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
@@ -785,80 +772,18 @@ void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
     // Get User input Text
     auto* text_Entry = (GtkEntry* ) app->get_object("UserInput");
     std::string text = (std::string)gtk_entry_get_text(text_Entry);
-
+    if(searchMode == "INTERSECT"){
+        search_Mode_INTERSECT(app, text_Entry, text);
+    }
+    if(searchMode == "POI"){
+        search_Mode_POI(app, text_Entry, text);
+    }
     if(searchMode == "STREET"){
-        auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
-        if(StreetIdxList.empty()){
-            app->update_message("Street Name Not Found");
-            return;
-        }
-        highlightStreet = StreetIdxList[0];
-        gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
-        app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
-
-
-        LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
-        ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
-        ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
-        ezgl::rectangle setScreen(minPoint,maxPoint);
-
-        auto initScreen = app->get_renderer()->get_visible_screen();
-
-        double possibleWidth = setScreen.height()/initScreen.height()*initScreen.width();
-        if(setScreen.width() < possibleWidth){
-            double widthDiffer = possibleWidth - setScreen.width();
-            setScreen.m_first.x -= (widthDiffer/2);
-            setScreen.m_second.x += (widthDiffer/2);
-        }
-        double possibleHeight = setScreen.width()/initScreen.width()*initScreen.height();
-        if(setScreen.height() < possibleHeight){
-            double heightDiffer = possibleHeight - setScreen.height();
-            setScreen.m_first.y -= (heightDiffer/2);
-            setScreen.m_second.y += (heightDiffer/2);
-        }
-        ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
+        search_Mode_STREET(app, text_Entry, text);
     }
 
     if(searchMode == "TWOSTREET"){
-        int idx = text.find('&');
-        if(idx == -1){
-            app->update_message("TwoStreetIntersect & no found");
-            return;
-        }
-
-        std::string firstStreet = text.substr(0, idx);
-        std::string secondStreet = text.substr(idx+1, text.size());
-
-        StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStreet);
-        StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStreet);
-
-        if(firstStreetIdx == -1){
-            if(secondStreetIdx != -1)secondStreet = getStreetName(secondStreetIdx);
-            app->update_message("Name of First Street No Found");
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            return;
-        }
-        if(secondStreetIdx == -1){
-            firstStreet = getStreetName(firstStreetIdx);
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            app->update_message("Name of Second Street No Found");
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            return;
-        }
-
-        firstStreet = getStreetName(firstStreetIdx);
-        secondStreet = getStreetName(secondStreetIdx);
-
-        highlightIntersectList.clear();
-        highlightIntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
-
-        if(highlightIntersectList.empty()){
-            app->update_message("Intersection No Found");
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            return;
-        }
-
-        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        search_Mode_TWOSTREET(app, text_Entry, text);
     }
 
 
@@ -895,8 +820,98 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
     app->refresh_drawing();
 }
 /*Supportive Helper Functions*/
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    // ReadFrom Intersect Tree
+    auto IntersectIdxList = IntersectNameTree.getIdList(text);
+    if(IntersectIdxList.empty()){
+        app->update_message("Intersect Name Not Found");
+        return;
+    }
+    for(auto IntersectIdx : IntersectIdxList){
+        app->update_message("Displaying Intersection");
+        highlightIntersectList.push_back(IntersectInfoList[IntersectIdx].curPosXY);
+    }
+    //highlightIntersectList.push_back();
+}
+void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    // ReadFrom POI Tree
+
+}
+void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
+    if(StreetIdxList.empty()){
+        app->update_message("Street Name Not Found");
+        return;
+    }
+    highlightStreet = StreetIdxList[0];
+    gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
+    app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
 
 
+    LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
+    ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
+    ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
+    ezgl::rectangle setScreen(minPoint,maxPoint);
+
+    calc_screen_fit(app, setScreen);
+}
+void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    int idx = text.find('&');
+    if(idx == -1){
+        app->update_message("TwoStreetIntersect & no found");
+        return;
+    }
+
+    std::string firstStreet = text.substr(0, idx);
+    std::string secondStreet = text.substr(idx+1, text.size());
+
+    StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStreet);
+    StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStreet);
+
+    if(firstStreetIdx == -1){
+        if(secondStreetIdx != -1)secondStreet = getStreetName(secondStreetIdx);
+        app->update_message("Name of First Street No Found");
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        return;
+    }
+    if(secondStreetIdx == -1){
+        firstStreet = getStreetName(firstStreetIdx);
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        app->update_message("Name of Second Street No Found");
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        return;
+    }
+
+    firstStreet = getStreetName(firstStreetIdx);
+    secondStreet = getStreetName(secondStreetIdx);
+
+    auto tempIntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
+
+    if(tempIntersectList.empty()){
+        app->update_message("Intersection No Found");
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        return;
+    }
+
+    gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+}
+void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
+    auto initScreen = app->get_renderer()->get_visible_screen();
+
+    double possibleWidth = setScreen.height()/initScreen.height()*initScreen.width();
+    if(setScreen.width() < possibleWidth){
+        double widthDiffer = possibleWidth - setScreen.width();
+        setScreen.m_first.x -= (widthDiffer/2);
+        setScreen.m_second.x += (widthDiffer/2);
+    }
+    double possibleHeight = setScreen.width()/initScreen.width()*initScreen.height();
+    if(setScreen.height() < possibleHeight){
+        double heightDiffer = possibleHeight - setScreen.height();
+        setScreen.m_first.y -= (heightDiffer/2);
+        setScreen.m_second.y += (heightDiffer/2);
+    }
+    ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
+}
 
 /*Legend*/
 void calcLegendLength(ezgl::renderer *g){
