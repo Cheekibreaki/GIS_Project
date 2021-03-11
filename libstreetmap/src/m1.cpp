@@ -81,6 +81,7 @@ std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 CharTree StNameTreeForPrefix;
 CharTree IntersectNameTree;
+CharTree POINameTree;
 std::vector<naturalFeature> NaturalFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
@@ -283,7 +284,7 @@ void LoadIntersectNameTreeForPrefix(){
 }
 void LoadPOINameTreeForPrefix(){
     POINameTree.root = new CharNode();
-    for(auto POIIdx = 0; POIIdx < getNumIntersections(); POIIdx++){
+    for(auto POIIdx = 0; POIIdx < getNumPointsOfInterest(); POIIdx++){
         std::string POIName = getPOIName(POIIdx);
         POIName = modifyName(POIName);
         POINameTree.insertNameToTree(POIName, POIIdx);
