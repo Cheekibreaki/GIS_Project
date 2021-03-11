@@ -532,32 +532,43 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     //Load Function Called
-
+    std::cout << "Loading: IntersectListOfInfo...." << std::endl;
     LoadIntersectListOfInfo();
+
     calc_avg_lat();
 
+    std::cout << "Loading: SructurePackage...." << std::endl;
     LoadStructurePackage();
 
+    std::cout << "Loading: IntersectListOfStName...." << std::endl;
     LoadIntersectListOfStName();
 
+    std::cout << "Loading: treetListOfIntersectsList...." << std::endl;
     LoadStreetListOfIntersectsList();
 
+    std::cout << "Loading: StNameTreeForPrefix...." << std::endl;
     LoadStNameTreeForPrefix();
 
+    std::cout << "Loading: POINameListOfPOIsList...." << std::endl;
     LoadPOINameListOfPOIsList();
     //Optional:For OSM
     //LoadOSMWayofOSMIDList();
     //LoadTypeListOfSegsList_OSM(map_streets_database_filename);
 
+    std::cout << "Loading: IntersectInfoList...." << std::endl;
     LoadIntersectInfoList();
 
+    std::cout << "Loading: IntersectInfoList...." << std::endl;
     LoadNaturalFeatureList();
 
+    std::cout << "Loading: IntersectInfoList...." << std::endl;
     LoadNaturalFeatureTypeList();
     LoadPoiInfoList();
+    std::cout << "Loading: TypeListOfSegsList_Normal...." << std::endl;
     LoadTypeListOfSegsList_Normal();
     //Optional:OSM
 
+    std::cout << "Loading Successful...." << std::endl;
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
     return load_successful;
@@ -565,20 +576,25 @@ bool loadMap(std::string map_streets_database_filename) {
 
 void closeMap() {
     //Clean-up your map related data structures here
+    std::cout << "flushing StreetDatabase...." << std::endl;
     closeStreetDatabase();
     // call this API to close the currently opened map
+    std::cout << "flushing SegmentTypeList_Normal...." << std::endl;
     SegmentTypeList_Normal.clear();
 
+    std::cout << "flushing IntersectList...." << std::endl;
     IntersectListOfSegsList.clear();
     IntersectListOfLatLon.clear();
     IntersectListOfStName.clear();
 
+    std::cout << "flushing StreetList...." << std::endl;
     StreetListOfIntersectsList.clear();
     StreetListOfSegsList.clear();
 
-    SegsInfoList.clear();
-
     StNameTreeForPrefix.clear();
+
+    std::cout << "flushing InfoList...." << std::endl;
+    SegsInfoList.clear();
 
     POINameListOfPOIsList.clear();
 
@@ -592,6 +608,7 @@ void closeMap() {
     TypeList.clear();
 
     if(is_osm_Loaded) {
+        std::cout << "flushing OSM...." << std::endl;
         closeOSMDatabase();
         SegmentTypeList_OSM.clear();
         OSMWayofOSMIDList.clear();
