@@ -856,6 +856,10 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     highlight_clear();
     auto app = static_cast<ezgl::application *>(user_data);
+
+    auto* text_Entry = (GtkEntry* ) app->get_object("UserInput");
+    gtk_entry_set_text(text_Entry, "");
+
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
     app->refresh_drawing();
@@ -1037,6 +1041,9 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
         app->update_message("Intersection No Found");
         gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
         return;
+    }
+    for(auto IntersectIdx : tempIntersectList){
+        highlightMousePress.push_back(IntersectInfoList[IntersectIdx].curPosXY);
     }
 
     gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
