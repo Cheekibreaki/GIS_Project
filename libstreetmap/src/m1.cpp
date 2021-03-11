@@ -244,7 +244,13 @@ void LoadStructurePackage(){
         SegsInfoList[curSegIdx].time = (length/speed);
         SegsInfoList[curSegIdx].fromXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.from]);
         SegsInfoList[curSegIdx].toXY=LatLon_to_point2d(IntersectListOfLatLon[SegsInfoList[curSegIdx].segInfo.to]);
-
+        ezgl::point2d fromPos = SegsInfoList[curSegIdx].fromXY;
+        ezgl::point2d toPos = SegsInfoList[curSegIdx].toXY;
+        double fromX=fromPos.x;
+        double fromY=fromPos.y;
+        double toX=toPos.x;
+        double toY=toPos.y;
+        SegsInfoList[curSegIdx].angle=(atan((toY-fromY)/(toX-fromX)))/kDegreeToRadian;
         StreetIdx curStreetIdx = SegsInfoList[curSegIdx].segInfo.streetID;
         StreetListOfSegsList[curStreetIdx].push_back(curSegIdx);
 

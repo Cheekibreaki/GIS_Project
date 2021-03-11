@@ -74,7 +74,6 @@ void drawMap(){
     ezgl::rectangle initial_world = ezgl::rectangle{{x_from_lon(min_lon),y_from_lat(min_lat)},
                                                     {x_from_lon(max_lon),y_from_lat(max_lat)}};
 
-
     ezgl::color backgroundColor = ezgl::color(220,220,220,255);
 
 
@@ -97,10 +96,7 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_street_Name(g);
 
     highlight_intersection(g);
-    //asdasdas
-    if(legendLength<500){
         draw_oneWay(g);
-    }
     if(highlightStreet != -1){
         highlight_streetseg(g);
     }
@@ -113,13 +109,14 @@ void draw_street_Name(ezgl::renderer *g){
             g->set_color(ezgl::BLACK);
             g->set_font_size(8);
             ezgl::point2d midPoint = (SegsInfoList[SegIdx].toXY+SegsInfoList[SegIdx].fromXY) * ezgl::point2d(0.5,0.5);
-            g->draw_text(midPoint,StName,legendLength,legendLength);
+            g->draw_text(midPoint,StName,200,200);
 
 
         }
     }
 }
 void draw_legend(ezgl::renderer *g){
+    g->set_text_rotation(0);
     g->set_coordinate_system(ezgl::SCREEN);
 
     g->set_color(255, 255, 255, 100);
@@ -174,32 +171,34 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
     }
 }
 void draw_oneWay(ezgl::renderer *g){
-    g->set_color(0,0,0);
-    for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
-        if(SegsInfoList[segIdx].segInfo.oneWay==true&&findStreetSegmentLength(segIdx)>100){
-            ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
-            ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
-
-            int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
-            if (numCurvePoints != 0) {
-                //start of fromPos connect first curvePoint
-                ezgl::point2d lastCurvePos = fromPos;
-
-                //for loop through all curvePoint
-                for (int curCurvePointNum = 0; curCurvePointNum < numCurvePoints; curCurvePointNum++) {
-                    ezgl::point2d tempCurvePos = LatLon_to_point2d(getStreetSegmentCurvePoint(segIdx, curCurvePointNum));
-                    if(curCurvePointNum==numCurvePoints-1){
-
-                        //g->draw_text(tempCurvePos,"⟶");
+    if(legendLength<300){
+        g->set_color(100,100,100);
+        for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
+            if(SegsInfoList[segIdx].segInfo.oneWay==true&&findStreetSegmentLength(segIdx)>100){
+                ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
+                ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
+                double fromX=fromPos.x;
+                double fromY=fromPos.y;
+                double toX=toPos.x;
+                double toY=toPos.y;
+                int numCurvePoints = SegsInfoList[segIdx].segInfo.numCurvePoints;
+                if(numCurvePoints==0){
+                    double angle = SegsInfoList[segIdx].angle;
+                    if((toY-fromY)>0&&(toX-fromX)>0){
+                        g->set_text_rotation(angle);
+                        g->draw_text(fromPos,"⟶");
+                    }else if((toY-fromY)>0&&(toX-fromX)<0){
+                        g->set_text_rotation(angle);
+                        g->draw_text(fromPos,"⟵");
+                    }else if((toY-fromY)<0&&(toX-fromX)<0){
+                        g->set_text_rotation(angle);
+                        g->draw_text(fromPos,"⟵");
+                    }else if((toY-fromY)<0&&(toX-fromX)>0){
+                        g->set_text_rotation(angle);
+                        g->draw_text(fromPos,"⟶");
                     }
-                     //g->draw_line(tempCurvePos, lastCurvePos);
-                    lastCurvePos = tempCurvePos;
                 }
-                //draw the last curvePoint to toPos
-                //g->draw_line(lastCurvePos, toPos);
 
-            } else {
-                g->draw_text(fromPos,"⟶");
             }
         }
     }
