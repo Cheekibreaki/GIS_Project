@@ -91,11 +91,12 @@ void drawMap(){
 /*Render drawing main Canvas*/
 
 void draw_main_canvas(ezgl::renderer *g){
+    calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
     highlight_intersection(g);
     //asdasdas
-    draw_oneWay(g);
+    //draw_oneWay(g);
     if(highlightStreet != -1){
         highlight_streetseg(g);
     }
@@ -114,7 +115,6 @@ void draw_legend(ezgl::renderer *g){
     g->draw_line({20, 25}, {20, 20});
     g->draw_line({120, 25}, {120, 20});
 
-    calcLegendLength(g);
     std::string legendText = std::to_string(legendLength);
 
     g->draw_text({70,18},legendText);
@@ -632,7 +632,7 @@ void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
 
         //ezgl::zoom_fit(app->get_canvas("MainCanvas"),{minPoint,maxPoint});
 
-        //ezgl::zoom_in(app->get_canvas("MainCanvas"), minPoint, 1);
+        ezgl::zoom_in(app->get_canvas("MainCanvas"), midPoint, 1);
 
         app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
     }
