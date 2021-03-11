@@ -92,7 +92,8 @@ void drawMap(){
                                                     {x_from_lon(max_lon),y_from_lat(max_lat)}};
 
 
-    ezgl::color backgroundColor = ezgl::color(220,220,220,255);
+    ezgl::color backgroundColor = ezgl::color(220,220,220);
+
 
 
     application.add_canvas("MainCanvas", draw_main_canvas, initial_world,backgroundColor);
@@ -642,6 +643,11 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 
 
 void initial_setup(ezgl::application *application, bool new_window){
+
+    // Set Up Font
+    application->get_renderer()->format_font(
+            "Noto Sans CJK SC", ezgl::font_slant::normal, ezgl::font_weight::normal, 10);
+
     DisplayColor = true;
     DisplayPOI = false;
     DisplayOSM = false;
