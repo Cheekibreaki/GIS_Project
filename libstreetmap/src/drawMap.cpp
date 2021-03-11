@@ -417,7 +417,6 @@ void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointe
     }else{
         DisplayOSM = true;
         app->update_message("LOADING OSM PLEASE WAIT.........");
-        app->refresh_drawing();
 
         osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
 
@@ -440,6 +439,7 @@ void initial_setup(ezgl::application *application, bool new_window){
     DisplayColor = true;
     DisplayPOI = false;
     DisplayOSM = false;
+    is_osm_Loaded = false;
     searchMode = "Select MODE ...";
 
     g_signal_connect(
@@ -529,6 +529,15 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
 
     closeMap();
     loadMap(map_path);
+
+    DisplayOSM = false;
+    is_osm_Loaded = false;
+    searchMode = "Select MODE ...";
+
+    gtk_switch_set_active((GtkSwitch *)app->get_object("DisplayOSM"), false);
+    gtk_combo_box_set_active((GtkComboBox *)app->get_object("FuncMode"), 0);
+    gtk_toggle_button_set_active((GtkToggleButton *)app->get_object("DisplayColor"), false);
+
     ezgl::rectangle new_world = ezgl::rectangle{{x_from_lon(min_lon),y_from_lat(min_lat)},
                                                 {x_from_lon(max_lon),y_from_lat(max_lat)}};
     app->change_canvas_world_coordinates("MainCanvas", new_world);

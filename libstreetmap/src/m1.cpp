@@ -473,7 +473,7 @@ void closeMap() {
     PolyFeatureList.clear();
     LineFeatureList.clear();
 
-    if(is_osm_Loaded==true) {
+    if(is_osm_Loaded) {
         closeOSMDatabase();
         SegmentTypeList_OSM.clear();
         OSMWayofOSMIDList.clear();
