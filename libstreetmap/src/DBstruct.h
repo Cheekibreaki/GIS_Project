@@ -23,7 +23,7 @@ extern bool is_osm_Loaded;
  * Char Tree Node contains the next node List(pointer) & vector of current Prefix StreetID
  */
 struct CharNode{
-    std::vector<StreetIdx> curPrefixStreetsList;
+    std::vector<int> curIdList;
     CharNode* nextChar[256];
 };
 /**
@@ -43,10 +43,12 @@ struct CharTree{
     void clearHelper(CharNode* myRoot);
     /**
      * Intsert a String into the CharNodeTree
-     * @param curStName
-     * @param street_id
+     * @param curName
+     * @param id
      */
-    void insertNameToTree(std::string curStName, StreetIdx street_id);
+    void insertNameToTree(std::string curName, int id) const;
+
+    std::vector<int> getIdList(const std::string& partialName);
 };
 /**
  * @struct structure intersection Information
@@ -70,7 +72,11 @@ struct poi_info{
     ezgl::point2d curPosXY;
     std::string name;
     std::string type;
-    bool highlight = false;
+    const char* icon_day="noIcon";
+    const char* icon_night="noIcon";
+//    int Icon = 4;
+
+    bool highlight = true;
 };
 /*
  * @struct structure Point of Segment Information
@@ -144,6 +150,8 @@ extern std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
  * Partial Street Name Loaded, each node has a vector of current char's StreetName ID
  */
 extern CharTree StNameTreeForPrefix;
+extern CharTree IntersectNameTree;
+extern CharTree POINameTree;
 /**
  * Unordered map of POI Name to find POI Index List, access by using NAME of string
  * <br>Key: POI Name
@@ -158,6 +166,7 @@ extern std::vector<intersect_info> IntersectInfoList;
  * POI information list contains lower level structure poi_info (curPosXY, name, type, highlight)
  */
 extern std::vector <poi_info> PoiInfoList;
+extern std::vector <std::string>  TypeList;
 
 enum segType_OSM {
     OSM_level1 = 0,
@@ -207,6 +216,8 @@ void LoadStreetListOfIntersectsList();
  * Load CharNodeTree of all StreetName with insertName function
  */
 void LoadStNameTreeForPrefix();
+void LoadIntersectNameTreeForPrefix();
+void LoadPOINameTreeForPrefix();
 /**
  * Load POI Name List -> POI Index List
  */
@@ -220,6 +231,7 @@ void LoadIntersectInfoList();
  */
 void LoadPoiInfoList();
 
+bool CheckTypeIconForPOI(std::string IconType,std::string POIType);
 void LoadTypeListOfSegsList_OSM(std::string OSMpath);
 void LoadTypeListOfSegsList_Normal();
 /* Supportive Func */

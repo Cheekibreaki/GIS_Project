@@ -13,10 +13,6 @@
 #include <OSMDatabaseAPI.h>
 
 float legendLength;
-StreetIdx highlightStreet = -1;
-void calcLegendLength(ezgl::renderer *g);
-
-std::string searchMode;
 
 bool DisplayOSM;
 bool DisplayPOI;
@@ -24,7 +20,7 @@ bool is_osm_Loaded;
 /**
  * True == Day, False == Night
  */
-bool DisplayColor;
+bool DisplayColor = true;
 
 void draw_main_canvas (ezgl::renderer *g);
 
@@ -36,16 +32,26 @@ void draw_streetSeg_OSM(ezgl::renderer *g);
 void draw_streetSeg_controller(ezgl::renderer *g);
 void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
+void draw_POI(ezgl::renderer *g);
 void draw_oneWay(ezgl::renderer *g);
 
+
+StreetIdx highlightStreet = -1;
 std::vector<StreetSegmentIdx> highlightStSegList;
-std::vector<IntersectionIdx> highlightIntersectList;
+std::vector<ezgl::point2d> highlightIntersectList;
+std::vector<ezgl::point2d> highlightMousePress;
+
+void highlight_mouse_press(ezgl::renderer *g);
 void highlight_intersection(ezgl::renderer *g);
 void highlight_streetseg(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
 
+
+
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void initial_setup(ezgl::application *application, bool new_window);
+
+std::string font;
 
 // Singal Callback Functions
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
@@ -54,9 +60,22 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
 void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
-/// For both Entry key and Find button
-void Entry_search_Enter_Key(GtkWidget *wid, gpointer data);
+
+
+
+std::string searchMode;
+void Entry_search_Controller(GtkWidget *wid, gpointer data);
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+
 StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
+
+void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
+double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second);
+double calc_two_POI_distance(POIIdx POI_first, POIIdx POI_second);
+void calcLegendLength(ezgl::renderer *g);
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
@@ -74,7 +93,9 @@ void drawMap(){
     ezgl::rectangle initial_world = ezgl::rectangle{{x_from_lon(min_lon),y_from_lat(min_lat)},
                                                     {x_from_lon(max_lon),y_from_lat(max_lat)}};
 
-    ezgl::color backgroundColor = ezgl::color(220,220,220,255);
+
+    ezgl::color backgroundColor = ezgl::color(220,220,220);
+
 
 
     application.add_canvas("MainCanvas", draw_main_canvas, initial_world,backgroundColor);
@@ -90,18 +111,28 @@ void drawMap(){
 /*Render drawing main Canvas*/
 void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
+    g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     calcLegendLength(g);
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
     draw_street_Name(g);
 
     highlight_intersection(g);
+    //asdasdas
+    if(legendLength<1000){
+        g->format_font("monospace",ezgl::font_slant::normal, ezgl::font_weight::normal);
         draw_oneWay(g);
+        g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
+    }
     if(highlightStreet != -1){
         highlight_streetseg(g);
     }
+    highlight_mouse_press(g);
     draw_legend(g);
+    draw_POI(g);
+//    draw_POI_text(g);
 }
+
 void draw_street_Name(ezgl::renderer *g){
     if(legendLength<1000){
         for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
@@ -117,6 +148,7 @@ void draw_street_Name(ezgl::renderer *g){
         }
     }
 }
+
 void draw_legend(ezgl::renderer *g){
     g->set_text_rotation(0);
     g->set_coordinate_system(ezgl::SCREEN);
@@ -137,7 +169,7 @@ void draw_legend(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::WORLD);
 }
 void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
-    if(strIDList.empty()==true){
+    if(strIDList.empty()){
         return;
     }
     for(int curSeg = 0; curSeg<strIDList.size(); curSeg++) {
@@ -172,6 +204,7 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         }
     }
 }
+
 void draw_oneWay(ezgl::renderer *g){
     if(legendLength<300){
         g->set_color(100,100,100);
@@ -243,6 +276,7 @@ void draw_streetSeg_controller(ezgl::renderer *g){
         draw_streetSeg_Normal(g);
     }
 }
+
 ///Find osm for further modification Not Finished
 void draw_streetSeg_Normal(ezgl::renderer *g){
     std::unordered_map<std::string,std::vector<StreetSegmentIdx>>::const_iterator got;
@@ -384,17 +418,73 @@ void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
     }
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
-    switch(tempFeatureType){
-        case UNKNOWN:       g->set_color(255,228,225);  break;
-        case PARK:          g->set_color(148,176,117);  break;
-        case BEACH:         g->set_color(251,239,199);  break;
-        case LAKE:          g->set_color(185,208,251);  break;
-        case RIVER:         g->set_color(185,208,251);  break;
-        case ISLAND:        g->set_color(230,230,230);  break;
-        case BUILDING:      g->set_color(205,205,205);  break;
-        case GREENSPACE:    g->set_color(206,222,175);  break;
-        case GOLFCOURSE:    g->set_color(148,176,117);  break;
-        case STREAM:        g->set_color(185,208,251);  break;
+    if(DisplayColor==true) {
+        switch (tempFeatureType) {
+            case UNKNOWN:
+                g->set_color(255, 228, 225);
+                break;
+            case PARK:
+                g->set_color(148, 176, 117);
+                break;
+            case BEACH:
+                g->set_color(251, 239, 199);
+                break;
+            case LAKE:
+                g->set_color(185, 208, 251);
+                break;
+            case RIVER:
+                g->set_color(185, 208, 251);
+                break;
+            case ISLAND:
+                g->set_color(230, 230, 230);
+                break;
+            case BUILDING:
+                g->set_color(205, 205, 205);
+                break;
+            case GREENSPACE:
+                g->set_color(206, 222, 175);
+                break;
+            case GOLFCOURSE:
+                g->set_color(148, 176, 117);
+                break;
+            case STREAM:
+                g->set_color(185, 208, 251);
+                break;
+        }
+    }
+    else if(DisplayColor==false) {
+        switch (tempFeatureType) {
+            case UNKNOWN:
+                g->set_color(255, 228, 225);
+                break;
+            case PARK:
+                g->set_color(38, 46, 45);
+                break;
+            case BEACH:
+                g->set_color(44, 38, 46);
+                break;
+            case LAKE:
+                g->set_color(36, 43, 54);
+                break;
+            case RIVER:
+                g->set_color(36, 43, 54);
+                break;
+            case ISLAND:
+                g->set_color(230, 230, 230);
+                break;
+            case BUILDING:
+                g->set_color(176, 196, 222);
+                break;
+            case GREENSPACE:
+                g->set_color(140, 185, 161);
+                break;
+            case GOLFCOURSE:
+                g->set_color(140, 185, 161);
+                break;
+            case STREAM:
+                g->set_color(36, 43, 54);
+                break;
+        }
     }
 }
 
@@ -406,8 +496,14 @@ void draw_naturalFeature(ezgl::renderer *g){
         auto curType = (FeatureType)curIndex;
         tempFeatureList = PolyFeatureList[curType];
         for(int i : tempFeatureList){
+            if(curIndex!=BUILDING){
+                g->fill_poly(NaturalFeatureList[i].polyList);
+            }else{
+                if(legendLength<500){
+                    g->fill_poly(NaturalFeatureList[i].polyList);
+                }
+            }
 
-            g->fill_poly(NaturalFeatureList[i].polyList);
         }
 
         tempFeatureList = LineFeatureList[curType];
@@ -422,87 +518,149 @@ void draw_naturalFeature(ezgl::renderer *g){
     }
 }
 
-void highlight_intersection(ezgl::renderer *g){
-    if(highlightIntersectList.empty()) {
-        return;
-    }
-    ezgl::surface *png_surface = ezgl::renderer::load_png("libstreetmap/resources/labels/pin_point.png");
+void draw_POI(ezgl::renderer *g) {
+    std::vector<POIIdx> tempList = {};
+    if(DisplayPOI) {
+        bool NeedPush = false;
 
-    for(auto intersectId : highlightIntersectList){
-        g->draw_surface(png_surface, IntersectInfoList[intersectId].curPosXY);
+    for (int idx = 0; idx < PoiInfoList.size(); idx++) {
+
+        ezgl::rectangle temp = g->get_visible_world();
+
+        if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+            temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+            temp.right() > PoiInfoList[idx].curPosXY.x &&
+            temp.top() > PoiInfoList[idx].curPosXY.y) {
+
+            if (tempList.empty()) {
+                tempList.push_back(idx);
+            } else {
+                for (int i = 0; i < tempList.size(); ++i) {
+                    if (calc_two_POI_distance(tempList[i], idx) > legendLength * 1) {
+                        NeedPush = true;
+
+                    } else {
+                        NeedPush = false;
+                        break;
+                    }
+                }
+                if (NeedPush == true) {
+                    tempList.push_back(idx);
+                }
+            }
+        }
     }
-    ezgl::renderer::free_surface(png_surface);
+
+    if(!tempList.empty()) {
+        for (int idx = 0; idx < tempList.size(); idx++) {
+            if (PoiInfoList[tempList[idx]].icon_day != "noIcon") {
+                if(DisplayColor) {
+                    ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_day);
+                    g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                    ezgl::renderer::free_surface(png_surface);
+                g->set_font_size(10);
+                g->set_color(ezgl::BLACK);
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                             getPOIName(tempList[idx]));
+                }else if (!DisplayColor) {
+                    ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
+                    g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                    ezgl::renderer::free_surface(png_surface);
+                    g->set_font_size(10);
+                    g->set_color(ezgl::BLACK);
+                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                                 getPOIName(tempList[idx]));
+                }
+            } else {
+                g->set_color(168, 168, 168, 120);
+                g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
+
+                g->set_font_size(10);
+                g->set_color(ezgl::BLACK);
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                             getPOIName(tempList[idx]));
+            }
+
+        }
+
+    }
+}
+
+}
+
+void highlight_intersection(ezgl::renderer *g){
+    if(highlightIntersectList.empty()) return;
+    if(searchMode == "INTERSECT"){
+        for(auto pos : highlightIntersectList){
+            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.01, legendLength*0.01);
+            g->set_color(ezgl::BLUE);
+            g->draw_rectangle(pos, temp);
+        }
+    }
 }
 
 void highlight_streetseg(ezgl::renderer *g){
-    // DrawSomething
-    //std::vector<StreetSegmentIdx> highlightStSegList;
-    //highlightStSegList<StreetSegIdx>;
     g->set_color(255,0,0,200);
     g->set_line_width(10);
 
-
-
-    //LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
-    //ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
-    //ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
-
-    //g->m_camera->set_world({minPoint,maxPoint});
-    //drawLineHelper(g,highlightStSegList);
     drawLineHelper(g,StreetListOfSegsList[highlightStreet]);
 }
+
 void highlight_poi(ezgl::renderer *g){
 
+}
+void highlight_mouse_press(ezgl::renderer *g){
+    drawLabelList(g,highlightMousePress, "libstreetmap/resources/labels/pin_point.png");
 }
 void highlight_clear(){
     highlightIntersectList.clear();
     highlightStSegList.clear();
     highlightStreet = -1;
 }
+
+
 /*User interaction*/
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
+    ezgl::point2d mousePos(x,y);
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
     int id = findClosestIntersection(pos);
 
     std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-    if(event->button == 1){
-        highlight_clear();
-        highlightIntersectList.push_back(id);
+
+    if(searchMode == "Select MODE ..."){
+        app->update_message("Please Select Mode Before Searching ...");
+        return;
     }
 
-    app->refresh_drawing();
-}
+    if(searchMode == "INTERSECT"){
+        if(event->button == 1){
+            highlightMousePress.clear();
 
-void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
-    auto app = static_cast<ezgl::application *>(user_data);
-    if(DisplayOSM){
-        DisplayOSM = false;
-        app->update_message("CLOSING OSM PLEASE WAIT.........");
-
-        app->update_message("CLOSING OSM FINISHED");
-
-    }else{
-        DisplayOSM = true;
-        app->update_message("LOADING OSM PLEASE WAIT.........");
-
-        osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
-
-        if(is_osm_Loaded){
-            app->update_message("OSM ALREADY LOADED");
-        }else{
-            is_osm_Loaded = true;
-            loadOSMDatabaseBIN(osm_file_path);
-            LoadOSMWayofOSMIDList();
-            LoadTypeListOfSegsList_OSM(osm_file_path);
+            if(!highlightIntersectList.empty()){
+                ezgl::point2d closest;
+                double closestLength = 9999;
+                for(auto point : highlightIntersectList){
+                    double tempLength = calc_distance_point2d(mousePos, point);
+                    if(tempLength < closestLength){
+                        closestLength = tempLength;
+                        closest = point;
+                    }
+                }
+                highlightMousePress.push_back(closest);
+            }
+            else{
+                highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
+            }
+            app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
         }
-
-        app->update_message("LOADING OSM FINISHED");
-
     }
+
     app->refresh_drawing();
 }
+
 
 void initial_setup(ezgl::application *application, bool new_window){
+
     DisplayColor = true;
     DisplayPOI = false;
     DisplayOSM = false;
@@ -528,7 +686,7 @@ void initial_setup(ezgl::application *application, bool new_window){
     g_signal_connect(
             application->get_object("UserInput"),
             "activate",
-            G_CALLBACK(Entry_search_Enter_Key),
+            G_CALLBACK(Entry_search_Controller),
             application
     );
 
@@ -541,7 +699,7 @@ void initial_setup(ezgl::application *application, bool new_window){
     g_signal_connect(
             application->get_object("Find"),
             "clicked",
-            G_CALLBACK(Entry_search_Enter_Key),
+            G_CALLBACK(Entry_search_Controller),
             application
     );
 
@@ -574,25 +732,67 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     std::string text = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
     std::cout <<text <<std::endl;
     std::string map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
-    if(text == "Beijing, China")            map_path = "/cad2/ece297s/public/maps/beijing_china.streets.bin";
-    if(text == "Cairo, Egypt")              map_path = "/cad2/ece297s/public/maps/cairo_egypt.streets.bin";
-    if(text == "Cape-Town, South-Africa")   map_path = "/cad2/ece297s/public/maps/cape-town_south-africa.streets.bin";
-    if(text == "Golden-Horseshoe, Canada")  map_path = "/cad2/ece297s/public/maps/golden-horseshoe_canada.streets.bin";
-    if(text == "Hamilton, Canada")          map_path = "/cad2/ece297s/public/maps/hamilton_canada.streets.bin";
-    if(text == "Hong-Kong, China")          map_path = "/cad2/ece297s/public/maps/hong-kong_china.streets.bin";
-    if(text == "Iceland")                   map_path = "/cad2/ece297s/public/maps/iceland.streets.bin";
-    if(text == "Interlaken, Switzerland")   map_path = "/cad2/ece297s/public/maps/interlaken_switzerland.streets.bin";
-    if(text == "London, England")           map_path = "/cad2/ece297s/public/maps/london_england.streets.bin";
-    if(text == "Moscow, Russia")            map_path = "/cad2/ece297s/public/maps/moscow_russia.streets.bin";
-    if(text == "New-Delhi, India")          map_path = "/cad2/ece297s/public/maps/new-delhi_india.streets.bin";
-    if(text == "New-York, USA")             map_path = "/cad2/ece297s/public/maps/new-york_usa.streets.bin";
-    if(text == "Rio-De-Janeiro, Brazil")    map_path = "/cad2/ece297s/public/maps/rio-de-janeiro_brazil.streets.bin";
-    if(text == "Saint-Helena")              map_path = "/cad2/ece297s/public/maps/saint-helena.streets.bin";
-    if(text == "Singapore")                 map_path = "/cad2/ece297s/public/maps/singapore.streets.bin";
-    if(text == "Sydney, Australia")         map_path = "/cad2/ece297s/public/maps/sydney_australia.streets.bin";
-    if(text == "Tehran, Iran")              map_path = "/cad2/ece297s/public/maps/tehran_iran.streets.bin";
-    if(text == "Tokyo, Japan")              map_path = "/cad2/ece297s/public/maps/tokyo_japan.streets.bin";
-    if(text == "Toronto, Canada")           map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
+    font = "monospace";
+    if(text == "Beijing, China"){
+        font = "Noto Sans CJK SC";
+        map_path = "/cad2/ece297s/public/maps/beijing_china.streets.bin";
+    }
+    if(text == "Cairo, Egypt"){
+        map_path = "/cad2/ece297s/public/maps/cairo_egypt.streets.bin";
+    }
+    if(text == "Cape-Town, South-Africa"){
+        map_path = "/cad2/ece297s/public/maps/cape-town_south-africa.streets.bin";
+    }
+    if(text == "Golden-Horseshoe, Canada"){
+        map_path = "/cad2/ece297s/public/maps/golden-horseshoe_canada.streets.bin";
+    }
+    if(text == "Hamilton, Canada"){
+        map_path = "/cad2/ece297s/public/maps/hamilton_canada.streets.bin";
+    }
+    if(text == "Hong-Kong, China"){
+        font = "Noto Sans CJK SC";
+        map_path = "/cad2/ece297s/public/maps/hong-kong_china.streets.bin";
+    }
+    if(text == "Iceland"){
+        map_path = "/cad2/ece297s/public/maps/iceland.streets.bin";
+    }
+    if(text == "Interlaken, Switzerland"){
+        map_path = "/cad2/ece297s/public/maps/interlaken_switzerland.streets.bin";
+    }
+    if(text == "London, England"){
+        map_path = "/cad2/ece297s/public/maps/london_england.streets.bin";
+    }
+    if(text == "Moscow, Russia"){
+        map_path = "/cad2/ece297s/public/maps/moscow_russia.streets.bin";
+    }
+    if(text == "New-Delhi, India"){
+        map_path = "/cad2/ece297s/public/maps/new-delhi_india.streets.bin";
+    }
+    if(text == "New-York, USA"){
+        map_path = "/cad2/ece297s/public/maps/new-york_usa.streets.bin";
+    }
+    if(text == "Rio-De-Janeiro, Brazil"){
+        map_path = "/cad2/ece297s/public/maps/rio-de-janeiro_brazil.streets.bin";
+    }
+    if(text == "Saint-Helena"){
+        map_path = "/cad2/ece297s/public/maps/saint-helena.streets.bin";
+    }
+    if(text == "Singapore"){
+        map_path = "/cad2/ece297s/public/maps/singapore.streets.bin";
+    }
+    if(text == "Sydney, Australia"){
+        map_path = "/cad2/ece297s/public/maps/sydney_australia.streets.bin";
+    }
+    if(text == "Tehran, Iran"){
+        map_path = "/cad2/ece297s/public/maps/tehran_iran.streets.bin";
+    }
+    if(text == "Tokyo, Japan"){
+        font = "Noto Sans CJK SC";
+        map_path = "/cad2/ece297s/public/maps/tokyo_japan.streets.bin";
+    }
+    if(text == "Toronto, Canada"){
+        map_path = "/cad2/ece297s/public/maps/toronto_canada.streets.bin";
+    }
 
     closeMap();
     loadMap(map_path);
@@ -610,17 +810,20 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
                                                 {x_from_lon(max_lon),y_from_lat(max_lat)}};
     app->change_canvas_world_coordinates("MainCanvas", new_world);
     app->refresh_drawing();
-
 }
+
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
+    highlight_clear();
     auto app = static_cast<ezgl::application *>(user_data);
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
+    app->refresh_drawing();
 }
+
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data){
-    Entry_search_Enter_Key(NULL, user_data);
+    Entry_search_Controller(NULL, user_data);
 }
-void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
+void Entry_search_Controller(GtkWidget *wid, gpointer data){
     highlight_clear();
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
@@ -635,86 +838,47 @@ void Entry_search_Enter_Key(GtkWidget *wid, gpointer data){
     // Get User input Text
     auto* text_Entry = (GtkEntry* ) app->get_object("UserInput");
     std::string text = (std::string)gtk_entry_get_text(text_Entry);
-
+    if(searchMode == "INTERSECT"){
+        search_Mode_INTERSECT(app, text_Entry, text);
+    }
+    if(searchMode == "POI"){
+        search_Mode_POI(app, text_Entry, text);
+    }
     if(searchMode == "STREET"){
-        auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
-        if(StreetIdxList.empty()){
-            app->update_message("Street Name Not Found");
-            return;
-        }
-        highlightStreet = StreetIdxList[0];
-        gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
-        app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
-
-
-        LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
-        ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
-        ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
-        ezgl::rectangle setScreen(minPoint,maxPoint);
-
-        auto initScreen = app->get_renderer()->get_visible_screen();
-
-        double possibleWidth = setScreen.height()/initScreen.height()*initScreen.width();
-        if(setScreen.width() < possibleWidth){
-            double widthDiffer = possibleWidth - setScreen.width();
-            setScreen.m_first.x -= (widthDiffer/2);
-            setScreen.m_second.x += (widthDiffer/2);
-        }
-        double possibleHeight = setScreen.width()/initScreen.width()*initScreen.height();
-        if(setScreen.height() < possibleHeight){
-            double heightDiffer = possibleHeight - setScreen.height();
-            setScreen.m_first.y -= (heightDiffer/2);
-            setScreen.m_second.y += (heightDiffer/2);
-        }
-        ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
+        search_Mode_STREET(app, text_Entry, text);
     }
-
     if(searchMode == "TWOSTREET"){
-        int idx = text.find('&');
-        if(idx == -1){
-            app->update_message("TwoStreetIntersect & no found");
-            return;
-        }
-
-        std::string firstStreet = text.substr(0, idx);
-        std::string secondStreet = text.substr(idx+1, text.size());
-
-        StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStreet);
-        StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStreet);
-
-        if(firstStreetIdx == -1){
-            if(secondStreetIdx != -1)secondStreet = getStreetName(secondStreetIdx);
-            app->update_message("Name of First Street No Found");
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            return;
-        }
-        if(secondStreetIdx == -1){
-            firstStreet = getStreetName(firstStreetIdx);
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            app->update_message("Name of Second Street No Found");
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            return;
-        }
-
-        firstStreet = getStreetName(firstStreetIdx);
-        secondStreet = getStreetName(secondStreetIdx);
-
-        highlightIntersectList.clear();
-        highlightIntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
-
-        if(highlightIntersectList.empty()){
-            app->update_message("Intersection No Found");
-            gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
-            return;
-        }
-
-        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        search_Mode_TWOSTREET(app, text_Entry, text);
     }
-
-
     app->refresh_drawing();
+}
+void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    if(DisplayOSM){
+        DisplayOSM = false;
+        app->update_message("CLOSING OSM PLEASE WAIT.........");
 
+        app->update_message("CLOSING OSM FINISHED");
 
+    }else{
+        DisplayOSM = true;
+        app->update_message("LOADING OSM PLEASE WAIT.........");
+
+        osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
+
+        if(is_osm_Loaded){
+            app->update_message("OSM ALREADY LOADED");
+        }else{
+            is_osm_Loaded = true;
+            loadOSMDatabaseBIN(osm_file_path);
+            LoadOSMWayofOSMIDList();
+            LoadTypeListOfSegsList_OSM(osm_file_path);
+        }
+
+        app->update_message("LOADING OSM FINISHED");
+
+    }
+    app->refresh_drawing();
 }
 void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
@@ -732,6 +896,7 @@ void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointe
     }
     app->refresh_drawing();
 }
+
 void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     if(DisplayPOI){
@@ -744,10 +909,118 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
     }
     app->refresh_drawing();
 }
+
+
 /*Supportive Helper Functions*/
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    // ReadFrom Intersect Tree
+    auto IntersectIdxList = IntersectNameTree.getIdList(text);
+    if(IntersectIdxList.empty()){
+        app->update_message("Intersect Name Not Found");
+        return;
+    }
+    for(auto IntersectIdx : IntersectIdxList){
+        app->update_message("Displaying Intersection");
+        highlightIntersectList.push_back(IntersectInfoList[IntersectIdx].curPosXY);
+    }
+    //highlightIntersectList.push_back();
+}
+
+void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    // ReadFrom POI Tree
+
+}
+
+void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
+    if(StreetIdxList.empty()){
+        app->update_message("Street Name Not Found");
+        return;
+    }
+    highlightStreet = StreetIdxList[0];
+    gtk_entry_set_text(text_Entry, getStreetName(highlightStreet).c_str());
+    app->update_message("Street: " + getStreetName(highlightStreet) + " Highlighted");
 
 
+    LatLonBounds minmax = findStreetBoundingBox(highlightStreet);
+    ezgl::point2d minPoint = LatLon_to_point2d(minmax.min);
+    ezgl::point2d maxPoint = LatLon_to_point2d(minmax.max);
+    ezgl::rectangle setScreen(minPoint,maxPoint);
 
+    calc_screen_fit(app, setScreen);
+}
+
+void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    int idx = text.find('&');
+    if(idx == -1){
+        app->update_message("TwoStreetIntersect & no found");
+        return;
+    }
+
+    std::string firstStreet = text.substr(0, idx);
+    std::string secondStreet = text.substr(idx+1, text.size());
+
+    StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStreet);
+    StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStreet);
+
+    if(firstStreetIdx == -1){
+        if(secondStreetIdx != -1)secondStreet = getStreetName(secondStreetIdx);
+        app->update_message("Name of First Street No Found");
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        return;
+    }
+    if(secondStreetIdx == -1){
+        firstStreet = getStreetName(firstStreetIdx);
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        app->update_message("Name of Second Street No Found");
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        return;
+    }
+
+    firstStreet = getStreetName(firstStreetIdx);
+    secondStreet = getStreetName(secondStreetIdx);
+
+    auto tempIntersectList = findIntersectionsOfTwoStreets(std::make_pair(firstStreetIdx, secondStreetIdx));
+
+    if(tempIntersectList.empty()){
+        app->update_message("Intersection No Found");
+        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+        return;
+    }
+
+    gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
+}
+
+
+void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
+    auto initScreen = app->get_renderer()->get_visible_screen();
+
+    double possibleWidth = setScreen.height()/initScreen.height()*initScreen.width();
+    if(setScreen.width() < possibleWidth){
+        double widthDiffer = possibleWidth - setScreen.width();
+        setScreen.m_first.x -= (widthDiffer/2);
+        setScreen.m_second.x += (widthDiffer/2);
+    }
+    double possibleHeight = setScreen.width()/initScreen.width()*initScreen.height();
+    if(setScreen.height() < possibleHeight){
+        double heightDiffer = possibleHeight - setScreen.height();
+        setScreen.m_first.y -= (heightDiffer/2);
+        setScreen.m_second.y += (heightDiffer/2);
+    }
+    ezgl::zoom_fit(app->get_canvas("MainCanvas"),setScreen);
+}
+double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second){
+    ezgl::rectangle temp(first, second);
+    return sqrt(temp.width()*temp.width() + temp.height() * temp.height());
+}
+
+double calc_two_POI_distance(POIIdx POI_first, POIIdx POI_second){
+
+    ezgl::point2d POI1=PoiInfoList[POI_first].curPosXY;
+    ezgl::point2d POI2=PoiInfoList[POI_second].curPosXY;
+
+    return calc_distance_point2d(POI1, POI2);
+}
 /*Legend*/
 void calcLegendLength(ezgl::renderer *g){
     // Calculate LegendLength

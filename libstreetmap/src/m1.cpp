@@ -80,9 +80,13 @@ std::vector<std::vector<StreetSegmentIdx>> StreetListOfSegsList;
 std::vector<std::set<IntersectionIdx>> StreetListOfIntersectsList;
 std::unordered_map<std::string, std::vector<POIIdx>> POINameListOfPOIsList;
 CharTree StNameTreeForPrefix;
+CharTree IntersectNameTree;
+CharTree POINameTree;
 std::vector<naturalFeature> NaturalFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> PolyFeatureList;
 std::map<FeatureType, std::vector<FeatureIdx>> LineFeatureList;
+std::vector <poi_info> PoiInfoList;
+std::vector <std::string>  TypeList;
 /// CharTree "StNameTreeForPrefix" included
 
 /// CharTree Member function & used Function
@@ -104,16 +108,28 @@ void CharTree::clearHelper(CharNode* myRoot){
     myRoot = nullptr;
 }
 
-void CharTree::insertNameToTree(std::string curStName, StreetIdx street_id){
+void CharTree::insertNameToTree(std::string curName, int id) const{
     CharNode* cptr = root;
-    for(int charIdx = 0; charIdx < curStName.length(); charIdx++){
-        int charDec = (curStName[charIdx]&0xff);
+    for(int charIdx = 0; charIdx < curName.length(); charIdx++){
+        int charDec = (curName[charIdx]&0xff);
         if(cptr->nextChar[charDec] == nullptr){
             cptr->nextChar[charDec] = new CharNode();
         }
         cptr = cptr -> nextChar[charDec];
-        cptr ->curPrefixStreetsList.push_back(street_id);
+        cptr ->curIdList.push_back(id);
     }
+}
+std::vector<int> CharTree::getIdList(const std::string &partialName) {
+    std::string prefix = modifyName(partialName);
+    CharNode* cptr = root;
+    for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
+        int charDec = (prefix[charIdx]&0xff);
+        if(cptr->nextChar[charDec] == nullptr) {
+            return {};
+        }
+        cptr = cptr -> nextChar[charDec];
+    }
+    return cptr -> curIdList;
 }
 std::string modifyName(std::string srcName){
     std::string name = srcName;
@@ -278,6 +294,22 @@ void LoadStreetListOfIntersectsList(){
     }
 }
 
+void LoadIntersectNameTreeForPrefix(){
+    IntersectNameTree.root = new CharNode();
+    for(auto curIntersectIdx = 0; curIntersectIdx < getNumIntersections(); curIntersectIdx++){
+        std::string IntersectName = getIntersectionName(curIntersectIdx);
+        IntersectName = modifyName(IntersectName);
+        IntersectNameTree.insertNameToTree(IntersectName, curIntersectIdx);
+    }
+}
+void LoadPOINameTreeForPrefix(){
+    POINameTree.root = new CharNode();
+    for(auto POIIdx = 0; POIIdx < getNumPointsOfInterest(); POIIdx++){
+        std::string POIName = getPOIName(POIIdx);
+        POIName = modifyName(POIName);
+        POINameTree.insertNameToTree(POIName, POIIdx);
+    }
+}
 void LoadStNameTreeForPrefix(){
     StNameTreeForPrefix.root = new CharNode();
     int totalStNum = getNumStreets();
@@ -288,11 +320,125 @@ void LoadStNameTreeForPrefix(){
     }
 }
 
-void LoadPOINameListOfPOIsList(){
-    for(POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++ ){
+void LoadPoiInfoList(){
+    PoiInfoList.resize(getNumPointsOfInterest());
+    TypeList={};
+    std::set<std::string> temp;
+    for(int Idx=0 ; Idx < getNumPointsOfInterest(); Idx++) {
+        PoiInfoList[Idx].name = getPOIName(Idx);
+        PoiInfoList[Idx].type = getPOIType(Idx);
+
+        PoiInfoList[Idx].curPosXY = LatLon_to_point2d(getPOIPosition(Idx));
+////        temp.insert(getPOIType(Idx));
+
+//        double temp_distance=0;
+//        double min_distance=1000;
+//        int min_idx=0;
+//        for(int idx=0; idx< getNumPointsOfInterest(); idx++) {
+//            if (idx!=Idx){
+//                temp_distance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(Idx), getPOIPosition(idx)));
+//            if (temp_distance < min_distance) {
+//                min_idx=idx;
+//                min_distance=temp_distance;
+//            }
+//        }
+//
+//        }
+//        PoiInfoList[Idx].ClosetPOI=min_idx;
+
+        if (CheckTypeIconForPOI("bank", PoiInfoList[Idx].type) == true) {
+
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/bank.png";
+
+        } else if (CheckTypeIconForPOI("shop", PoiInfoList[Idx].type) == true) {
+
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/shop.png";
+
+        } else if (CheckTypeIconForPOI("school", PoiInfoList[Idx].type) == true) {
+                        PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/school.png";
+
+        } else if (CheckTypeIconForPOI("hospital", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/hospital.png";
+
+
+        } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/park.png";
+
+
+        } else if (CheckTypeIconForPOI("restaurant", PoiInfoList[Idx].type) == true) {
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/restaurant.png";
+        }
+
+
+
+//    for(int idx =0; idx < getNumPointsOfInterest(); idx++){
+//        for(int i =0; i< TypeList.size(); i++){
+//            if(PoiInfoList[idx].type==TypeList[i]){
+//
+//            }
+//        }
+//
+//    }
+    }
+
+//    std::set<std::string>::iterator it;
+//    for(it=temp.begin(); it!=temp.end() ; it++){
+//        if(CheckTypeIconForPOI("bank", *it)||CheckTypeIconForPOI("shop", *it)||CheckTypeIconForPOI("park", *it)){
+//            TypeList.push_back(*it);
+//        }
+//    }
+
+
+//    std::cout<<TypeList.size()<<std::endl;
+//    std::set<std::string>::iterator it;
+//    for(it=TypeList.begin(); it!=TypeList.end() ; it++){
+//
+//        std::cout<<*it<<std::endl;
+//    }
+
+}
+
+
+void LoadPOINameListOfPOIsList() {
+    for (POIIdx curPOI = 0; curPOI < getNumPointsOfInterest(); curPOI++) {
         POINameListOfPOIsList[getPOIName(curPOI)].push_back(curPOI);
     }
 }
+
+
+
+
+
+bool CheckTypeIconForPOI(std::string Type, std::string POIType) {
+    bool IsThisIcon = false;
+
+
+    if (Type.length() <= POIType.length()) {
+        for (int i = 0; i <= POIType.length() - Type.length(); i++) {
+            int k = 0;
+
+            if (POIType[i] == Type[k]) {
+                IsThisIcon = true;
+                for (; k < Type.length() && IsThisIcon == true; k++) {
+                    if (POIType[i + k] == Type[k]) {
+                        IsThisIcon = true;
+                    }
+                    else {
+                        IsThisIcon = false;
+                    }
+                }
+            }
+            if (IsThisIcon == true) {
+                return IsThisIcon;
+            }
+        }
+    }
+    return IsThisIcon;
+}
+
+
+
+
 void LoadOSMWayofOSMIDList(){
     //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     for(unsigned i=0; i<getNumberOfWays();i++){
@@ -422,32 +568,46 @@ bool loadMap(std::string map_streets_database_filename) {
     if(!load_successful) return false;
 
     //Load Function Called
-
+    std::cout << "Loading: IntersectListOfInfo...." << std::endl;
     LoadIntersectListOfInfo();
+
     calc_avg_lat();
 
+    std::cout << "Loading: SructurePackage...." << std::endl;
     LoadStructurePackage();
 
+    std::cout << "Loading: IntersectListOfStName...." << std::endl;
     LoadIntersectListOfStName();
 
+    std::cout << "Loading: treetListOfIntersectsList...." << std::endl;
     LoadStreetListOfIntersectsList();
 
+    std::cout << "Loading: NAMEs...." << std::endl;
     LoadStNameTreeForPrefix();
+    LoadIntersectNameTreeForPrefix();
+    LoadPOINameTreeForPrefix();
 
+    std::cout << "Loading: POINameListOfPOIsList...." << std::endl;
     LoadPOINameListOfPOIsList();
     //Optional:For OSM
     //LoadOSMWayofOSMIDList();
     //LoadTypeListOfSegsList_OSM(map_streets_database_filename);
 
+    std::cout << "Loading: IntersectInfoList...." << std::endl;
     LoadIntersectInfoList();
 
+    std::cout << "Loading: NaturalFeatureList...." << std::endl;
     LoadNaturalFeatureList();
 
+    std::cout << "Loading: NaturalFeatureTypeList...." << std::endl;
     LoadNaturalFeatureTypeList();
-
+    std::cout<<"Loading: POIList......"<<std::endl;
+    LoadPoiInfoList();
+    std::cout << "Loading: TypeListOfSegsList_Normal...." << std::endl;
     LoadTypeListOfSegsList_Normal();
     //Optional:OSM
 
+    std::cout << "Loading Successful...." << std::endl;
     load_successful = true; //Make sure this is updated to reflect whether
     //loading the map succeeded or failed
     return load_successful;
@@ -455,20 +615,27 @@ bool loadMap(std::string map_streets_database_filename) {
 
 void closeMap() {
     //Clean-up your map related data structures here
+    std::cout << "flushing StreetDatabase...." << std::endl;
     closeStreetDatabase();
     // call this API to close the currently opened map
+    std::cout << "flushing SegmentTypeList_Normal...." << std::endl;
     SegmentTypeList_Normal.clear();
 
+    std::cout << "flushing IntersectList...." << std::endl;
     IntersectListOfSegsList.clear();
     IntersectListOfLatLon.clear();
     IntersectListOfStName.clear();
 
+    std::cout << "flushing StreetList...." << std::endl;
     StreetListOfIntersectsList.clear();
     StreetListOfSegsList.clear();
-
-    SegsInfoList.clear();
-
+    std::cout << "flushing Names...." << std::endl;
     StNameTreeForPrefix.clear();
+    IntersectNameTree.clear();
+    POINameTree.clear();
+
+    std::cout << "flushing InfoList...." << std::endl;
+    SegsInfoList.clear();
 
     POINameListOfPOIsList.clear();
 
@@ -478,13 +645,15 @@ void closeMap() {
 
     PolyFeatureList.clear();
     LineFeatureList.clear();
+    PoiInfoList.clear();
+    TypeList.clear();
 
     if(is_osm_Loaded) {
+        std::cout << "flushing OSM...." << std::endl;
         closeOSMDatabase();
         SegmentTypeList_OSM.clear();
         OSMWayofOSMIDList.clear();
     }
-
 }
 
 /// Tested Functions implemtation from m1.h
@@ -706,16 +875,7 @@ std::vector<IntersectionIdx> findIntersectionsOfStreet(StreetIdx street_id){
  * @return
  */
 std::vector<StreetIdx> findStreetIdsFromPartialStreetName(std::string street_prefix){
-    std::string prefix = modifyName(street_prefix);
-    CharNode* cptr = StNameTreeForPrefix.root;
-    for(int charIdx = 0; charIdx < prefix.length(); charIdx++){
-        int charDec = (prefix[charIdx]&0xff);
-        if(cptr->nextChar[charDec] == nullptr) {
-            return {};
-        }
-        cptr = cptr -> nextChar[charDec];
-    }
-    return cptr -> curPrefixStreetsList;
+    return StNameTreeForPrefix.getIdList(street_prefix);
 }
 
 /**
