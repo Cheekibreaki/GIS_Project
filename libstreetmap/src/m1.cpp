@@ -293,22 +293,22 @@ void LoadPoiInfoList(){
         PoiInfoList[Idx].type = getPOIType(Idx);
 
         PoiInfoList[Idx].curPosXY = LatLon_to_point2d(getPOIPosition(Idx));
-        temp.insert(getPOIType(Idx));
+////        temp.insert(getPOIType(Idx));
 
-        double temp_distance=0;
-        double min_distance=1000;
-        int min_idx=0;
-        for(int idx=0; idx< getNumPointsOfInterest(); idx++) {
-            if (idx!=Idx){
-                temp_distance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(Idx), getPOIPosition(idx)));
-            if (temp_distance < min_distance) {
-                min_idx=idx;
-                min_distance=temp_distance;
-            }
-        }
-
-        }
-        PoiInfoList[Idx].ClosetPOI=min_idx;
+//        double temp_distance=0;
+//        double min_distance=1000;
+//        int min_idx=0;
+//        for(int idx=0; idx< getNumPointsOfInterest(); idx++) {
+//            if (idx!=Idx){
+//                temp_distance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(Idx), getPOIPosition(idx)));
+//            if (temp_distance < min_distance) {
+//                min_idx=idx;
+//                min_distance=temp_distance;
+//            }
+//        }
+//
+//        }
+//        PoiInfoList[Idx].ClosetPOI=min_idx;
 
         if (CheckTypeIconForPOI("bank", PoiInfoList[Idx].type) == true) {
 
@@ -345,12 +345,12 @@ void LoadPoiInfoList(){
 //    }
     }
 
-    std::set<std::string>::iterator it;
-    for(it=temp.begin(); it!=temp.end() ; it++){
-        if(CheckTypeIconForPOI("bank", *it)||CheckTypeIconForPOI("shop", *it)||CheckTypeIconForPOI("park", *it)){
-            TypeList.push_back(*it);
-        }
-    }
+//    std::set<std::string>::iterator it;
+//    for(it=temp.begin(); it!=temp.end() ; it++){
+//        if(CheckTypeIconForPOI("bank", *it)||CheckTypeIconForPOI("shop", *it)||CheckTypeIconForPOI("park", *it)){
+//            TypeList.push_back(*it);
+//        }
+//    }
 
 
 //    std::cout<<TypeList.size()<<std::endl;
