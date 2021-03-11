@@ -39,6 +39,7 @@ void draw_oneWay(ezgl::renderer *g);
 StreetIdx highlightStreet = -1;
 std::vector<StreetSegmentIdx> highlightStSegList;
 std::vector<ezgl::point2d> highlightIntersectList;
+std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
 void highlight_mouse_press(ezgl::renderer *g);
@@ -118,6 +119,7 @@ void draw_main_canvas(ezgl::renderer *g){
     //draw_street_Name(g);
 
     highlight_intersection(g);
+    highlight_poi(g);
     //asdasdas
     if(legendLength<1000){
         g->format_font("monospace",ezgl::font_slant::normal, ezgl::font_weight::normal);
@@ -580,7 +582,7 @@ void highlight_intersection(ezgl::renderer *g){
     if(highlightIntersectList.empty()) return;
     if(searchMode == "INTERSECT"){
         for(auto pos : highlightIntersectList){
-            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.01, legendLength*0.01);
+            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.05, legendLength*0.05);
             g->set_color(ezgl::BLUE);
             g->draw_rectangle(pos, temp);
         }
@@ -595,7 +597,14 @@ void highlight_streetseg(ezgl::renderer *g){
 }
 
 void highlight_poi(ezgl::renderer *g){
-
+    if(highlightPOIList.empty()) return;
+    if(searchMode == "POI"){
+        for(auto pos : highlightPOIList){
+            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.05, legendLength*0.05);
+            g->set_color(ezgl::BLUE);
+            g->draw_rectangle(pos, temp);
+        }
+    }
 }
 void highlight_mouse_press(ezgl::renderer *g){
     drawLabelList(g,highlightMousePress, "libstreetmap/resources/labels/pin_point.png");
@@ -611,9 +620,7 @@ void highlight_clear(){
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     ezgl::point2d mousePos(x,y);
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
-    int id = findClosestIntersection(pos);
 
-    std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
 
     if(searchMode == "Select MODE ..."){
         app->update_message("Please Select Mode Before Searching ...");
@@ -621,6 +628,8 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     }
 
     if(searchMode == "INTERSECT"){
+        int id = findClosestIntersection(pos);
+        std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
         if(event->button == 1){
             highlightMousePress.clear();
 
@@ -643,6 +652,25 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
         }
     }
 
+    if(searchMode == "POI"){
+
+        if(event->button == 1){
+            highlightMousePress.clear();
+
+            if(!highlightPOIList.empty()){
+                ezgl::point2d closest;
+                double closestLength = 9999;
+                for(auto point : highlightPOIList){
+                    double tempLength = calc_distance_point2d(mousePos, point);
+                    if(tempLength < closestLength){
+                        closestLength = tempLength;
+                        closest = point;
+                    }
+                }
+                highlightMousePress.push_back(closest);
+            }
+        }
+    }
     app->refresh_drawing();
 }
 
@@ -916,7 +944,17 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::s
 
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
     // ReadFrom POI Tree
-
+    auto POIIdxList = POINameTree.getIdList(text);
+    if(POIIdxList.empty()){
+        app->update_message("POI Name Not Found");
+        return;
+    }
+    gtk_entry_set_text(text_Entry, PoiInfoList[POIIdxList[0]].name.c_str());
+    for(auto POIIdx : POINameListOfPOIsList.at(PoiInfoList[POIIdxList[0]].name)){
+        app->update_message("Displaying POI" + PoiInfoList[POIIdxList[0]].name);
+        highlightPOIList.push_back(PoiInfoList[POIIdx].curPosXY);
+    }
+    //highlightIntersectList.push_back();
 }
 
 void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
