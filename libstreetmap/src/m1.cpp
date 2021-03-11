@@ -342,25 +342,25 @@ void LoadPoiInfoList(){
 
         if (CheckTypeIconForPOI("bank", PoiInfoList[Idx].type) == true) {
 
-            PoiInfoList[Idx].icon="libstreetmap/resources/labels/bank.png";
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/bank.png";
 
         } else if (CheckTypeIconForPOI("shop", PoiInfoList[Idx].type) == true) {
 
-            PoiInfoList[Idx].icon="libstreetmap/resources/labels/shop.png";
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/shop.png";
 
         } else if (CheckTypeIconForPOI("school", PoiInfoList[Idx].type) == true) {
-                        PoiInfoList[Idx].icon="libstreetmap/resources/labels/school.png";
+                        PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/school.png";
 
         } else if (CheckTypeIconForPOI("hospital", PoiInfoList[Idx].type) == true) {
-            PoiInfoList[Idx].icon="libstreetmap/resources/labels/hospital.png";
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/hospital.png";
 
 
         } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true) {
-            PoiInfoList[Idx].icon="libstreetmap/resources/labels/park.png";
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/park.png";
 
 
         } else if (CheckTypeIconForPOI("restaurant", PoiInfoList[Idx].type) == true) {
-            PoiInfoList[Idx].icon="libstreetmap/resources/labels/restaurant.png";
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/restaurant.png";
         }
 
 

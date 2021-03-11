@@ -72,10 +72,10 @@ struct poi_info{
     ezgl::point2d curPosXY;
     std::string name;
     std::string type;
-    const char* icon="noIcon";
+    const char* icon_day="noIcon";
+    const char* icon_night="noIcon";
 //    int Icon = 4;
-    POIIdx ClosetPOI;
-    bool IsDisplay=false;
+
     bool highlight = true;
 };
 /*
