@@ -441,12 +441,12 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
 void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
     switch (tempSegType) {
         case Normal_level1:
-            if(DisplayColor)    g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(240, 240, 240);
             else                g->set_color(100, 110, 110);
             g->set_line_width((1 / legendLength) * 1000);
             break;
         case Normal_level2:
-            if(DisplayColor)    g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(240, 240, 240);
             else                g->set_color(100, 110, 110);
             g->set_line_width((1.5 / legendLength) * 1000);
             break;
@@ -550,7 +550,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
                 g->set_color(25, 25, 25,255);
                 break;
             case BUILDING:
-                g->set_color(176, 196, 222);
+                g->set_color(50, 57, 70);
                 break;
             case GREENSPACE:
                 g->set_color(140, 185, 161);
