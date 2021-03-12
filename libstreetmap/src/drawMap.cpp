@@ -187,7 +187,8 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         int segIdx = strIDList[curSeg];
         double speed=SegsInfoList[segIdx].segInfo.speedLimit;
         if(speed<=20){
-            g->set_color(232, 232, 232);
+            if(DisplayColor)    g->set_color(230, 230, 230);
+            else                g->set_color(105, 121, 128);
         }else{
             g->set_color(204, 202, 55);
         }
@@ -369,15 +370,18 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
 void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
     switch (tempSegType) {
         case Normal_level1:
-            g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(230, 230, 230);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1 / legendLength) * 1000);
             break;
         case Normal_level2:
-            g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(230, 230, 230);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1.5 / legendLength) * 1000);
             break;
         case Normal_level3:
-            g->set_color(255, 255, 255);
+            if(DisplayColor)    g->set_color(255, 255, 255);
+            else                g->set_color(167, 183, 190);
             g->set_line_width((2 / legendLength) * 500);
             break;
         case Normal_level4:
