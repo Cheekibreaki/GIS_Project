@@ -563,6 +563,7 @@ void LoadTypeListOfSegsList_OSM(std::string OSMpath){
  */
 bool loadMap(std::string map_streets_database_filename) {
     osm_file_path=map_streets_database_filename;
+    osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
 //    std::string str_database=map_streets_database_filename;
 //    std::string osm_database=str_database.replace(str_database.end()-11,str_database.end(),"osm.bin");
 
