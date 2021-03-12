@@ -968,7 +968,12 @@ void Entry_search_Controller(GtkWidget *wid, gpointer data){
 }
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
-    if(DisplayOSM){
+
+    auto* switch_osm = (GtkSwitch *) app->get_object("DisplayOSM");
+
+    //std::cout << gtk_switch_get_state(switch_osm) << std::endl;
+
+    if(gtk_switch_get_state(switch_osm)){
         DisplayOSM = false;
         app->update_message("Disable OSM");
     }else{
