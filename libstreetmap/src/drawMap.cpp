@@ -146,16 +146,62 @@ void drawNightColor(ezgl::renderer *g){
 }
 
 void draw_street_Name(ezgl::renderer *g){
-    if(legendLength<1000){
+    if(legendLength<100000){
         for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
             std::string StName = getStreetName(StIdx);
-            for(auto SegIdx : StreetListOfSegsList[StIdx]){
-                g->set_color(ezgl::BLACK);
-                g->set_font_size(8);
-                ezgl::point2d midPoint = (SegsInfoList[SegIdx].toXY+SegsInfoList[SegIdx].fromXY) * ezgl::point2d(0.5,0.5);
-                g->draw_text(midPoint,StName,200,200);
-
-
+            if(StName!="<unknown>"){
+                for(auto SegIdx : StreetListOfSegsList[StIdx]){
+                    g->set_color(ezgl::BLACK);
+                    g->set_font_size(8);
+                    ezgl::point2d midPoint = (SegsInfoList[SegIdx].toXY+SegsInfoList[SegIdx].fromXY) * ezgl::point2d(0.5,0.5);
+                    //g->draw_text(midPoint,StName,legendLength,legendLength);
+                    ezgl::point2d fromPos = SegsInfoList[SegIdx].fromXY;
+                    ezgl::point2d toPos = SegsInfoList[SegIdx].toXY;
+                    ezgl::rectangle seg_Boundary(fromPos,toPos);
+                    double fromX=fromPos.x;
+                    double fromY=fromPos.y;
+                    double toX=toPos.x;
+                    double toY=toPos.y;
+                    int numCurvePoints = SegsInfoList[SegIdx].segInfo.numCurvePoints;
+                    double maxwidth=abs(toPos.x-fromPos.x);
+                    double maxheight=abs(toPos.y-fromPos.y);
+                    if(numCurvePoints==0){
+                        double angle = SegsInfoList[SegIdx].angle;
+                        if((toY-fromY)>0&&(toX-fromX)>0){
+                            if(angle<45){
+                                g->set_text_rotation(angle);
+                                g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                            }else{
+                                g->set_text_rotation(angle);
+                                g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                            }
+                        }else if((toY-fromY)>0&&(toX-fromX)<0){
+                            if(angle<45){
+                                g->set_text_rotation(angle);
+                                g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                            }else{
+                                g->set_text_rotation(angle);
+                                g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                            }
+                        }else if((toY-fromY)<0&&(toX-fromX)<0){
+                                if(angle>-45){
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                                }else{
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                                }
+                        }else if((toY-fromY)<0&&(toX-fromX)>0){
+                            if(angle>-45){
+                                g->set_text_rotation(angle);
+                                g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                            }else{
+                                g->set_text_rotation(angle);
+                                g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                            }
+                        }
+                    }
+                }
             }
         }
     }
