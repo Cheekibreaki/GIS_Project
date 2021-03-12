@@ -88,6 +88,7 @@ struct poi_info{
 struct StrSeg_Info{
     double length;
     double time;
+    double angle;
     ezgl::point2d fromXY;
     ezgl::point2d toXY;
     StreetSegmentInfo segInfo;
