@@ -112,6 +112,7 @@ void drawMap(){
 /*Render drawing main Canvas*/
 void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
+    g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     drawNightColor(g);
     calcLegendLength(g);
     draw_naturalFeature(g);
