@@ -39,6 +39,7 @@ void draw_oneWay(ezgl::renderer *g);
 StreetIdx highlightStreet = -1;
 std::vector<StreetSegmentIdx> highlightStSegList;
 std::vector<ezgl::point2d> highlightIntersectList;
+std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
 void highlight_mouse_press(ezgl::renderer *g);
@@ -111,6 +112,7 @@ void drawMap(){
 /*Render drawing main Canvas*/
 void draw_street_Name(ezgl::renderer *g);
 void draw_main_canvas(ezgl::renderer *g){
+    g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     drawNightColor(g);
     calcLegendLength(g);
     draw_naturalFeature(g);
@@ -118,6 +120,7 @@ void draw_main_canvas(ezgl::renderer *g){
     //draw_street_Name(g);
 
     highlight_intersection(g);
+    highlight_poi(g);
     //asdasdas
     if(legendLength<1000){
         g->format_font("monospace",ezgl::font_slant::normal, ezgl::font_weight::normal);
@@ -185,7 +188,8 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         int segIdx = strIDList[curSeg];
         double speed=SegsInfoList[segIdx].segInfo.speedLimit;
         if(speed<=20){
-            g->set_color(232, 232, 232);
+            if(DisplayColor)    g->set_color(230, 230, 230);
+            else                g->set_color(105, 121, 128);
         }else{
             g->set_color(204, 202, 55);
         }
@@ -367,15 +371,18 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
 void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
     switch (tempSegType) {
         case Normal_level1:
-            g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(230, 230, 230);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1 / legendLength) * 1000);
             break;
         case Normal_level2:
-            g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(230, 230, 230);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1.5 / legendLength) * 1000);
             break;
         case Normal_level3:
-            g->set_color(255, 255, 255);
+            if(DisplayColor)    g->set_color(255, 255, 255);
+            else                g->set_color(167, 183, 190);
             g->set_line_width((2 / legendLength) * 500);
             break;
         case Normal_level4:
@@ -604,7 +611,7 @@ void highlight_intersection(ezgl::renderer *g){
     if(highlightIntersectList.empty()) return;
     if(searchMode == "INTERSECT"){
         for(auto pos : highlightIntersectList){
-            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.01, legendLength*0.01);
+            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.05, legendLength*0.05);
             g->set_color(ezgl::BLUE);
             g->draw_rectangle(pos, temp);
         }
@@ -619,12 +626,20 @@ void highlight_streetseg(ezgl::renderer *g){
 }
 
 void highlight_poi(ezgl::renderer *g){
-
+    if(highlightPOIList.empty()) return;
+    if(searchMode == "POI"){
+        for(auto pos : highlightPOIList){
+            ezgl::point2d temp = pos + ezgl::point2d(legendLength*0.05, legendLength*0.05);
+            g->set_color(ezgl::BLUE);
+            g->draw_rectangle(pos, temp);
+        }
+    }
 }
 void highlight_mouse_press(ezgl::renderer *g){
     drawLabelList(g,highlightMousePress, "libstreetmap/resources/labels/pin_point.png");
 }
 void highlight_clear(){
+    highlightMousePress.clear();
     highlightIntersectList.clear();
     highlightStSegList.clear();
     highlightStreet = -1;
@@ -635,9 +650,7 @@ void highlight_clear(){
 void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x, double y){
     ezgl::point2d mousePos(x,y);
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
-    int id = findClosestIntersection(pos);
 
-    std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
 
     if(searchMode == "Select MODE ..."){
         app->update_message("Please Select Mode Before Searching ...");
@@ -645,6 +658,8 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     }
 
     if(searchMode == "INTERSECT"){
+        int id = findClosestIntersection(pos);
+        std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
         if(event->button == 1){
             highlightMousePress.clear();
 
@@ -667,6 +682,25 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
         }
     }
 
+    if(searchMode == "POI"){
+
+        if(event->button == 1){
+            highlightMousePress.clear();
+
+            if(!highlightPOIList.empty()){
+                ezgl::point2d closest;
+                double closestLength = 9999;
+                for(auto point : highlightPOIList){
+                    double tempLength = calc_distance_point2d(mousePos, point);
+                    if(tempLength < closestLength){
+                        closestLength = tempLength;
+                        closest = point;
+                    }
+                }
+                highlightMousePress.push_back(closest);
+            }
+        }
+    }
     app->refresh_drawing();
 }
 
@@ -827,6 +861,10 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     highlight_clear();
     auto app = static_cast<ezgl::application *>(user_data);
+
+    auto* text_Entry = (GtkEntry* ) app->get_object("UserInput");
+    gtk_entry_set_text(text_Entry, "");
+
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
     app->refresh_drawing();
@@ -940,7 +978,17 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::s
 
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
     // ReadFrom POI Tree
-
+    auto POIIdxList = POINameTree.getIdList(text);
+    if(POIIdxList.empty()){
+        app->update_message("POI Name Not Found");
+        return;
+    }
+    gtk_entry_set_text(text_Entry, PoiInfoList[POIIdxList[0]].name.c_str());
+    for(auto POIIdx : POINameListOfPOIsList.at(PoiInfoList[POIIdxList[0]].name)){
+        app->update_message("Displaying POI" + PoiInfoList[POIIdxList[0]].name);
+        highlightPOIList.push_back(PoiInfoList[POIIdx].curPosXY);
+    }
+    //highlightIntersectList.push_back();
 }
 
 void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
@@ -998,6 +1046,9 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
         app->update_message("Intersection No Found");
         gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
         return;
+    }
+    for(auto IntersectIdx : tempIntersectList){
+        highlightMousePress.push_back(IntersectInfoList[IntersectIdx].curPosXY);
     }
 
     gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
