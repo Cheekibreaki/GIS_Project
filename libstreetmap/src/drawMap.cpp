@@ -149,6 +149,17 @@ void drawNightColor(ezgl::renderer *g){
 }
 
 void draw_street_Name(ezgl::renderer *g){
+//    if(legendLength<1000){
+//        for(int strIdx=0;strIdx<StreetListOfSegsList.size();strIdx++){
+//            int segsSize=StreetListOfSegsList[strIdx].size();
+//            if(segsSize<=3){
+//
+//            }
+//        }
+//    }
+
+
+
     if(legendLength<100000){
         for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
             std::string StName = getStreetName(StIdx);
@@ -160,7 +171,8 @@ void draw_street_Name(ezgl::renderer *g){
                     //g->draw_text(midPoint,StName,legendLength,legendLength);
                     ezgl::point2d fromPos = SegsInfoList[SegIdx].fromXY;
                     ezgl::point2d toPos = SegsInfoList[SegIdx].toXY;
-                    ezgl::rectangle seg_Boundary(fromPos,toPos);
+                    double length=SegsInfoList[SegIdx].length;
+                    ezgl::rectangle seg_Boundary(fromPos,fromPos+ezgl::point2d(length,length));
                     double fromX=fromPos.x;
                     double fromY=fromPos.y;
                     double toX=toPos.x;
