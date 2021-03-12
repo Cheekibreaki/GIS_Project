@@ -149,56 +149,52 @@ void drawNightColor(ezgl::renderer *g){
 }
 
 void draw_street_Name(ezgl::renderer *g){
-//    if(legendLength<1000){
-//        for(int strIdx=0;strIdx<StreetListOfSegsList.size();strIdx++){
-//            int segsSize=StreetListOfSegsList[strIdx].size();
-//            if(segsSize<=3){
-//
-//            }
-//        }
-//    }
 
 
-
-    if(legendLength<100000){
+    if(legendLength<1000){
         for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
             std::string StName = getStreetName(StIdx);
             if(StName!="<unknown>"){
                 for(auto SegIdx : StreetListOfSegsList[StIdx]){
-                    g->set_color(ezgl::BLACK);
-                    g->set_font_size(8);
+                    if(DisplayColor==true){
+                        g->set_color(ezgl::BLACK);
+                    }else{
+                        g->set_color(ezgl::WHITE);
+                    }
+                    g->set_font_size(12);
                     ezgl::point2d midPoint = (SegsInfoList[SegIdx].toXY+SegsInfoList[SegIdx].fromXY) * ezgl::point2d(0.5,0.5);
                     //g->draw_text(midPoint,StName,legendLength,legendLength);
                     ezgl::point2d fromPos = SegsInfoList[SegIdx].fromXY;
                     ezgl::point2d toPos = SegsInfoList[SegIdx].toXY;
-                    double length=SegsInfoList[SegIdx].length;
-                    ezgl::rectangle seg_Boundary(fromPos,fromPos+ezgl::point2d(length,length));
-                    double fromX=fromPos.x;
-                    double fromY=fromPos.y;
-                    double toX=toPos.x;
-                    double toY=toPos.y;
-                    int numCurvePoints = SegsInfoList[SegIdx].segInfo.numCurvePoints;
-                    double maxwidth=abs(toPos.x-fromPos.x);
-                    double maxheight=abs(toPos.y-fromPos.y);
-                    if(numCurvePoints==0){
-                        double angle = SegsInfoList[SegIdx].angle;
-                        if((toY-fromY)>0&&(toX-fromX)>0){
-                            if(angle<45){
-                                g->set_text_rotation(angle);
-                                g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
-                            }else{
-                                g->set_text_rotation(angle);
-                                g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
-                            }
-                        }else if((toY-fromY)>0&&(toX-fromX)<0){
-                            if(angle<45){
-                                g->set_text_rotation(angle);
-                                g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
-                            }else{
-                                g->set_text_rotation(angle);
-                                g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
-                            }
-                        }else if((toY-fromY)<0&&(toX-fromX)<0){
+                    double length=SegsInfoList[SegIdx].length*0.8;
+                    if(length>25){
+                        ezgl::rectangle seg_Boundary(fromPos,fromPos+ezgl::point2d(length,length));
+                        double fromX=fromPos.x;
+                        double fromY=fromPos.y;
+                        double toX=toPos.x;
+                        double toY=toPos.y;
+                        int numCurvePoints = SegsInfoList[SegIdx].segInfo.numCurvePoints;
+                        double maxwidth=abs(toPos.x-fromPos.x);
+                        double maxheight=abs(toPos.y-fromPos.y);
+                        if(numCurvePoints==0){
+                            double angle = SegsInfoList[SegIdx].angle;
+                            if((toY-fromY)>0&&(toX-fromX)>0){
+                                if(angle<45){
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                                }else{
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                                }
+                            }else if((toY-fromY)>0&&(toX-fromX)<0){
+                                if(angle<45){
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                                }else{
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                                }
+                            }else if((toY-fromY)<0&&(toX-fromX)<0){
                                 if(angle>-45){
                                     g->set_text_rotation(angle);
                                     g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
@@ -206,16 +202,18 @@ void draw_street_Name(ezgl::renderer *g){
                                     g->set_text_rotation(angle);
                                     g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
                                 }
-                        }else if((toY-fromY)<0&&(toX-fromX)>0){
-                            if(angle>-45){
-                                g->set_text_rotation(angle);
-                                g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
-                            }else{
-                                g->set_text_rotation(angle);
-                                g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                            }else if((toY-fromY)<0&&(toX-fromX)>0){
+                                if(angle>-45){
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width(),seg_Boundary.height());
+                                }else{
+                                    g->set_text_rotation(angle);
+                                    g->draw_text(midPoint,StName,seg_Boundary.width()+50,seg_Boundary.height());
+                                }
                             }
                         }
                     }
+
                 }
             }
         }
@@ -249,7 +247,7 @@ void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strI
         int segIdx = strIDList[curSeg];
         double speed=SegsInfoList[segIdx].segInfo.speedLimit;
         if(speed<=20){
-            if(DisplayColor)    g->set_color(230, 230, 230);
+            if(DisplayColor)    g->set_color(255, 255, 255);
             else                g->set_color(105, 121, 128);
         }else{
             g->set_color(204, 202, 55);
@@ -397,14 +395,17 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
     got= SegmentTypeList_OSM.find("level3");
     if(got!=SegmentTypeList_OSM.end()) {
         setSegColor_OSM(OSM_level3,g);
+        drawLineHelper(g,got->second);
     }
     got= SegmentTypeList_OSM.find("level4");
     if(got!=SegmentTypeList_OSM.end()) {
         setSegColor_OSM(OSM_level4,g);
+        drawLineHelper(g,got->second);
     }
     got= SegmentTypeList_OSM.find("pedestrian");
     if(got!=SegmentTypeList_OSM.end()) {
         setSegColor_OSM(OSM_pedestrian,g);
+        drawLineHelper(g,got->second);
     }
     got= SegmentTypeList_OSM.find("service");
     if(got!=SegmentTypeList_OSM.end()) {
@@ -468,29 +469,29 @@ void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
 
 void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
     switch(tempSegType){
-        case OSM_level1: g->set_color(255,255,255,145);
+        case OSM_level1: g->set_color(245, 245, 245);
             g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_level2: g->set_color(255,225,225);
+        case OSM_level2: g->set_color(250,250,250);
+            g->set_line_width((1.5/legendLength)*1000);
+            break;
+        case OSM_level3: g->set_color(255,255,255);
             g->set_line_width((2/legendLength)*1000);
             break;
-        case OSM_level3: g->set_color(255,204,0);
-            g->set_line_width((3/legendLength)*1000);
+        case OSM_level4: g->set_color(255, 204, 0);
+            g->set_line_width((2/legendLength)*1000);
             break;
-        case OSM_level4: g->set_color(255,204,0);
-            g->set_line_width((3/legendLength)*1000);
+        case OSM_pedestrian: g->set_color(245,245,245);
+            g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_pedestrian: g->set_color(255,204,0);
-            g->set_line_width((3/legendLength)*1000);
+        case OSM_service: g->set_color(245,245,245);
+            g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_service: g->set_color(255,204,0);
-            g->set_line_width((3/legendLength)*1000);
+        case OSM_unknown: g->set_color(245,245,245);
+            g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_unknown: g->set_color(255,204,0);
-            g->set_line_width((3/legendLength)*1000);
-            break;
-        case OSM_bus: g->set_color(255,204,0);
-            g->set_line_width((3/legendLength)*1000);
+        case OSM_bus: g->set_color(255,255,255);
+            g->set_line_width((1.5/legendLength)*1000);
             break;
     }
 }
