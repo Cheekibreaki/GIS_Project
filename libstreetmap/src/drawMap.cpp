@@ -535,7 +535,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
                 g->set_color(36, 43, 54);
                 break;
             case ISLAND:
-                g->set_color(230, 230, 230);
+                g->set_color(25, 25, 25,255);
                 break;
             case BUILDING:
                 g->set_color(176, 196, 222);
