@@ -348,7 +348,7 @@ void LoadPoiInfoList(){
         } else if (CheckTypeIconForPOI("shop", PoiInfoList[Idx].type) == true) {
 
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/shop.png";
-            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/shop_night.png";
+            PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/shop_night.png";
 
         } else if (CheckTypeIconForPOI("school", PoiInfoList[Idx].type) == true) {
                         PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/school.png";
@@ -362,12 +362,12 @@ void LoadPoiInfoList(){
 
         } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true) {
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/park.png";
-            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/park_night.png";
+            PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/park_night.png";
 
 
         } else if (CheckTypeIconForPOI("restaurant", PoiInfoList[Idx].type) == true) {
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/restaurant.png";
-            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/restaurant_night.png";
+            PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/restaurant_night.png";
         }
 
 
