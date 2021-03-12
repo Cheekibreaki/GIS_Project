@@ -149,8 +149,6 @@ void drawNightColor(ezgl::renderer *g){
 }
 
 void draw_street_Name(ezgl::renderer *g){
-
-
     if(legendLength<1000){
         for(auto StIdx = 0; StIdx < StreetListOfSegsList.size(); StIdx++){
             std::string StName = getStreetName(StIdx);
@@ -469,28 +467,41 @@ void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
 
 void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
     switch(tempSegType){
-        case OSM_level1: g->set_color(245, 245, 245);
+        case OSM_level1:
+            if(DisplayColor)    g->set_color(240, 240, 240);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_level2: g->set_color(250,250,250);
+        case OSM_level2:
+            if(DisplayColor)    g->set_color(240, 240, 240);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1.5/legendLength)*1000);
             break;
-        case OSM_level3: g->set_color(255,255,255);
+        case OSM_level3:
+            if(DisplayColor)    g->set_color(255, 255, 255);
+            else                g->set_color(167, 183, 190);
             g->set_line_width((2/legendLength)*1000);
             break;
         case OSM_level4: g->set_color(255, 204, 0);
             g->set_line_width((2/legendLength)*1000);
             break;
-        case OSM_pedestrian: g->set_color(245,245,245);
+        case OSM_pedestrian:
+            if(DisplayColor)    g->set_color(240, 240, 240);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_service: g->set_color(245,245,245);
+        case OSM_service:
+            if(DisplayColor)    g->set_color(240, 240, 240);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_unknown: g->set_color(245,245,245);
+        case OSM_unknown:
+            if(DisplayColor)    g->set_color(240, 240, 240);
+            else                g->set_color(100, 110, 110);
             g->set_line_width((1/legendLength)*1000);
             break;
-        case OSM_bus: g->set_color(255,255,255);
+        case OSM_bus:
+            g->set_color(100,100,255);
             g->set_line_width((1.5/legendLength)*1000);
             break;
     }
