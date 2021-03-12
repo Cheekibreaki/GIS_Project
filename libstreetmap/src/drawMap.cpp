@@ -625,7 +625,7 @@ void draw_POI(ezgl::renderer *g) {
                     ezgl::renderer::free_surface(png_surface);
                 g->set_font_size(10);
                 g->set_color(63,71,70);
-                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 6},
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
                              getPOIName(tempList[idx]));
                 }else if (!DisplayColor) {
                     ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
@@ -633,7 +633,7 @@ void draw_POI(ezgl::renderer *g) {
                     ezgl::renderer::free_surface(png_surface);
                     g->set_font_size(10);
                     g->set_color(ezgl::WHITE);
-                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
                                  getPOIName(tempList[idx]));
                 }
             } else {
