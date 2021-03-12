@@ -14,9 +14,9 @@
 
 float legendLength;
 
-bool DisplayOSM;
-bool DisplayPOI;
-bool is_osm_Loaded;
+bool DisplayOSM = false;
+bool DisplayPOI = false;
+bool is_osm_Loaded = false;
 /**
  * True == Day, False == Night
  */
@@ -64,7 +64,7 @@ void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent
 
 
 
-std::string searchMode;
+std::string searchMode = "Select MODE ...";;
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
 void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
@@ -649,7 +649,7 @@ void draw_POI(ezgl::renderer *g) {
                     ezgl::renderer::free_surface(png_surface);
                 g->set_font_size(10);
                 g->set_color(63,71,70);
-                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 6},
+                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
                              getPOIName(tempList[idx]));
                 }else if (!DisplayColor) {
                     ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
@@ -657,7 +657,7 @@ void draw_POI(ezgl::renderer *g) {
                     ezgl::renderer::free_surface(png_surface);
                     g->set_font_size(10);
                     g->set_color(ezgl::WHITE);
-                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 3, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
                                  getPOIName(tempList[idx]));
                 }
             } else {
@@ -788,13 +788,6 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 
 
 void initial_setup(ezgl::application *application, bool new_window){
-
-    DisplayColor = true;
-    DisplayPOI = false;
-    DisplayOSM = false;
-    is_osm_Loaded = false;
-    searchMode = "Select MODE ...";
-
     g_signal_connect(
             application->get_object("ChangeMap"),
             "changed",
@@ -986,17 +979,16 @@ void Entry_search_Controller(GtkWidget *wid, gpointer data){
 }
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
-    if(DisplayOSM){
+
+    auto* switch_osm = (GtkSwitch *) app->get_object("DisplayOSM");
+
+    //std::cout << gtk_switch_get_state(switch_osm) << std::endl;
+
+    if(gtk_switch_get_state(switch_osm)){
         DisplayOSM = false;
-        app->update_message("CLOSING OSM PLEASE WAIT.........");
-
-        app->update_message("CLOSING OSM FINISHED");
-
+        app->update_message("Disable OSM");
     }else{
         DisplayOSM = true;
-        app->update_message("LOADING OSM PLEASE WAIT.........");
-
-        osm_file_path.replace(osm_file_path.end()-11,osm_file_path.end(),"osm.bin");
 
         if(is_osm_Loaded){
             app->update_message("OSM ALREADY LOADED");
@@ -1005,10 +997,8 @@ void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointe
             loadOSMDatabaseBIN(osm_file_path);
             LoadOSMWayofOSMIDList();
             LoadTypeListOfSegsList_OSM(osm_file_path);
+            app->update_message("LOADING OSM FINISHED");
         }
-
-        app->update_message("LOADING OSM FINISHED");
-
     }
     app->refresh_drawing();
 }
