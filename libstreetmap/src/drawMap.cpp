@@ -952,7 +952,7 @@ void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data
 void Entry_search_icon (GtkEntry */*entry*/, GtkEntryIconPosition /*icon_pos*/, GdkEvent */*event*/, gpointer user_data){
     Entry_search_Controller(NULL, user_data);
 }
-void Entry_search_Controller(GtkWidget *wid, gpointer data){
+void Entry_search_Controller(GtkWidget */*wid*/, gpointer data){
     highlight_clear();
     // Catch User Invalid Input
     // Set Highlight Object & tell map to reDraw
@@ -1038,7 +1038,7 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
 
 
 /*Supportive Helper Functions*/
-void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * /*text_Entry*/, std::string text){
     // ReadFrom Intersect Tree
     auto IntersectIdxList = IntersectNameTree.getIdList(text);
     if(IntersectIdxList.empty()){
@@ -1060,9 +1060,9 @@ void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string 
         return;
     }
     gtk_entry_set_text(text_Entry, PoiInfoList[POIIdxList[0]].name.c_str());
-    for(auto POIIdx : POINameListOfPOIsList.at(PoiInfoList[POIIdxList[0]].name)){
+    for(auto poiId : POINameListOfPOIsList.at(PoiInfoList[POIIdxList[0]].name)){
         app->update_message("Displaying POI" + PoiInfoList[POIIdxList[0]].name);
-        highlightPOIList.push_back(PoiInfoList[POIIdx].curPosXY);
+        highlightPOIList.push_back(PoiInfoList[poiId].curPosXY);
     }
     //highlightIntersectList.push_back();
 }
