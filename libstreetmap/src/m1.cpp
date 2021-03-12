@@ -372,7 +372,8 @@ void LoadPoiInfoList(){
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/hosptial_night.png";
 
 
-        } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].name) == true) {
+        } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true&&
+        CheckTypeIconForPOI("parking", PoiInfoList[Idx].type)==false) {
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/park.png";
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/park_night.png";
 
