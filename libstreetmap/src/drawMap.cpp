@@ -480,7 +480,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
                 g->set_color(25, 25, 25,255);
                 break;
             case BUILDING:
-                g->set_color(176, 196, 222);
+                g->set_color(50, 57, 70);
                 break;
             case GREENSPACE:
                 g->set_color(140, 185, 161);
