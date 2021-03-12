@@ -304,10 +304,10 @@ void LoadIntersectNameTreeForPrefix(){
 }
 void LoadPOINameTreeForPrefix(){
     POINameTree.root = new CharNode();
-    for(auto POIIdx = 0; POIIdx < getNumPointsOfInterest(); POIIdx++){
-        std::string POIName = getPOIName(POIIdx);
+    for(int poiId = 0; poiId < getNumPointsOfInterest(); poiId++){
+        std::string POIName = getPOIName(poiId);
         POIName = modifyName(POIName);
-        POINameTree.insertNameToTree(POIName, POIIdx);
+        POINameTree.insertNameToTree(POIName, poiId);
     }
 }
 void LoadStNameTreeForPrefix(){
@@ -500,7 +500,7 @@ void LoadTypeListOfSegsList_Normal(){
 }
 void LoadTypeListOfSegsList_OSM(std::string OSMpath){
     std::cout<<"path:"<<OSMpath<<std::endl;
-    const OSMWay *curWay;
+    const OSMWay *curWay = NULL;
     //loadOSMDatabaseBIN("/cad2/ece297s/public/maps/toronto_canada.osm.bin");
     for(int segIdx=0; segIdx<SegsInfoList.size();segIdx++){
         OSMID OSM=SegsInfoList[segIdx].segInfo.wayOSMID;

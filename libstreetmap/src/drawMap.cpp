@@ -26,6 +26,7 @@ void draw_main_canvas (ezgl::renderer *g);
 
 void setSegColor_Normal(int tempSegType, ezgl::renderer *g);
 void setSegColor_OSM(int tempSegType, ezgl::renderer *g);
+void setFeatureColor(int tempFeatureType, ezgl::renderer *g);
 
 void draw_streetSeg_Normal(ezgl::renderer *g);
 void draw_streetSeg_OSM(ezgl::renderer *g);
@@ -42,6 +43,7 @@ std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
+void highlight_clear();
 void highlight_mouse_press(ezgl::renderer *g);
 void highlight_intersection(ezgl::renderer *g);
 void highlight_streetseg(ezgl::renderer *g);
@@ -64,7 +66,7 @@ void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent
 
 
 
-std::string searchMode = "Select MODE ...";;
+std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
 void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
@@ -172,8 +174,6 @@ void draw_street_Name(ezgl::renderer *g){
                         double toX=toPos.x;
                         double toY=toPos.y;
                         int numCurvePoints = SegsInfoList[SegIdx].segInfo.numCurvePoints;
-                        double maxwidth=abs(toPos.x-fromPos.x);
-                        double maxheight=abs(toPos.y-fromPos.y);
                         if(numCurvePoints==0){
                             double angle = SegsInfoList[SegIdx].angle;
                             if((toY-fromY)>0&&(toX-fromX)>0){
@@ -462,6 +462,7 @@ void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
             g->set_color(255, 204, 0);
             g->set_line_width((2/ legendLength) * 500);//((3 / legendLength) * 1000);
             break;
+        default: break;
     }
 }
 
@@ -504,6 +505,7 @@ void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
             g->set_color(100,100,255);
             g->set_line_width((1.5/legendLength)*1000);
             break;
+        default: break;
     }
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
@@ -539,6 +541,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
             case STREAM:
                 g->set_color(185, 208, 251);
                 break;
+            default:break;
         }
     }
     else if(DisplayColor==false) {
@@ -573,6 +576,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
             case STREAM:
                 g->set_color(36, 43, 54);
                 break;
+            default:break;
         }
     }
 }
@@ -642,7 +646,7 @@ void draw_POI(ezgl::renderer *g) {
 
     if(!tempList.empty()) {
         for (int idx = 0; idx < tempList.size(); idx++) {
-            if (PoiInfoList[tempList[idx]].icon_day != "noIcon") {
+            if (std::string(PoiInfoList[tempList[idx]].icon_day) != "noIcon") {
                 if(DisplayColor) {
                     ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_day);
                     g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
@@ -787,7 +791,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 }
 
 
-void initial_setup(ezgl::application *application, bool new_window){
+void initial_setup(ezgl::application *application, bool /*new_window*/){
     g_signal_connect(
             application->get_object("ChangeMap"),
             "changed",
@@ -945,7 +949,7 @@ void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data
     app->refresh_drawing();
 }
 
-void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data){
+void Entry_search_icon (GtkEntry */*entry*/, GtkEntryIconPosition /*icon_pos*/, GdkEvent */*event*/, gpointer user_data){
     Entry_search_Controller(NULL, user_data);
 }
 void Entry_search_Controller(GtkWidget *wid, gpointer data){
