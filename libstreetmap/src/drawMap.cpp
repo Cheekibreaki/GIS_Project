@@ -728,6 +728,7 @@ void highlight_clear(){
     highlightMousePress.clear();
     highlightIntersectList.clear();
     highlightStSegList.clear();
+    highlightPOIList.clear();
     highlightStreet = -1;
 }
 
