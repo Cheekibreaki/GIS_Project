@@ -52,6 +52,9 @@ void highlight_poi(ezgl::renderer *g);
 
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
+void press_INTERSECT(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos);
+void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos);
+
 void initial_setup(ezgl::application *application, bool new_window);
 
 std::string font;
@@ -72,8 +75,10 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::s
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::string text);
 
-StreetIdx check_StreetIdx_PartialStN(std::string& partialName);
+StreetIdx checkFirst_StreetIdx_PartialStN(std::string& partialName);
+IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialName);
 
 void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
 double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second);
@@ -745,50 +750,58 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     }
 
     if(searchMode == "INTERSECT"){
-        int id = findClosestIntersection(pos);
-        std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
-        if(event->button == 1){
-            highlightMousePress.clear();
-
-            if(!highlightIntersectList.empty()){
-                ezgl::point2d closest;
-                double closestLength = 9999;
-                for(auto point : highlightIntersectList){
-                    double tempLength = calc_distance_point2d(mousePos, point);
-                    if(tempLength < closestLength){
-                        closestLength = tempLength;
-                        closest = point;
-                    }
-                }
-                highlightMousePress.push_back(closest);
-            }
-            else{
-                highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
-            }
-            app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
-        }
+        press_INTERSECT(app, event, mousePos, pos);
     }
 
     if(searchMode == "POI"){
+        press_POI(app, event, mousePos);
 
-        if(event->button == 1){
-            highlightMousePress.clear();
-
-            if(!highlightPOIList.empty()){
-                ezgl::point2d closest;
-                double closestLength = 9999;
-                for(auto point : highlightPOIList){
-                    double tempLength = calc_distance_point2d(mousePos, point);
-                    if(tempLength < closestLength){
-                        closestLength = tempLength;
-                        closest = point;
-                    }
-                }
-                highlightMousePress.push_back(closest);
-            }
-        }
+    }
+    if(searchMode == "NAVIGATION"){
+        //press_NAVIGATION();
     }
     app->refresh_drawing();
+}
+void press_INTERSECT(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos){
+    int id = findClosestIntersection(pos);
+    std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
+    if(event->button == 1){
+        highlightMousePress.clear();
+        if(!highlightIntersectList.empty()){
+            ezgl::point2d closest;
+            double closestLength = 9999;
+            for(auto point : highlightIntersectList){
+                double tempLength = calc_distance_point2d(mousePos, point);
+                if(tempLength < closestLength){
+                    closestLength = tempLength;
+                    closest = point;
+                }
+            }
+            highlightMousePress.push_back(closest);
+        }
+        else{
+            highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
+        }
+        app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
+    }
+}
+void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos){
+    if(event->button == 1){
+        highlightMousePress.clear();
+
+        if(!highlightPOIList.empty()){
+            ezgl::point2d closest;
+            double closestLength = 9999;
+            for(auto point : highlightPOIList){
+                double tempLength = calc_distance_point2d(mousePos, point);
+                if(tempLength < closestLength){
+                    closestLength = tempLength;
+                    closest = point;
+                }
+            }
+            highlightMousePress.push_back(closest);
+        }
+    }
 }
 
 
@@ -980,6 +993,9 @@ void Entry_search_Controller(GtkWidget */*wid*/, gpointer data){
     if(searchMode == "TWOSTREET"){
         search_Mode_TWOSTREET(app, text_Entry, text);
     }
+    if(searchMode == "NAVIGATION"){
+        search_Mode_NAVIGATION(app, text_Entry, text);
+    }
     app->refresh_drawing();
 }
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data){
@@ -1097,8 +1113,8 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
     std::string firstStreet = text.substr(0, idx);
     std::string secondStreet = text.substr(idx+1, text.size());
 
-    StreetIdx firstStreetIdx = check_StreetIdx_PartialStN(firstStreet);
-    StreetIdx secondStreetIdx = check_StreetIdx_PartialStN(secondStreet);
+    StreetIdx firstStreetIdx = checkFirst_StreetIdx_PartialStN(firstStreet);
+    StreetIdx secondStreetIdx = checkFirst_StreetIdx_PartialStN(secondStreet);
 
     if(firstStreetIdx == -1){
         if(secondStreetIdx != -1)secondStreet = getStreetName(secondStreetIdx);
@@ -1108,7 +1124,6 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
     }
     if(secondStreetIdx == -1){
         firstStreet = getStreetName(firstStreetIdx);
-        gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
         app->update_message("Name of Second Street No Found");
         gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
         return;
@@ -1130,6 +1145,45 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
 
     gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
 }
+
+void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+    int idx = text.find('/');
+    if(idx == -1){
+        app->update_message("NAVIGATION MODE needs / to seperate two INTERSECTIONs");
+        return;
+    }
+
+    std::string firstIntersect = text.substr(0, idx);
+    std::string secondIntersect = text.substr(idx+1, text.size());
+
+    std::cout << firstIntersect + " " + secondIntersect << std::endl;
+
+    IntersectionIdx firstIntersectIdx = checkFirst_IntersectIdx_PartialIntersect(firstIntersect);
+    IntersectionIdx secondIntersectIdx = checkFirst_IntersectIdx_PartialIntersect(secondIntersect);
+
+    if(firstIntersectIdx == -1 && secondIntersectIdx == -1){
+        app->update_message("Both intersectionName no Found");
+        return;
+    }
+    if(firstIntersectIdx == -1){
+        app->update_message("First intersectionName no Found");
+        secondIntersect = getIntersectionName(secondIntersectIdx);
+        gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
+        return;
+    }
+    if(secondIntersectIdx == -1){
+        app->update_message("Second intersectionName no Found");
+        firstIntersect = getIntersectionName(firstIntersectIdx);
+        gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
+        return;
+    }
+    firstIntersect = getIntersectionName(firstIntersectIdx);
+    secondIntersect = getIntersectionName(secondIntersectIdx);
+    gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
+
+    // Excute Navigation Process
+}
+
 
 
 void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
@@ -1183,8 +1237,14 @@ void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_li
     ezgl::renderer::free_surface(png_surface);
 }
 
-StreetIdx check_StreetIdx_PartialStN(std::string& partialName){
+StreetIdx checkFirst_StreetIdx_PartialStN(std::string& partialName){
     auto tempStreetIdxList = findStreetIdsFromPartialStreetName(partialName);
     if(tempStreetIdxList.empty()) return -1;
     return tempStreetIdxList[0];
+}
+
+IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialName){
+    auto tempIntersectIdxList = IntersectNameTree.getIdList(partialName);
+    if(tempIntersectIdxList.empty()) return -1;
+    return tempIntersectIdxList[0];
 }
