@@ -8,8 +8,9 @@
 #include "ezgl/graphics.hpp"
 #include <math.h>
 #include "m1.h"
-#include "DBstruct.h"
 #include "m2.h"
+#include "m3.h"
+#include "DBstruct.h"
 #include <OSMDatabaseAPI.h>
 
 float legendLength;
@@ -42,6 +43,7 @@ std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
+double turn_penalty = 15;
 std::vector<StreetSegmentIdx> highlightNaviRoute;
 
 void highlight_clear();
@@ -1181,8 +1183,7 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
     gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
 
     // Excute Navigation Process
-
-
+    highlightNaviRoute = findPathBetweenIntersections(firstIntersectIdx, secondIntersectIdx, turn_penalty);
 }
 
 
