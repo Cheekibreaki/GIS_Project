@@ -44,6 +44,7 @@ std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
 double turn_penalty = 15;
+IntersectionIdx lastClickIntersection = -1;
 std::vector<StreetSegmentIdx> highlightNaviRoute;
 
 void highlight_clear();
@@ -57,6 +58,7 @@ void highlight_poi(ezgl::renderer *g);
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void press_INTERSECT(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos);
 void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos);
+void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos);
 
 void initial_setup(ezgl::application *application, bool new_window);
 
@@ -735,7 +737,9 @@ void highlight_clear(){
     highlightMousePress.clear();
     highlightIntersectList.clear();
     highlightPOIList.clear();
+    highlightNaviRoute.clear();
     highlightStreet = -1;
+    lastClickIntersection = -1;
 }
 
 
@@ -744,6 +748,12 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     ezgl::point2d mousePos(x,y);
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
 
+    if(event->button == 3){
+        highlight_clear();
+        app->update_message("Highlighted Cleared");
+        app->refresh_drawing();
+        return;
+    }
 
     if(searchMode == "Select MODE ..."){
         app->update_message("Please Select Mode Before Searching ...");
@@ -759,7 +769,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 
     }
     if(searchMode == "NAVIGATION"){
-        //press_NAVIGATION();
+        press_NAVIGATION(app, event, mousePos, pos);
     }
     app->refresh_drawing();
 }
@@ -804,7 +814,17 @@ void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2
         }
     }
 }
-
+void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos){
+    if(event->button == 1){
+        int id = findClosestIntersection(pos);
+        app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
+        highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
+        if(lastClickIntersection != -1){
+            auto tempList = findPathBetweenIntersections(lastClickIntersection, id,turn_penalty);
+            highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
+        }
+    }
+}
 
 void initial_setup(ezgl::application *application, bool /*new_window*/){
     g_signal_connect(
