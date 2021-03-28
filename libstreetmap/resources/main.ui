@@ -232,6 +232,7 @@
               <item translatable="yes">STREET</item>
               <item translatable="yes">TWOSTREET</item>
               <item translatable="yes">POI</item>
+              <item translatable="yes">NAVIGATION</item>
             </items>
           </object>
           <packing>
