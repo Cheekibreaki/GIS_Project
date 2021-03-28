@@ -735,6 +735,7 @@ void highlight_clear(){
     highlightMousePress.clear();
     highlightIntersectList.clear();
     highlightPOIList.clear();
+    highlightNaviRoute.clear();
     highlightStreet = -1;
 }
 
@@ -744,6 +745,12 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
     ezgl::point2d mousePos(x,y);
     LatLon pos = LatLon(lat_from_y(y),lon_from_x(x));
 
+    if(event->button == 3){
+        highlight_clear();
+        app->update_message("Highlighted Cleared");
+        app->refresh_drawing();
+        return;
+    }
 
     if(searchMode == "Select MODE ..."){
         app->update_message("Please Select Mode Before Searching ...");
