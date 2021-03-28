@@ -817,6 +817,7 @@ void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2
 void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos){
     if(event->button == 1){
         int id = findClosestIntersection(pos);
+        app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
         highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
         if(lastClickIntersection != -1){
             auto tempList = findPathBetweenIntersections(lastClickIntersection, id,turn_penalty);
