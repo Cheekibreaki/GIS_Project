@@ -38,15 +38,16 @@ void draw_oneWay(ezgl::renderer *g);
 
 
 StreetIdx highlightStreet = -1;
-std::vector<StreetSegmentIdx> highlightStSegList;
 std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
+std::vector<StreetSegmentIdx> highlightNaviRoute;
+
 void highlight_clear();
 void highlight_mouse_press(ezgl::renderer *g);
 void highlight_intersection(ezgl::renderer *g);
-void highlight_streetseg(ezgl::renderer *g);
+void highlight_street(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
 
 
@@ -134,9 +135,8 @@ void draw_main_canvas(ezgl::renderer *g){
         draw_oneWay(g);
         g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     }
-    if(highlightStreet != -1){
-        highlight_streetseg(g);
-    }
+    highlight_street(g);
+
     highlight_mouse_press(g);
     draw_legend(g);
     draw_POI(g);
@@ -709,11 +709,11 @@ void highlight_intersection(ezgl::renderer *g){
     }
 }
 
-void highlight_streetseg(ezgl::renderer *g){
+void highlight_street(ezgl::renderer *g){
     g->set_color(255,0,0,200);
     g->set_line_width(10);
-
-    drawLineHelper(g,StreetListOfSegsList[highlightStreet]);
+    if(highlightStreet != -1)
+        drawLineHelper(g,StreetListOfSegsList[highlightStreet]);
 }
 
 void highlight_poi(ezgl::renderer *g){
@@ -732,7 +732,6 @@ void highlight_mouse_press(ezgl::renderer *g){
 void highlight_clear(){
     highlightMousePress.clear();
     highlightIntersectList.clear();
-    highlightStSegList.clear();
     highlightPOIList.clear();
     highlightStreet = -1;
 }
@@ -1182,6 +1181,8 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
     gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
 
     // Excute Navigation Process
+
+
 }
 
 
