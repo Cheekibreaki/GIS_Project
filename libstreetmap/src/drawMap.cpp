@@ -822,6 +822,8 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         if(lastClickIntersection != -1){
             auto tempList = findPathBetweenIntersections(lastClickIntersection, id,turn_penalty);
             highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
+        }else{
+            lastClickIntersection = id;
         }
     }
 }
