@@ -5,10 +5,13 @@
 #include "m1.h"
 #include "DBstruct.h"
 #include <queue>
+#include <deque>
+#include <float.h>
 
 struct IntersectNaviInfo{
     StreetSegmentIdx reachingEdge = -1;
-    double bestTime = std::numeric_limits<double>::max();
+    double bestTime = DBL_MAX;
+    bool isTravel = false;
 };
 std::vector<IntersectNaviInfo> IntersectNaviInfoList;
 
@@ -26,9 +29,34 @@ double computePathTravelTime(const std::vector<StreetSegmentIdx>& path, const do
     return -1;
 }
 
+bool NaviInfoHelper(const IntersectionIdx intersect_id_start,
+                    const IntersectionIdx intersect_id_destination,
+                    const double turn_penalty);
+std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
+                                          const IntersectionIdx intersect_id_destination);
+
+
+std::vector<StreetSegmentIdx> findPathBetweenIntersections(
+        const IntersectionIdx intersect_id_start,
+        const IntersectionIdx intersect_id_destination,
+        const double turn_penalty){
+
+    IntersectNaviInfoList.resize(getNumIntersections());
+
+    bool pathExist = NaviInfoHelper(intersect_id_start, intersect_id_destination, turn_penalty);
+    if(!pathExist) return {};
+    IntersectNaviInfoList.clear();
+
+    auto temp = backTracing(intersect_id_start, intersect_id_destination);
+
+    std::cout << "Total TravelTime + TURNING pen" << computePathTravelTime(temp, turn_penalty) << std::endl;
+
+    return temp;
+}
 bool NaviInfoHelper(
         const IntersectionIdx intersect_id_start,
-        const IntersectionIdx intersect_id_destination){
+        const IntersectionIdx intersect_id_destination,
+        const double turn_penalty){
 
     auto cmp = [](WaveElem lhs, WaveElem rhs){return (lhs.travelTime) > (rhs.travelTime);};
     std::priority_queue<WaveElem, std::vector<WaveElem>, decltype(cmp)> WaveFront(cmp);
@@ -36,6 +64,7 @@ bool NaviInfoHelper(
     WaveFront.push(WaveElem(intersect_id_start, -1, 0));
 
     while(!WaveFront.empty()){
+
         WaveElem currWave = WaveFront.top();
         WaveFront.pop();
 
@@ -72,12 +101,20 @@ bool NaviInfoHelper(
                     }
                 }
 
+                if(IntersectNaviInfoList[toIntersect].isTravel) continue;
                 // Save To INTERSECTIONINFO into the WaveFront
                 // Initalize with WaveElem("curIntersect", "reachingEdge", "travelTime")
-                WaveFront.push(WaveElem(currIntersectId,
-                                        currStSegsId,
-                                        IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time));
+
+                if(currStSegsId != IntersectNaviInfoList[currIntersectId].reachingEdge
+                    && currIntersectId != intersect_id_start){
+                    WaveFront.push(WaveElem(toIntersect, currStSegsId,
+                                            IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty));
+                }else{
+                    WaveFront.push(WaveElem(toIntersect, currStSegsId,
+                                            IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time));
+                }
             }
+            IntersectNaviInfoList[currIntersectId].isTravel = true;
         }
 
     }
@@ -107,18 +144,4 @@ std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_sta
     }
 
     return std::vector<StreetSegmentIdx>(path.begin(), path.end());
-}
-
-std::vector<StreetSegmentIdx> findPathBetweenIntersections(
-        const IntersectionIdx intersect_id_start,
-        const IntersectionIdx intersect_id_destination,
-        const double turn_penalty){
-    std::cout << "Running Navigation" << std::endl;
-    IntersectNaviInfoList.resize(getNumIntersections());
-
-    bool pathExist = NaviInfoHelper(intersect_id_start, intersect_id_destination);
-    if(!pathExist) return {};
-    IntersectNaviInfoList.clear();
-
-    return backTracing(intersect_id_start, intersect_id_destination);
 }

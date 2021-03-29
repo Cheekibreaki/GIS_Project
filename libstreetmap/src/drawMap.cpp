@@ -144,6 +144,14 @@ void draw_main_canvas(ezgl::renderer *g){
     highlight_mouse_press(g);
     draw_legend(g);
     draw_POI(g);
+
+    highlightNaviRoute = findPathBetweenIntersections(26019, 108771, 15.00000000000000000);
+    auto path = findPathBetweenIntersections(74202, 67789, 15.00000000000000000);
+
+    highlightNaviRoute.insert(highlightNaviRoute.end(), path.begin(), path.end());
+
+    drawLineHelper(g, highlightNaviRoute);
+
 //    draw_POI_text(g);
 }
 
@@ -775,7 +783,7 @@ void act_on_mouse_press(ezgl::application* app, GdkEventButton* event, double x,
 }
 void press_INTERSECT(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos){
     int id = findClosestIntersection(pos);
-    std::cout << "Closest Intersection: "<< IntersectInfoList[id].name << "\n";
+    std::cout << "Closest Intersection ID: "<< id << "\tName: "<< IntersectInfoList[id].name << "\n";
     if(event->button == 1){
         highlightMousePress.clear();
         if(!highlightIntersectList.empty()){
@@ -820,11 +828,20 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
         highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
         if(lastClickIntersection != -1){
-            auto tempList = findPathBetweenIntersections(lastClickIntersection, id,turn_penalty);
+            std::cout << "pressed Intersections: "<< lastClickIntersection <<" "<<id<<std::endl;
+            auto tempList = findPathBetweenIntersections(lastClickIntersection, id, turn_penalty);
             highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
+
+            lastClickIntersection = id;
         }else{
             lastClickIntersection = id;
         }
+
+        //test highlight Navigation route
+        /*for(auto a : highlightNaviRoute){
+            std::cout << a <<std::endl;
+        }*/
+
     }
 }
 

@@ -67,7 +67,6 @@ int main(int argc, char** argv) {
 
     //You can now do something with the map data
 
-
     drawMap();
     closeMap();
 
