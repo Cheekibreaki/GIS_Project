@@ -396,10 +396,10 @@ void LoadPoiInfoList(){
 //    }
     }
 
-    std::set<std::string>::iterator it;
-    for(it=temp.begin(); it!=temp.end() ; it++){
-        std::cout<< *it <<std::endl;
-    }
+//    std::set<std::string>::iterator it;
+//    for(it=temp.begin(); it!=temp.end() ; it++){
+//        std::cout<< *it <<std::endl;
+//    }
 
 
 //    std::cout<<TypeList.size()<<std::endl;
