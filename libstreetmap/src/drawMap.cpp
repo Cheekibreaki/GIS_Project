@@ -11,7 +11,6 @@
 #include "m2.h"
 #include "m3.h"
 #include "DBstruct.h"
-
 #include <OSMDatabaseAPI.h>
 
 float legendLength;
@@ -147,13 +146,15 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_legend(g);
     draw_POI(g);
 
-    //highlightNaviRoute = findPathBetweenIntersections(26019, 108771, 15.00000000000000000);
-    //auto path = findPathBetweenIntersections(74202, 67789, 15.00000000000000000);
+    highlightNaviRoute = findPathBetweenIntersections(26019, 108771, 15.00000000000000000);
+    auto path = findPathBetweenIntersections(74202, 67789, 15.00000000000000000);
 
-    //highlightNaviRoute.insert(highlightNaviRoute.end(), path.begin(), path.end());
+    highlightNaviRoute.insert(highlightNaviRoute.end(), path.begin(), path.end());
+
     g->set_color(ezgl::BLUE);
     drawLineHelper(g, highlightNaviRoute);
     outputNavigationGuide(highlightNaviRoute);
+
 //    draw_POI_text(g);
 }
 

@@ -26,7 +26,23 @@ struct WaveElem{
     }
 };
 double computePathTravelTime(const std::vector<StreetSegmentIdx>& path, const double turn_penalty){
-    return -1;
+    double totalTurnPenalty = 0;
+    for(int i=0 ; i < path.size()-1 ; i++ ){
+        if(SegsInfoList[path[i]].segInfo.streetID!=SegsInfoList[path[i+1]].segInfo.streetID){
+            totalTurnPenalty+=turn_penalty;
+        }
+    }
+    double totalTraveTime = 0;
+    for(auto curStSegId : path){
+        totalTraveTime += SegsInfoList[curStSegId].time;
+    }
+
+    std::cout << "(Calculated Total Time)" << totalTraveTime + totalTurnPenalty << "= (travel Time)" << totalTraveTime <<
+              "+ (turn Penalty)" << totalTurnPenalty <<std::endl;
+
+    return totalTraveTime + totalTurnPenalty;
+
+
 }
 bool NaviInfoHelper(const IntersectionIdx intersect_id_start,
                     const IntersectionIdx intersect_id_destination,
@@ -46,11 +62,9 @@ std::vector<StreetSegmentIdx> findPathBetweenIntersections(
     if(!pathExist) return {};
     IntersectNaviInfoList.clear();
 
-    auto temp = backTracing(intersect_id_start, intersect_id_destination);
+    std::cout <<"bestTime In structure: "<< IntersectNaviInfoList[intersect_id_destination].bestTime <<std::endl;
 
-    std::cout << "Total TravelTime + TURNING pen" << computePathTravelTime(temp, turn_penalty) << std::endl;
-
-    return temp;
+    return backTracing(intersect_id_start, intersect_id_destination);
 }
 bool NaviInfoHelper(
         const IntersectionIdx intersect_id_start,
@@ -104,11 +118,12 @@ bool NaviInfoHelper(
                 // Save To INTERSECTIONINFO into the WaveFront
                 // Initalize with WaveElem("curIntersect", "reachingEdge", "travelTime")
 
-                if(currStSegsId != IntersectNaviInfoList[currIntersectId].reachingEdge
+                if(SegsInfoList[currStSegsId].segInfo.streetID != SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID
                     && currIntersectId != intersect_id_start){
                     WaveFront.push(WaveElem(toIntersect, currStSegsId,
                                             IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty));
-                }else{
+                }
+                else{
                     WaveFront.push(WaveElem(toIntersect, currStSegsId,
                                             IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time));
                 }
