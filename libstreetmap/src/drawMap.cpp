@@ -145,14 +145,7 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_legend(g);
     draw_POI(g);
 
-    highlightNaviRoute = findPathBetweenIntersections(26019, 108771, 15.00000000000000000);
-    auto path = findPathBetweenIntersections(74202, 67789, 15.00000000000000000);
-
-    highlightNaviRoute.insert(highlightNaviRoute.end(), path.begin(), path.end());
-
     drawLineHelper(g, highlightNaviRoute);
-
-//    draw_POI_text(g);
 }
 
 void drawNightColor(ezgl::renderer *g){
@@ -828,7 +821,6 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
         highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
         if(lastClickIntersection != -1){
-            std::cout << "pressed Intersections: "<< lastClickIntersection <<" "<<id<<std::endl;
             auto tempList = findPathBetweenIntersections(lastClickIntersection, id, turn_penalty);
             highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
 
