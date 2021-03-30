@@ -28,7 +28,6 @@ struct WaveElem{
 double computePathTravelTime(const std::vector<StreetSegmentIdx>& path, const double turn_penalty){
     return -1;
 }
-
 bool NaviInfoHelper(const IntersectionIdx intersect_id_start,
                     const IntersectionIdx intersect_id_destination,
                     const double turn_penalty);

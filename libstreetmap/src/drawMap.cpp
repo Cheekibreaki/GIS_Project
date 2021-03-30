@@ -11,6 +11,7 @@
 #include "m2.h"
 #include "m3.h"
 #include "DBstruct.h"
+
 #include <OSMDatabaseAPI.h>
 
 float legendLength;
@@ -43,6 +44,7 @@ std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
+std::vector<std::pair<int,std::string>> navigationGuide;
 double turn_penalty = 15;
 IntersectionIdx lastClickIntersection = -1;
 std::vector<StreetSegmentIdx> highlightNaviRoute;
@@ -94,7 +96,7 @@ void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_li
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawNightColor(ezgl::renderer *g);
-
+void outputNavigationGuide(const std::vector<StreetSegmentIdx>highlightNaviRoute);
 
 
 void drawMap(){
@@ -145,13 +147,13 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_legend(g);
     draw_POI(g);
 
-    highlightNaviRoute = findPathBetweenIntersections(26019, 108771, 15.00000000000000000);
-    auto path = findPathBetweenIntersections(74202, 67789, 15.00000000000000000);
+    //highlightNaviRoute = findPathBetweenIntersections(26019, 108771, 15.00000000000000000);
+    //auto path = findPathBetweenIntersections(74202, 67789, 15.00000000000000000);
 
-    highlightNaviRoute.insert(highlightNaviRoute.end(), path.begin(), path.end());
-
+    //highlightNaviRoute.insert(highlightNaviRoute.end(), path.begin(), path.end());
+    g->set_color(ezgl::BLUE);
     drawLineHelper(g, highlightNaviRoute);
-
+    outputNavigationGuide(highlightNaviRoute);
 //    draw_POI_text(g);
 }
 
@@ -247,13 +249,47 @@ void draw_legend(ezgl::renderer *g){
     g->draw_line({20, 25}, {120, 25});
     g->draw_line({20, 25}, {20, 20});
     g->draw_line({120, 25}, {120, 20});
-
-    std::string legendText = std::to_string(legendLength);
-
-    g->draw_text({70,18},legendText);
+    double outputLegendLength=legendLength;
+    std::string unit="m";
+    if(legendLength>1000){
+        outputLegendLength=outputLegendLength/1000;
+        unit="km";
+    }
+    outputLegendLength = std::ceil(outputLegendLength * 100.0) / 100.0;
+    std::string legendText = std::to_string(outputLegendLength);
+    std::string legendTextRounded = legendText.substr(0, legendText.find(".")+3)+unit;
+    g->draw_text({70,18},legendTextRounded);
 
     g->set_coordinate_system(ezgl::WORLD);
 }
+
+void outputNavigationGuide(const std::vector<StreetSegmentIdx>highlightNaviRoute) {
+    if(highlightNaviRoute.size()==0) return;
+    int curSegIdx=highlightNaviRoute[0];
+    int curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+    double totalLength=0;
+    //for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++) {
+       // int curSegIdx=highlightNaviRoute[curSeg];
+       // curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+       // std::cout << getStreetName(curStreetId) << std::endl;
+    // }
+    for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++){
+        curSegIdx=highlightNaviRoute[curSeg];
+        if(curSeg!=0){
+            if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
+                std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
+                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+                totalLength=0;
+                navigationGuide.push_back(street);
+            }
+        }
+        curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+        totalLength += findStreetSegmentLength(curSegIdx);
+    }
+}
+
+
+
 void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
     if(strIDList.empty()){
         return;
