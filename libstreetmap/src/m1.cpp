@@ -208,9 +208,6 @@ void LoadNaturalFeatureTypeList(){
         }
 
     }
-
-
-
 }
 
 
@@ -274,7 +271,6 @@ void LoadStructurePackage(){
 }
 void LoadIntersectListOfStName(){
     IntersectListOfStName.resize(getNumIntersections());
-    //use function findStreetNameOfIntersection
 }
 
 void LoadStreetListOfIntersectsList(){
@@ -289,7 +285,6 @@ void LoadStreetListOfIntersectsList(){
 
             StreetListOfIntersectsList[curStreetIdx].insert(segInfo.from);
             StreetListOfIntersectsList[curStreetIdx].insert(segInfo.to);
-            //
         }
     }
 }
@@ -331,21 +326,6 @@ void LoadPoiInfoList(){
         PoiInfoList[Idx].curPosXY = LatLon_to_point2d(getPOIPosition(Idx));
         temp.insert(getPOIType(Idx));
 
-//        double temp_distance=0;
-//        double min_distance=1000;
-//        int min_idx=0;
-//        for(int idx=0; idx< getNumPointsOfInterest(); idx++) {
-//            if (idx!=Idx){
-//                temp_distance = findDistanceBetweenTwoPoints(std::make_pair(getPOIPosition(Idx), getPOIPosition(idx)));
-//            if (temp_distance < min_distance) {
-//                min_idx=idx;
-//                min_distance=temp_distance;
-//            }
-//        }
-//
-//        }
-//        PoiInfoList[Idx].ClosetPOI=min_idx;
-
         if (CheckTypeIconForPOI("bank", PoiInfoList[Idx].type) == true) {
 
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/bank.png";
@@ -383,32 +363,7 @@ void LoadPoiInfoList(){
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/restaurant.png";
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/restaurant_night.png";
         }
-
-
-
-//    for(int idx =0; idx < getNumPointsOfInterest(); idx++){
-//        for(int i =0; i< TypeList.size(); i++){
-//            if(PoiInfoList[idx].type==TypeList[i]){
-//
-//            }
-//        }
-//
-//    }
     }
-
-    std::set<std::string>::iterator it;
-    for(it=temp.begin(); it!=temp.end() ; it++){
-        std::cout<< *it <<std::endl;
-    }
-
-
-//    std::cout<<TypeList.size()<<std::endl;
-//    std::set<std::string>::iterator it;
-//    for(it=TypeList.begin(); it!=TypeList.end() ; it++){
-//
-//        std::cout<<*it<<std::endl;
-//    }
-
 }
 
 
@@ -516,16 +471,13 @@ void LoadTypeListOfSegsList_OSM(std::string OSMpath){
             if(tagPair.first[0]=='h'){
                 if(tagPair.second[3]=='i'||tagPair.second[3]=='l') {//unclassified residential living_road cycleway
                     SegmentTypeList_OSM["level1"].push_back(segIdx);
-                    //std::cout << "Level1 segIdx:" << segIdx << std::endl;
                     break;
 
                 }else if(tagPair.second[3]=='t'){//tertiary or tertiary_link
                     SegmentTypeList_OSM["level2"].push_back(segIdx);
-                    //std::cout << "level2 segIdx:" << segIdx << std::endl;
                     break;
                 }else if(tagPair.second[3]=='m'||(tagPair.second[3]=='o'&&tagPair.second[4]=='n')){//primary or primary_link, secondary or secondary_link
                     SegmentTypeList_OSM["level3"].push_back(segIdx);
-                    //std::cout << "level3 segIdx:" << segIdx << std::endl;
                     break;
                 }else if(tagPair.second[3]=='o'||tagPair.second[3]=='n'){//motorway or motorway_link, trunk or trunk_link
                     SegmentTypeList_OSM["level4"].push_back(segIdx);
@@ -541,7 +493,7 @@ void LoadTypeListOfSegsList_OSM(std::string OSMpath){
                     break;
                 }else if(tagPair.second[3]=='_') {
                     SegmentTypeList_OSM["bus"].push_back(segIdx);
-                    std::cout << "bus segIdx:" << segIdx << std::endl;
+                    break;
                 }
             }
         }

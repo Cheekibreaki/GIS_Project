@@ -430,22 +430,6 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
         setSegColor_OSM(OSM_bus,g);
         drawLineHelper(g,got->second);
     }
-
-//    std::vector<StreetSegmentIdx> level1List= SegmentTypeList_OSM.at("level1");//residential
-//    drawLineHelper(g,230,230,230,255,level1List,2);
-//    std::vector<StreetSegmentIdx> level2List= SegmentTypeList_OSM.at("level2");//large residential
-//    drawLineHelper(g,255,255,255,255,level2List,2);
-//    std::vector<StreetSegmentIdx> level3List= SegmentTypeList_OSM.at("level3");//major road
-//    drawLineHelper(g,0,255,0,255,level3List,2);
-//    std::vector<StreetSegmentIdx> level4List= SegmentTypeList_OSM.at("level4");//highway
-//    drawLineHelper(g,255,255,77,255,level4List,2);
-//    std::vector<StreetSegmentIdx> pedestrianList= SegmentTypeList_OSM.at("pedestrian");//pedestrain
-//    drawLineHelper(g,102,0,255,255,pedestrianList,2);
-//    std::vector<StreetSegmentIdx> serviceList= SegmentTypeList_OSM.at("service");//service
-//    drawLineHelper(g,217,217,217,255,serviceList,2);
-//    std::vector<StreetSegmentIdx> unknownList= SegmentTypeList_OSM.at("unknown");//unknown
-//    drawLineHelper(g,51,51,51,255,unknownList,2);
-//    std::vector<StreetSegmentIdx> busList;
 }
 void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
     switch (tempSegType) {
@@ -691,16 +675,11 @@ void draw_POI(ezgl::renderer *g) {
                     g->set_color(ezgl::WHITE);
                     g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
                                  getPOIName(tempList[idx]));
-
                 }
-
             }
-
         }
-
     }
 }
-
 }
 
 void highlight_intersection(ezgl::renderer *g){
@@ -828,12 +807,6 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         }else{
             lastClickIntersection = id;
         }
-
-        //test highlight Navigation route
-        /*for(auto a : highlightNaviRoute){
-            std::cout << a <<std::endl;
-        }*/
-
     }
 }
 
