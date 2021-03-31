@@ -43,9 +43,9 @@ std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
+std::vector<std::string> turnGuide;
 std::vector<std::pair<int,std::string>> navigationGuide;
-std::string string_navigationGuide;
-int startingNum = -1;
+int startingNum = 0;
 const int PAGE = 10;
 
 double turn_penalty = 15;
@@ -80,7 +80,7 @@ void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent
 void Dialog_Box_NaviRooteDisplay(ezgl::application *application);
 void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
 void outputNavigationGuide();
-void stringNavigationGuide();
+std::string stringNavigationGuide();
 
 std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
@@ -737,10 +737,6 @@ void highlight_clear(){
     highlightNaviRoute.clear();
     highlightStreet = -1;
     lastClickIntersection = -1;
-
-    navigationGuide.clear();
-    string_navigationGuide = "";
-    startingNum = -1;
 }
 
 
@@ -823,9 +819,10 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         if(lastClickIntersection != -1){
             auto tempList = findPathBetweenIntersections(lastClickIntersection, id, turn_penalty);
 
-            Dialog_Box_NaviRooteDisplay(app);
-
             highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
+
+            outputNavigationGuide();
+            Dialog_Box_NaviRooteDisplay(app);
 
             lastClickIntersection = id;
         }else{
@@ -1211,7 +1208,10 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
 
     // Excute Navigation Process
     highlightNaviRoute = findPathBetweenIntersections(firstIntersectIdx, secondIntersectIdx, turn_penalty);
-    Dialog_Box_NaviRooteDisplay(app);
+
+    //outputNavigationGuide();
+
+    //Dialog_Box_NaviRooteDisplay(app);
 
 
 }
@@ -1219,6 +1219,8 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
 void Dialog_Box_NaviRooteDisplay(ezgl::application *application){
     // Update the status bar message
     application->update_message("Dialog_Box Creating.....");
+
+
 
     GObject *window;         // the parent window over which to add the dialog
     GtkWidget *content_area; // the content area of the dialog
@@ -1237,12 +1239,11 @@ void Dialog_Box_NaviRooteDisplay(ezgl::application *application){
                                          GTK_RESPONSE_REJECT,
                                          NULL);
 
-    outputNavigationGuide();
-    stringNavigationGuide();
+    auto printing = stringNavigationGuide();
 
     // Create a label and attach it to the content area of the dialog
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    label = gtk_label_new("Simple Dialog With a Label. Press OK or CANCEL too close.");
+    label = gtk_label_new(printing.c_str());
     gtk_container_add(GTK_CONTAINER(content_area), label);
 
     // The main purpose of this is to show dialog??s child widget, label
@@ -1252,24 +1253,19 @@ void Dialog_Box_NaviRooteDisplay(ezgl::application *application){
             GTK_DIALOG(dialog),
             "response",
             G_CALLBACK(on_dialog_response),
-            application
+            label
     );
-
-    // Redraw the main canvas
-    application->refresh_drawing();
 }
 void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data){
-    auto app = static_cast<ezgl::application *>(user_data);
+
     // For demonstration purposes, this will show the enum name and int value of the button that was pressed
-    std::cout << "response is ";
     switch(response_id) {
         case GTK_RESPONSE_ACCEPT:
             startingNum += PAGE;
             break;
         case GTK_RESPONSE_DELETE_EVENT:
-            highlight_clear();
-            app->refresh_drawing();
-            std::cout << "GTK_RESPONSE_DELETE_EVENT (i.e. ??X?? button) ";
+            std::cout << "Returning From Dialog" << std::endl;
+            gtk_widget_destroy(GTK_WIDGET (dialog));
             break;
         case GTK_RESPONSE_REJECT:
             startingNum -= 10;
@@ -1278,17 +1274,12 @@ void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data)
             std::cout << "UNKNOWN ";
             break;
     }
-    std::cout << "(" << response_id << ")\n";
-    // This will cause the dialog to be destroyed and close.
-    // without this line the dialog remains open unless the
-    // response_id is GTK_RESPONSE_DELETE_EVENT which
-    // automatically closes the dialog without the following line.
-    //gtk_widget_destroy(GTK_WIDGET (dialog));
-    stringNavigationGuide();
+    std::string upDatePath = stringNavigationGuide();
 
     auto content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    auto label = gtk_label_new("Simple Dialog With a Label. Press OK or CANCEL too close.");
-    gtk_container_add(GTK_CONTAINER(content_area), label);
+    auto label = static_cast<GtkWidget *>(user_data);
+    gtk_label_set_text((_GtkLabel *)label, upDatePath.c_str());
+    gtk_widget_show_all((GtkWidget *)dialog);
 }
 
 
@@ -1356,28 +1347,33 @@ IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialNam
     return tempIntersectIdxList[0];
 }
 
-void stringNavigationGuide(){
+std::string stringNavigationGuide(){
     if(navigationGuide.empty()){
-        return;
+        return "";
     }
-    string_navigationGuide.clear();
+    std:: string string_navigationGuide;
+    std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         string_navigationGuide="You have reached the destination";
     }else if(startingNum+9<navigationGuide.size()){
-        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++){
-            int totalLength= navigationGuide[strSeg].first;
-            std::string streetName=navigationGuide[strSeg].second;
-            string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
-            std::cout<<string_navigationGuide<<std::endl;
+        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++) {
+            int totalLength = navigationGuide[strSeg].first;
+            std::string streetName = navigationGuide[strSeg].second;
+            string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
+            std::cout<<strSeg;
         }
     }else if(startingNum+9>navigationGuide.size()) {
         for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
             int totalLength = navigationGuide[strSeg].first;
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
-            std::cout << string_navigationGuide << std::endl;
+            //std::cout << string_navigationGuide << std::endl;
+            std::cout<<strSeg;
         }
     }
+
+    std::cout << string_navigationGuide << std::endl;
+    return string_navigationGuide;
 }
 void outputNavigationGuide() {
     if(highlightNaviRoute.empty()) return;
@@ -1387,16 +1383,15 @@ void outputNavigationGuide() {
     for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++){
         curSegIdx=highlightNaviRoute[curSeg];
         if(curSeg!=0){
-            if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
+            if(curSeg==highlightNaviRoute.size()-1){
+                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+                navigationGuide.push_back(street);
+            }else if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
                 //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
                 std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
                 totalLength=0;
                 navigationGuide.push_back(street);
             }
-        }else if(curSeg==highlightNaviRoute.size()-1){
-            //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
-            std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
-            navigationGuide.push_back(street);
         }
         curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
         totalLength += findStreetSegmentLength(curSegIdx);
