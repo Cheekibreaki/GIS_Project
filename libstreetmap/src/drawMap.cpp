@@ -72,7 +72,8 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
 
-
+void Dialog_Box_NaviRooteDisplay(ezgl::application *application);
+void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
 
 std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
@@ -141,11 +142,13 @@ void draw_main_canvas(ezgl::renderer *g){
     }
     highlight_street(g);
 
-    highlight_mouse_press(g);
+
     draw_legend(g);
     draw_POI(g);
 
     drawLineHelper(g, highlightNaviRoute);
+
+    highlight_mouse_press(g);
 }
 
 void drawNightColor(ezgl::renderer *g){
@@ -166,7 +169,7 @@ void draw_street_Name(ezgl::renderer *g){
             std::string StName = getStreetName(StIdx);
             if(StName!="<unknown>"){
                 for(auto SegIdx : StreetListOfSegsList[StIdx]){
-                    if(DisplayColor==true){
+                    if(DisplayColor){
                         g->set_color(ezgl::BLACK);
                     }else{
                         g->set_color(ezgl::WHITE);
@@ -289,7 +292,7 @@ void draw_oneWay(ezgl::renderer *g){
     if(legendLength<300){
         g->set_color(100,100,100);
         for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
-            if(SegsInfoList[segIdx].segInfo.oneWay==true&&findStreetSegmentLength(segIdx)>100){
+            if(SegsInfoList[segIdx].segInfo.oneWay && findStreetSegmentLength(segIdx) > 100){
                 ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
                 ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
                 double fromX=fromPos.x;
@@ -319,7 +322,7 @@ void draw_oneWay(ezgl::renderer *g){
     }
 }
 void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
-    if(strIDList.empty()==true){
+    if(strIDList.empty()){
         return;
     }
 
@@ -503,7 +506,7 @@ void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
     }
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
-    if(DisplayColor==true) {
+    if(DisplayColor) {
         switch (tempFeatureType) {
             case UNKNOWN:
                 g->set_color(255, 228, 225);
@@ -538,7 +541,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
             default:break;
         }
     }
-    else if(DisplayColor==false) {
+    else if(!DisplayColor) {
         switch (tempFeatureType) {
             case UNKNOWN:
                 g->set_color(255, 228, 225);
@@ -801,6 +804,9 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
         if(lastClickIntersection != -1){
             auto tempList = findPathBetweenIntersections(lastClickIntersection, id, turn_penalty);
+
+            Dialog_Box_NaviRooteDisplay(app);
+
             highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
 
             lastClickIntersection = id;
@@ -1071,7 +1077,6 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * /*text_Entry*/, st
         app->update_message("Displaying Intersection");
         highlightIntersectList.push_back(IntersectInfoList[IntersectIdx].curPosXY);
     }
-    //highlightIntersectList.push_back();
 }
 
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
@@ -1188,6 +1193,73 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
 
     // Excute Navigation Process
     highlightNaviRoute = findPathBetweenIntersections(firstIntersectIdx, secondIntersectIdx, turn_penalty);
+    Dialog_Box_NaviRooteDisplay(app);
+
+
+}
+
+void Dialog_Box_NaviRooteDisplay(ezgl::application *application){
+    // Update the status bar message
+    application->update_message("Dialog_Box Creating.....");
+
+    GObject *window;         // the parent window over which to add the dialog
+    GtkWidget *content_area; // the content area of the dialog
+    GtkWidget *label;        // the label we will create to display a message in the contentarea
+    GtkWidget *dialog;       // the dialog box we will create
+
+    // get a pointer to the main application window
+    window = application->get_object(application->get_main_window_id().c_str());
+
+    dialog = gtk_dialog_new_with_buttons("Test Dialog",
+                                         (GtkWindow*) window,
+                                         GTK_DIALOG_MODAL,
+                                         ("UP"),
+                                         GTK_RESPONSE_ACCEPT,
+                                         ("DOWN"),
+                                         GTK_RESPONSE_REJECT,
+                                         NULL);
+
+    // Create a label and attach it to the content area of the dialog
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    label = gtk_label_new("Simple Dialog With a Label. Press OK or CANCEL too close.");
+    gtk_container_add(GTK_CONTAINER(content_area), label);
+
+    // The main purpose of this is to show dialog??s child widget, label
+    gtk_widget_show_all(dialog);
+
+    g_signal_connect(
+            GTK_DIALOG(dialog),
+            "response",
+            G_CALLBACK(on_dialog_response),
+            NULL
+    );
+
+    // Redraw the main canvas
+    application->refresh_drawing();
+}
+void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data){
+    // For demonstration purposes, this will show the enum name and int value of the button that was pressed
+    std::cout << "response is ";
+    switch(response_id) {
+        case GTK_RESPONSE_ACCEPT:
+            std::cout << "GTK_RESPONSE_ACCEPT ";
+            break;
+        case GTK_RESPONSE_DELETE_EVENT:
+            std::cout << "GTK_RESPONSE_DELETE_EVENT (i.e. ??X?? button) ";
+            break;
+        case GTK_RESPONSE_REJECT:
+            std::cout << "GTK_RESPONSE_REJECT ";
+            break;
+        default:
+            std::cout << "UNKNOWN ";
+            break;
+    }
+    std::cout << "(" << response_id << ")\n";
+    // This will cause the dialog to be destroyed and close.
+    // without this line the dialog remains open unless the
+    // response_id is GTK_RESPONSE_DELETE_EVENT which
+    // automatically closes the dialog without the following line.
+    //gtk_widget_destroy(GTK_WIDGET (dialog));
 }
 
 
