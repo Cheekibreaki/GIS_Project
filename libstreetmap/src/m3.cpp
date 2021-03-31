@@ -41,7 +41,6 @@ double computePathTravelTime(const std::vector<StreetSegmentIdx>& path, const do
 
     return totalTraveTime + totalTurnPenalty;
 }
-
 bool NaviInfoHelper(const IntersectionIdx intersect_id_start,
                     const IntersectionIdx intersect_id_destination,
                     const double turn_penalty);

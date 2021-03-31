@@ -43,6 +43,10 @@ std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
 
+std::vector<std::pair<int,std::string>> navigationGuide;
+std::string string_navigationGuide;
+int startingNum;
+
 double turn_penalty = 15;
 IntersectionIdx lastClickIntersection = -1;
 std::vector<StreetSegmentIdx> highlightNaviRoute;
@@ -74,6 +78,8 @@ void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent
 
 void Dialog_Box_NaviRooteDisplay(ezgl::application *application);
 void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
+void outputNavigationGuide(const std::vector<StreetSegmentIdx>highlightNaviRoute);
+void stringNavigationGuide(int startingNum, const std::vector<std::pair<int,std::string>> NavigationGuide);
 
 std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
@@ -95,7 +101,6 @@ void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_li
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawNightColor(ezgl::renderer *g);
-
 
 
 void drawMap(){
@@ -142,11 +147,14 @@ void draw_main_canvas(ezgl::renderer *g){
     }
     highlight_street(g);
 
-
     draw_legend(g);
     draw_POI(g);
 
+    g->set_color(ezgl::BLUE);
     drawLineHelper(g, highlightNaviRoute);
+
+    outputNavigationGuide(highlightNaviRoute);
+    stringNavigationGuide(startingNum,navigationGuide);
 
     highlight_mouse_press(g);
 }
@@ -243,10 +251,16 @@ void draw_legend(ezgl::renderer *g){
     g->draw_line({20, 25}, {120, 25});
     g->draw_line({20, 25}, {20, 20});
     g->draw_line({120, 25}, {120, 20});
-
-    std::string legendText = std::to_string(legendLength);
-
-    g->draw_text({70,18},legendText);
+    double outputLegendLength=legendLength;
+    std::string unit="m";
+    if(legendLength>1000){
+        outputLegendLength=outputLegendLength/1000;
+        unit="km";
+    }
+    outputLegendLength = std::ceil(outputLegendLength * 100.0) / 100.0;
+    std::string legendText = std::to_string(outputLegendLength);
+    std::string legendTextRounded = legendText.substr(0, legendText.find(".")+3)+unit;
+    g->draw_text({70,18},legendTextRounded);
 
     g->set_coordinate_system(ezgl::WORLD);
 }
@@ -1325,4 +1339,51 @@ IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialNam
     auto tempIntersectIdxList = IntersectNameTree.getIdList(partialName);
     if(tempIntersectIdxList.empty()) return -1;
     return tempIntersectIdxList[0];
+}
+
+void stringNavigationGuide(int startingNum, const std::vector<std::pair<int,std::string>> navigationGuide){
+    if(navigationGuide.size()==0){
+        return;
+    }
+    string_navigationGuide.clear();
+    if(startingNum>navigationGuide.size()){
+        string_navigationGuide="You have reached the destination";
+    }else if(startingNum+9<navigationGuide.size()){
+        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++){
+            int totalLength= navigationGuide[strSeg].first;
+            std::string streetName=navigationGuide[strSeg].second;
+            string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
+            std::cout<<string_navigationGuide<<std::endl;
+        }
+    }else if(startingNum+9>navigationGuide.size()) {
+        for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
+            int totalLength = navigationGuide[strSeg].first;
+            std::string streetName = navigationGuide[strSeg].second;
+            string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
+            std::cout << string_navigationGuide << std::endl;
+        }
+    }
+}
+void outputNavigationGuide(const std::vector<StreetSegmentIdx>highlightNaviRoute) {
+    if(highlightNaviRoute.size()==0) return;
+    int curSegIdx=highlightNaviRoute[0];
+    int curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+    double totalLength=0;
+    for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++){
+        curSegIdx=highlightNaviRoute[curSeg];
+        if(curSeg!=0){
+            if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
+                //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
+                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+                totalLength=0;
+                navigationGuide.push_back(street);
+            }
+        }else if(curSeg==highlightNaviRoute.size()-1){
+            //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
+            std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+            navigationGuide.push_back(street);
+        }
+        curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+        totalLength += findStreetSegmentLength(curSegIdx);
+    }
 }
