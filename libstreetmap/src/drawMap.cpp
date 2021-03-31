@@ -6,7 +6,7 @@
 
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
-#include <math.h>
+#include <cmath>
 #include "m1.h"
 #include "m2.h"
 #include "m3.h"
@@ -46,7 +46,6 @@ std::vector<ezgl::point2d> highlightMousePress;
 std::vector<std::string> turnGuide;
 std::vector<std::pair<int,std::string>> navigationGuide;
 int startingNum = 0;
-const int PAGE = 10;
 
 double turn_penalty = 15;
 IntersectionIdx lastClickIntersection = -1;
@@ -57,7 +56,6 @@ void highlight_mouse_press(ezgl::renderer *g);
 void highlight_intersection(ezgl::renderer *g);
 void highlight_street(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
-
 
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
@@ -77,10 +75,6 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
 
-void Dialog_Box_NaviRooteDisplay(ezgl::application *application);
-void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
-void outputNavigationGuide();
-std::string stringNavigationGuide();
 
 std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
@@ -97,6 +91,8 @@ void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
 double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second);
 double calc_two_POI_distance(POIIdx POI_first, POIIdx POI_second);
 void calcLegendLength(ezgl::renderer *g);
+void outputNavigationGuide();
+std::string stringNavigationGuide();
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
@@ -821,9 +817,6 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
 
             highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
 
-            outputNavigationGuide();
-            Dialog_Box_NaviRooteDisplay(app);
-
             lastClickIntersection = id;
         }else{
             lastClickIntersection = id;
@@ -1209,81 +1202,7 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
     // Excute Navigation Process
     highlightNaviRoute = findPathBetweenIntersections(firstIntersectIdx, secondIntersectIdx, turn_penalty);
 
-    //outputNavigationGuide();
-
-    //Dialog_Box_NaviRooteDisplay(app);
-
-
 }
-
-void Dialog_Box_NaviRooteDisplay(ezgl::application *application){
-    // Update the status bar message
-    application->update_message("Dialog_Box Creating.....");
-
-
-
-    GObject *window;         // the parent window over which to add the dialog
-    GtkWidget *content_area; // the content area of the dialog
-    GtkWidget *label;        // the label we will create to display a message in the contentarea
-    GtkWidget *dialog;       // the dialog box we will create
-
-    // get a pointer to the main application window
-    window = application->get_object(application->get_main_window_id().c_str());
-
-    dialog = gtk_dialog_new_with_buttons("Test Dialog",
-                                         (GtkWindow*) window,
-                                         GTK_DIALOG_MODAL,
-                                         ("UP"),
-                                         GTK_RESPONSE_ACCEPT,
-                                         ("DOWN"),
-                                         GTK_RESPONSE_REJECT,
-                                         NULL);
-
-    auto printing = stringNavigationGuide();
-
-    // Create a label and attach it to the content area of the dialog
-    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    label = gtk_label_new(printing.c_str());
-    gtk_container_add(GTK_CONTAINER(content_area), label);
-
-    // The main purpose of this is to show dialog??s child widget, label
-    gtk_widget_show_all(dialog);
-
-    g_signal_connect(
-            GTK_DIALOG(dialog),
-            "response",
-            G_CALLBACK(on_dialog_response),
-            label
-    );
-}
-void on_dialog_response(GtkDialog *dialog, gint response_id, gpointer user_data){
-
-    // For demonstration purposes, this will show the enum name and int value of the button that was pressed
-    switch(response_id) {
-        case GTK_RESPONSE_ACCEPT:
-            startingNum += PAGE;
-            break;
-        case GTK_RESPONSE_DELETE_EVENT:
-            std::cout << "Returning From Dialog" << std::endl;
-            gtk_widget_destroy(GTK_WIDGET (dialog));
-            break;
-        case GTK_RESPONSE_REJECT:
-            startingNum -= 10;
-            break;
-        default:
-            std::cout << "UNKNOWN ";
-            break;
-    }
-    std::string upDatePath = stringNavigationGuide();
-
-    auto content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    auto label = static_cast<GtkWidget *>(user_data);
-    gtk_label_set_text((_GtkLabel *)label, upDatePath.c_str());
-    gtk_widget_show_all((GtkWidget *)dialog);
-}
-
-
-
 void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
     auto initScreen = app->get_renderer()->get_visible_screen();
 
