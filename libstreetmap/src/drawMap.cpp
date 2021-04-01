@@ -6,7 +6,7 @@
 
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
-#include <math.h>
+#include <cmath>
 #include "m1.h"
 #include "m2.h"
 #include "m3.h"
@@ -36,12 +36,15 @@ void draw_naturalFeature(ezgl::renderer *g);
 void draw_legend(ezgl::renderer *g);
 void draw_POI(ezgl::renderer *g);
 void draw_oneWay(ezgl::renderer *g);
-
+void draw_NavigationGuide(ezgl::renderer *g);
 
 StreetIdx highlightStreet = -1;
 std::vector<ezgl::point2d> highlightIntersectList;
 std::vector<ezgl::point2d> highlightPOIList;
 std::vector<ezgl::point2d> highlightMousePress;
+
+int PAGE = 0;
+std::vector<std::pair<int,std::string>> navigationGuide;
 
 double turn_penalty = 15;
 IntersectionIdx lastClickIntersection = -1;
@@ -52,7 +55,6 @@ void highlight_mouse_press(ezgl::renderer *g);
 void highlight_intersection(ezgl::renderer *g);
 void highlight_street(ezgl::renderer *g);
 void highlight_poi(ezgl::renderer *g);
-
 
 
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
@@ -72,7 +74,8 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data);
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data);
 void Entry_search_icon (GtkEntry *entry, GtkEntryIconPosition icon_pos, GdkEvent *event, gpointer user_data);
 
-
+void NEXTPAGE(GtkWidget */*widget*/, ezgl::application *application);
+void PREVIOUSPAGE(GtkWidget */*widget*/, ezgl::application *application);
 
 std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
@@ -89,12 +92,13 @@ void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen);
 double calc_distance_point2d(ezgl::point2d first, ezgl::point2d second);
 double calc_two_POI_distance(POIIdx POI_first, POIIdx POI_second);
 void calcLegendLength(ezgl::renderer *g);
+void outputNavigationGuide();
+std::string stringNavigationGuide();
 
 void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_list, const std::string& png_path);
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawNightColor(ezgl::renderer *g);
-
 
 
 void drawMap(){
@@ -130,22 +134,31 @@ void draw_main_canvas(ezgl::renderer *g){
     draw_naturalFeature(g);
     draw_streetSeg_controller(g);
     draw_street_Name(g);
-
-    highlight_intersection(g);
-    highlight_poi(g);
-    //asdasdas
     if(legendLength<1000){
         g->format_font("monospace",ezgl::font_slant::normal, ezgl::font_weight::normal);
         draw_oneWay(g);
         g->format_font(font,ezgl::font_slant::normal, ezgl::font_weight::normal);
     }
-    highlight_street(g);
-
-    highlight_mouse_press(g);
-    draw_legend(g);
     draw_POI(g);
 
-    drawLineHelper(g, highlightNaviRoute);
+    if(searchMode == "STREET"){
+        highlight_street(g);
+    }
+    else if(searchMode == "INTERSECT" || searchMode == "TWOSTREET"){
+        highlight_intersection(g);
+    }
+    else if(searchMode == "POI"){
+       highlight_poi(g);
+    }
+    else if(searchMode == "NAVIGATION"){
+        g->set_color(ezgl::BLUE);
+        drawLineHelper(g, highlightNaviRoute);
+        draw_NavigationGuide(g);
+    }
+
+    draw_legend(g);
+
+    highlight_mouse_press(g);
 }
 
 void drawNightColor(ezgl::renderer *g){
@@ -166,7 +179,7 @@ void draw_street_Name(ezgl::renderer *g){
             std::string StName = getStreetName(StIdx);
             if(StName!="<unknown>"){
                 for(auto SegIdx : StreetListOfSegsList[StIdx]){
-                    if(DisplayColor==true){
+                    if(DisplayColor){
                         g->set_color(ezgl::BLACK);
                     }else{
                         g->set_color(ezgl::WHITE);
@@ -228,25 +241,7 @@ void draw_street_Name(ezgl::renderer *g){
     }
 }
 
-void draw_legend(ezgl::renderer *g){
-    g->set_text_rotation(0);
-    g->set_coordinate_system(ezgl::SCREEN);
 
-    g->set_color(255, 255, 255, 100);
-    g->fill_rectangle({10, 10}, {130, 30});
-
-    g->set_color(0, 0, 0, 255);
-    g->set_line_width(2);
-    g->draw_line({20, 25}, {120, 25});
-    g->draw_line({20, 25}, {20, 20});
-    g->draw_line({120, 25}, {120, 20});
-
-    std::string legendText = std::to_string(legendLength);
-
-    g->draw_text({70,18},legendText);
-
-    g->set_coordinate_system(ezgl::WORLD);
-}
 void drawLineHelper_highway(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
     if(strIDList.empty()){
         return;
@@ -289,7 +284,7 @@ void draw_oneWay(ezgl::renderer *g){
     if(legendLength<300){
         g->set_color(100,100,100);
         for(int segIdx=0;segIdx<SegsInfoList.size();segIdx++){
-            if(SegsInfoList[segIdx].segInfo.oneWay==true&&findStreetSegmentLength(segIdx)>100){
+            if(SegsInfoList[segIdx].segInfo.oneWay && findStreetSegmentLength(segIdx) > 100){
                 ezgl::point2d fromPos = SegsInfoList[segIdx].fromXY;
                 ezgl::point2d toPos = SegsInfoList[segIdx].toXY;
                 double fromX=fromPos.x;
@@ -318,8 +313,84 @@ void draw_oneWay(ezgl::renderer *g){
         }
     }
 }
+void draw_legend(ezgl::renderer *g){
+    g->set_text_rotation(0);
+    g->set_coordinate_system(ezgl::SCREEN);
+
+    g->set_color(255, 255, 255, 100);
+    g->fill_rectangle({10, 10}, {130, 30});
+
+    g->set_color(0, 0, 0, 255);
+    g->set_line_width(2);
+    g->draw_line({20, 25}, {120, 25});
+    g->draw_line({20, 25}, {20, 20});
+    g->draw_line({120, 25}, {120, 20});
+    double outputLegendLength=legendLength;
+    std::string unit="m";
+    if(legendLength>1000){
+        outputLegendLength=outputLegendLength/1000;
+        unit="km";
+    }
+    outputLegendLength = std::ceil(outputLegendLength * 100.0) / 100.0;
+    std::string legendText = std::to_string(outputLegendLength);
+    std::string legendTextRounded = legendText.substr(0, legendText.find(".")+3)+unit;
+    g->draw_text({70,18},legendTextRounded);
+
+    g->set_coordinate_system(ezgl::WORLD);
+}
+void draw_NavigationGuide(ezgl::renderer *g){
+
+    g->set_text_rotation(0);
+    g->set_coordinate_system(ezgl::SCREEN);
+
+    g->set_color(255, 255, 255, 200);
+    g->fill_rectangle({10,42}, {230, 400});
+    g->set_color(0, 0, 0, 200);
+
+    int y=80;
+    int x=120;
+    std::string text;
+
+    int startingNum= PAGE*10;
+    if(navigationGuide.empty()){
+        text="Navigation Guide Empty";
+        g->draw_text({x,y},text);
+        return;
+    }
+    std:: string string_navigationGuide;
+    std::cout<<"The navigation Size "+ navigationGuide.size();
+    if(startingNum>navigationGuide.size()){
+        text="You have reached the destination";
+        g->draw_text({x,y},text);
+        return;
+    }else if(startingNum+9<navigationGuide.size()){
+        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++) {
+            int totalLength = navigationGuide[strSeg].first;
+            std::string streetName = navigationGuide[strSeg].second;
+            text=("move "+std::to_string(totalLength) + " on "+streetName);
+            g->draw_text({x,y},text);
+            std::cout << text << std::endl;
+            y=y+20;
+            std::cout<<strSeg;
+        }
+        return;
+    }else if(startingNum+9>navigationGuide.size()) {
+        for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
+            int totalLength = navigationGuide[strSeg].first;
+            std::string streetName = navigationGuide[strSeg].second;
+            text=("move "+std::to_string(totalLength) + " on "+streetName);
+            g->draw_text({x,y},text);
+            std::cout << text << std::endl;
+            y=y+20;
+            std::cout<<strSeg;
+        }
+        return;
+    }
+
+
+}
 void drawLineHelper(ezgl::renderer *g,std::vector<StreetSegmentIdx> strIDList){
-    if(strIDList.empty()==true){
+    if(strIDList.empty()){
         return;
     }
 
@@ -430,22 +501,6 @@ void draw_streetSeg_OSM(ezgl::renderer *g) {
         setSegColor_OSM(OSM_bus,g);
         drawLineHelper(g,got->second);
     }
-
-//    std::vector<StreetSegmentIdx> level1List= SegmentTypeList_OSM.at("level1");//residential
-//    drawLineHelper(g,230,230,230,255,level1List,2);
-//    std::vector<StreetSegmentIdx> level2List= SegmentTypeList_OSM.at("level2");//large residential
-//    drawLineHelper(g,255,255,255,255,level2List,2);
-//    std::vector<StreetSegmentIdx> level3List= SegmentTypeList_OSM.at("level3");//major road
-//    drawLineHelper(g,0,255,0,255,level3List,2);
-//    std::vector<StreetSegmentIdx> level4List= SegmentTypeList_OSM.at("level4");//highway
-//    drawLineHelper(g,255,255,77,255,level4List,2);
-//    std::vector<StreetSegmentIdx> pedestrianList= SegmentTypeList_OSM.at("pedestrian");//pedestrain
-//    drawLineHelper(g,102,0,255,255,pedestrianList,2);
-//    std::vector<StreetSegmentIdx> serviceList= SegmentTypeList_OSM.at("service");//service
-//    drawLineHelper(g,217,217,217,255,serviceList,2);
-//    std::vector<StreetSegmentIdx> unknownList= SegmentTypeList_OSM.at("unknown");//unknown
-//    drawLineHelper(g,51,51,51,255,unknownList,2);
-//    std::vector<StreetSegmentIdx> busList;
 }
 void setSegColor_Normal(int tempSegType, ezgl::renderer *g) {
     switch (tempSegType) {
@@ -519,7 +574,7 @@ void setSegColor_OSM(int tempSegType, ezgl::renderer *g){
     }
 }
 void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
-    if(DisplayColor==true) {
+    if(DisplayColor) {
         switch (tempFeatureType) {
             case UNKNOWN:
                 g->set_color(255, 228, 225);
@@ -554,7 +609,7 @@ void setFeatureColor(int tempFeatureType, ezgl::renderer *g){
             default:break;
         }
     }
-    else if(DisplayColor==false) {
+    else if(!DisplayColor) {
         switch (tempFeatureType) {
             case UNKNOWN:
                 g->set_color(255, 228, 225);
@@ -691,16 +746,11 @@ void draw_POI(ezgl::renderer *g) {
                     g->set_color(ezgl::WHITE);
                     g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
                                  getPOIName(tempList[idx]));
-
                 }
-
             }
-
         }
-
     }
 }
-
 }
 
 void highlight_intersection(ezgl::renderer *g){
@@ -822,18 +872,13 @@ void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl:
         highlightMousePress.push_back(IntersectInfoList[id].curPosXY);
         if(lastClickIntersection != -1){
             auto tempList = findPathBetweenIntersections(lastClickIntersection, id, turn_penalty);
-            highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
 
+            highlightNaviRoute.insert(highlightNaviRoute.end(),tempList.begin(),tempList.end());
+            outputNavigationGuide();
             lastClickIntersection = id;
         }else{
             lastClickIntersection = id;
         }
-
-        //test highlight Navigation route
-        /*for(auto a : highlightNaviRoute){
-            std::cout << a <<std::endl;
-        }*/
-
     }
 }
 
@@ -895,8 +940,31 @@ void initial_setup(ezgl::application *application, bool /*new_window*/){
             G_CALLBACK(CheckButton_set_POI_display),
             application
     );
-}
 
+    // Create a Test button and link it with test_button callback fn.
+    application->create_button("NEXTPAGE", 6, NEXTPAGE);
+
+    // Create a Test button and link it with test_button callback fn.
+    application->create_button("PREVIOUSPAGE", 7, PREVIOUSPAGE);
+}
+void NEXTPAGE(GtkWidget */*widget*/, ezgl::application *application) {
+    if(PAGE * 10 > navigationGuide.size()-10){
+        application->update_message("Already Last Page, Please click previousPage");
+    }else{
+        PAGE++;
+        application->update_message("Page: " + std::to_string(PAGE));
+    }
+    application->refresh_drawing();
+}
+void PREVIOUSPAGE(GtkWidget */*widget*/, ezgl::application *application){
+    if(PAGE == 0){
+        application->update_message("Already First Page, Please click nextPage");
+    }else{
+        PAGE--;
+        application->update_message("Page: " + std::to_string(PAGE));
+    }
+    application->refresh_drawing();
+}
 void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("ChangeMap");
@@ -1098,7 +1166,6 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * /*text_Entry*/, st
         app->update_message("Displaying Intersection");
         highlightIntersectList.push_back(IntersectInfoList[IntersectIdx].curPosXY);
     }
-    //highlightIntersectList.push_back();
 }
 
 void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
@@ -1215,10 +1282,8 @@ void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::
 
     // Excute Navigation Process
     highlightNaviRoute = findPathBetweenIntersections(firstIntersectIdx, secondIntersectIdx, turn_penalty);
+    outputNavigationGuide();
 }
-
-
-
 void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
     auto initScreen = app->get_renderer()->get_visible_screen();
 
@@ -1280,4 +1345,57 @@ IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialNam
     auto tempIntersectIdxList = IntersectNameTree.getIdList(partialName);
     if(tempIntersectIdxList.empty()) return -1;
     return tempIntersectIdxList[0];
+}
+
+std::string stringNavigationGuide(){
+    int startingNum= PAGE*10;
+    if(navigationGuide.empty()){
+        return "Error:NavigationGuide Empty";
+    }
+    std:: string string_navigationGuide;
+    std::cout<<"The navigation Size "+ navigationGuide.size();
+    if(startingNum>navigationGuide.size()){
+        string_navigationGuide="You have reached the destination";
+    }else if(startingNum+9<navigationGuide.size()){
+        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++) {
+            int totalLength = navigationGuide[strSeg].first;
+            std::string streetName = navigationGuide[strSeg].second;
+            string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
+            std::cout<<strSeg;
+        }
+    }else if(startingNum+9>navigationGuide.size()) {
+        for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
+            int totalLength = navigationGuide[strSeg].first;
+            std::string streetName = navigationGuide[strSeg].second;
+            string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
+            //std::cout << string_navigationGuide << std::endl;
+            std::cout<<strSeg;
+        }
+    }
+
+    std::cout << string_navigationGuide << std::endl;
+    return string_navigationGuide;
+}
+void outputNavigationGuide() {
+    navigationGuide.clear();
+    if(highlightNaviRoute.empty()) return;
+    int curSegIdx=highlightNaviRoute[0];
+    int curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+    double totalLength=0;
+    for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++){
+        curSegIdx=highlightNaviRoute[curSeg];
+        if(curSeg!=0){
+            if(curSeg==highlightNaviRoute.size()-1){
+                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+                navigationGuide.push_back(street);
+            }else if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
+                //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
+                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+                totalLength=0;
+                navigationGuide.push_back(street);
+            }
+        }
+        curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+        totalLength += findStreetSegmentLength(curSegIdx);
+    }
 }
