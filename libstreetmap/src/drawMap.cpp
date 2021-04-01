@@ -15,6 +15,7 @@
 
 float legendLength;
 
+bool DisplayHelp = false;
 bool DisplayOSM = false;
 bool DisplayPOI = false;
 bool is_osm_Loaded = false;
@@ -67,6 +68,7 @@ void initial_setup(ezgl::application *application, bool new_window);
 std::string font;
 
 // Singal Callback Functions
+void ToogleButton_Help_Menu(GtkToggleButton * /*togglebutton*/, gpointer user_data);
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
 void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data);
 void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data);
@@ -148,7 +150,7 @@ void draw_main_canvas(ezgl::renderer *g){
         highlight_intersection(g);
     }
     else if(searchMode == "POI"){
-       highlight_poi(g);
+        highlight_poi(g);
     }
     else if(searchMode == "NAVIGATION"){
         g->set_color(ezgl::BLUE);
@@ -358,7 +360,7 @@ void draw_NavigationGuide(ezgl::renderer *g){
         return;
     }
     std:: string string_navigationGuide;
-    std::cout<<"The navigation Size "+ navigationGuide.size();
+    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         text="You have reached the destination";
         g->draw_text({x,y},text);
@@ -369,9 +371,9 @@ void draw_NavigationGuide(ezgl::renderer *g){
             std::string streetName = navigationGuide[strSeg].second;
             text=("move "+std::to_string(totalLength) + " on "+streetName);
             g->draw_text({x,y},text);
-            std::cout << text << std::endl;
+            //std::cout << text << std::endl;
             y=y+20;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
         return;
     }else if(startingNum+9>navigationGuide.size()) {
@@ -380,9 +382,9 @@ void draw_NavigationGuide(ezgl::renderer *g){
             std::string streetName = navigationGuide[strSeg].second;
             text=("move "+std::to_string(totalLength) + " on "+streetName);
             g->draw_text({x,y},text);
-            std::cout << text << std::endl;
+            //std::cout << text << std::endl;
             y=y+20;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
         return;
     }
@@ -681,76 +683,76 @@ void draw_POI(ezgl::renderer *g) {
     if(DisplayPOI) {
         bool NeedPush = false;
 
-    for (int idx = 0; idx < PoiInfoList.size(); idx++) {
+        for (int idx = 0; idx < PoiInfoList.size(); idx++) {
 
-        ezgl::rectangle temp = g->get_visible_world();
+            ezgl::rectangle temp = g->get_visible_world();
 
-        if (temp.left() < PoiInfoList[idx].curPosXY.x &&
-            temp.bottom() < PoiInfoList[idx].curPosXY.y &&
-            temp.right() > PoiInfoList[idx].curPosXY.x &&
-            temp.top() > PoiInfoList[idx].curPosXY.y) {
+            if (temp.left() < PoiInfoList[idx].curPosXY.x &&
+                temp.bottom() < PoiInfoList[idx].curPosXY.y &&
+                temp.right() > PoiInfoList[idx].curPosXY.x &&
+                temp.top() > PoiInfoList[idx].curPosXY.y) {
 
-            if (tempList.empty()) {
-                tempList.push_back(idx);
-            } else {
-                for (int i = 0; i < tempList.size(); ++i) {
-                    if (calc_two_POI_distance(tempList[i], idx) > legendLength * 1) {
-                        NeedPush = true;
+                if (tempList.empty()) {
+                    tempList.push_back(idx);
+                } else {
+                    for (int i = 0; i < tempList.size(); ++i) {
+                        if (calc_two_POI_distance(tempList[i], idx) > legendLength * 1) {
+                            NeedPush = true;
 
-                    } else {
-                        NeedPush = false;
-                        break;
+                        } else {
+                            NeedPush = false;
+                            break;
+                        }
+                    }
+                    if (NeedPush == true) {
+                        tempList.push_back(idx);
                     }
                 }
-                if (NeedPush == true) {
-                    tempList.push_back(idx);
+            }
+        }
+
+        if(!tempList.empty()) {
+            for (int idx = 0; idx < tempList.size(); idx++) {
+                if (std::string(PoiInfoList[tempList[idx]].icon_day) != "noIcon") {
+                    if(DisplayColor) {
+                        ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_day);
+                        g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                        ezgl::renderer::free_surface(png_surface);
+                        g->set_font_size(10);
+                        g->set_color(63,71,70);
+                        g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
+                                     getPOIName(tempList[idx]));
+                    }else if (!DisplayColor) {
+                        ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
+                        g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
+                        ezgl::renderer::free_surface(png_surface);
+                        g->set_font_size(10);
+                        g->set_color(ezgl::WHITE);
+                        g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
+                                     getPOIName(tempList[idx]));
+                    }
+                } else {
+                    if(DisplayColor){
+                        g->set_color(168, 168, 168, 120);
+                        g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
+
+                        g->set_font_size(10);
+                        g->set_color(ezgl::BLACK);
+                        g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                                     getPOIName(tempList[idx]));
+                    }else if(!DisplayColor){
+                        g->set_color(168, 168, 168, 120);
+                        g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
+
+                        g->set_font_size(10);
+                        g->set_color(ezgl::WHITE);
+                        g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
+                                     getPOIName(tempList[idx]));
+                    }
                 }
             }
         }
     }
-
-    if(!tempList.empty()) {
-        for (int idx = 0; idx < tempList.size(); idx++) {
-            if (std::string(PoiInfoList[tempList[idx]].icon_day) != "noIcon") {
-                if(DisplayColor) {
-                    ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_day);
-                    g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
-                    ezgl::renderer::free_surface(png_surface);
-                g->set_font_size(10);
-                g->set_color(63,71,70);
-                g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
-                             getPOIName(tempList[idx]));
-                }else if (!DisplayColor) {
-                    ezgl::surface *png_surface = ezgl::renderer::load_png(PoiInfoList[tempList[idx]].icon_night);
-                    g->draw_surface(png_surface, PoiInfoList[tempList[idx]].curPosXY);
-                    ezgl::renderer::free_surface(png_surface);
-                    g->set_font_size(10);
-                    g->set_color(ezgl::WHITE);
-                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x + 5, PoiInfoList[tempList[idx]].curPosXY.y + 10},
-                                 getPOIName(tempList[idx]));
-                }
-            } else {
-                if(DisplayColor){
-                    g->set_color(168, 168, 168, 120);
-                    g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
-
-                    g->set_font_size(10);
-                    g->set_color(ezgl::BLACK);
-                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
-                                 getPOIName(tempList[idx]));
-                }else if(!DisplayColor){
-                    g->set_color(168, 168, 168, 120);
-                    g->fill_arc(PoiInfoList[tempList[idx]].curPosXY, 7, 0, 360);
-
-                    g->set_font_size(10);
-                    g->set_color(ezgl::WHITE);
-                    g->draw_text({PoiInfoList[tempList[idx]].curPosXY.x, PoiInfoList[tempList[idx]].curPosXY.y + 5},
-                                 getPOIName(tempList[idx]));
-                }
-            }
-        }
-    }
-}
 }
 
 void highlight_intersection(ezgl::renderer *g){
@@ -791,6 +793,9 @@ void highlight_clear(){
     highlightNaviRoute.clear();
     highlightStreet = -1;
     lastClickIntersection = -1;
+    PAGE=0;
+    outputNavigationGuide();
+    //draw_NavigationGuide(g,navigationGuide);
 }
 
 
@@ -934,6 +939,7 @@ void initial_setup(ezgl::application *application, bool /*new_window*/){
             G_CALLBACK(ToogleButton_set_Display_Color),
             application
     );
+
     g_signal_connect(
             application->get_object("DisplayPOI"),
             "toggled",
@@ -941,11 +947,28 @@ void initial_setup(ezgl::application *application, bool /*new_window*/){
             application
     );
 
+    g_signal_connect(
+            application->get_object("HELP"),
+            "toggled",
+            G_CALLBACK(ToogleButton_Help_Menu),
+            application
+    );
     // Create a Test button and link it with test_button callback fn.
-    application->create_button("NEXTPAGE", 6, NEXTPAGE);
+    application->create_button("NEXTPAGE", 7, NEXTPAGE);
 
     // Create a Test button and link it with test_button callback fn.
-    application->create_button("PREVIOUSPAGE", 7, PREVIOUSPAGE);
+    application->create_button("PREPAGE", 8, PREVIOUSPAGE);
+}
+void ToogleButton_Help_Menu(GtkToggleButton * /*togglebutton*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    if(DisplayHelp){
+        DisplayHelp = false;
+        app->update_message("CLOSE HELP MENU");
+    }else{
+        DisplayHelp = true;
+        app->update_message("ENABLE HELP MENU");
+    }
+    app->refresh_drawing();
 }
 void NEXTPAGE(GtkWidget */*widget*/, ezgl::application *application) {
     if(PAGE * 10 > navigationGuide.size()-10){
@@ -1353,7 +1376,7 @@ std::string stringNavigationGuide(){
         return "Error:NavigationGuide Empty";
     }
     std:: string string_navigationGuide;
-    std::cout<<"The navigation Size "+ navigationGuide.size();
+    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         string_navigationGuide="You have reached the destination";
     }else if(startingNum+9<navigationGuide.size()){
@@ -1361,7 +1384,7 @@ std::string stringNavigationGuide(){
             int totalLength = navigationGuide[strSeg].first;
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
     }else if(startingNum+9>navigationGuide.size()) {
         for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
@@ -1369,33 +1392,70 @@ std::string stringNavigationGuide(){
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
             //std::cout << string_navigationGuide << std::endl;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
     }
 
-    std::cout << string_navigationGuide << std::endl;
+    //std::cout << string_navigationGuide << std::endl;
     return string_navigationGuide;
 }
 void outputNavigationGuide() {
     navigationGuide.clear();
     if(highlightNaviRoute.empty()) return;
-    int curSegIdx=highlightNaviRoute[0];
-    int curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
-    double totalLength=0;
+    int totalLength =0;
+    int curSegIdx;
+    int nextSegIdx;
+    int curStrIdx;
+    int nextStrIdx;
+    std::string streetName = "None";
     for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++){
         curSegIdx=highlightNaviRoute[curSeg];
-        if(curSeg!=0){
-            if(curSeg==highlightNaviRoute.size()-1){
-                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
-                navigationGuide.push_back(street);
-            }else if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
-                //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
-                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
-                totalLength=0;
-                navigationGuide.push_back(street);
-            }
+        curStrIdx=SegsInfoList[curSegIdx].segInfo.streetID;
+        if(curSeg==highlightNaviRoute.size()-1){
+            totalLength+=findStreetSegmentLength(curSegIdx);
+            streetName=getStreetName(curStrIdx);
+            std::pair<int,std::string> street = std::make_pair (totalLength,streetName);
+            std::cout<<streetName<<std::endl;
+            navigationGuide.push_back(street);
+            return;
         }
-        curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
-        totalLength += findStreetSegmentLength(curSegIdx);
+        nextSegIdx=highlightNaviRoute[curSeg+1];
+        nextStrIdx=SegsInfoList[nextSegIdx].segInfo.streetID;
+        if(curStrIdx==nextStrIdx){
+            totalLength=totalLength+findStreetSegmentLength(curSegIdx);
+            std::cout<<streetName<<std::endl;
+        }else if(curStrIdx!=nextStrIdx){
+            totalLength=totalLength+findStreetSegmentLength(curSegIdx);
+            streetName=getStreetName(curStrIdx);
+            std::pair<int,std::string> street = std::make_pair (totalLength,streetName);
+            navigationGuide.push_back(street);
+            std::cout<<streetName<<std::endl;
+            totalLength=0;
+        }
     }
+
+
+
+
+
+//    int curSegIdx=highlightNaviRoute[0];
+//    int curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+//    double totalLength=0;
+//    for(int curSeg=0;curSeg<highlightNaviRoute.size();curSeg++){
+//        curSegIdx=highlightNaviRoute[curSeg];
+//        if(curSeg!=0){
+//            if(curStreetId!=SegsInfoList[curSegIdx].segInfo.streetID){
+//                //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
+//                std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+//                totalLength=0;
+//                navigationGuide.push_back(street);
+//            }
+//        }else if(curSeg==highlightNaviRoute.size()-1){
+//            //std::cout<<totalLength<<getStreetName(curStreetId)<<std::endl;
+//            std::pair<int,std::string> street = std::make_pair (totalLength,getStreetName(curStreetId));
+//            navigationGuide.push_back(street);
+//        }
+//        curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
+//        totalLength += findStreetSegmentLength(curSegIdx);
+//    }
 }

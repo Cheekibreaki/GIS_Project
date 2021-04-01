@@ -6,7 +6,11 @@
 #include "DBstruct.h"
 #include <queue>
 #include <deque>
-#include <float.h>
+#include <cfloat>
+
+//#include "drawMap.cpp"
+
+//#include <chrono>
 
 struct IntersectNaviInfo{
     StreetSegmentIdx reachingEdge = -1;
@@ -56,8 +60,17 @@ std::vector<StreetSegmentIdx> findPathBetweenIntersections(
     IntersectNaviInfoList.resize(getNumIntersections());
 
     std::vector<StreetSegmentIdx> path;
+
+    //auto const start = std::chrono::high_resolution_clock::now();
+
     bool pathExist = NaviInfoHelper(intersect_id_start, intersect_id_destination, turn_penalty);
+
     if(pathExist) path = backTracing(intersect_id_start, intersect_id_destination);
+
+    /*auto const end = std::chrono::high_resolution_clock::now();
+    auto const delta_time = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+    std::cout << getIntersectionName(intersect_id_start) <<"/" << getIntersectionName(intersect_id_destination)<< std::endl;
+    std::cout << "FindPath duration: " << delta_time.count() << "s\n";*/
 
     IntersectNaviInfoList.clear();
     return path;
@@ -113,8 +126,8 @@ bool NaviInfoHelper(
                 if(IntersectNaviInfoList[toIntersect].isTravel) continue;
 
                 if(currIntersectId != intersect_id_start &&
-                SegsInfoList[currStSegsId].segInfo.streetID !=
-                SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID){
+                   SegsInfoList[currStSegsId].segInfo.streetID !=
+                   SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID){
                     WaveFront.push(WaveElem(toIntersect, currStSegsId,
                                             IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty));
                 }
