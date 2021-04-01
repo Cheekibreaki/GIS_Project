@@ -15,6 +15,7 @@
 
 float legendLength;
 
+bool DisplayHelp = false;
 bool DisplayOSM = false;
 bool DisplayPOI = false;
 bool is_osm_Loaded = false;
@@ -67,6 +68,7 @@ void initial_setup(ezgl::application *application, bool new_window);
 std::string font;
 
 // Singal Callback Functions
+void ToogleButton_Help_Menu(GtkToggleButton * /*togglebutton*/, gpointer user_data);
 void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointer user_data);
 void ToogleButton_set_Display_Color (GtkToggleButton * /*togglebutton*/, gpointer user_data);
 void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer user_data);
@@ -358,7 +360,7 @@ void draw_NavigationGuide(ezgl::renderer *g){
         return;
     }
     std:: string string_navigationGuide;
-    std::cout<<"The navigation Size "+ navigationGuide.size();
+    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         text="You have reached the destination";
         g->draw_text({x,y},text);
@@ -369,9 +371,9 @@ void draw_NavigationGuide(ezgl::renderer *g){
             std::string streetName = navigationGuide[strSeg].second;
             text=("move "+std::to_string(totalLength) + " on "+streetName);
             g->draw_text({x,y},text);
-            std::cout << text << std::endl;
+            //std::cout << text << std::endl;
             y=y+20;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
         return;
     }else if(startingNum+9>navigationGuide.size()) {
@@ -380,9 +382,9 @@ void draw_NavigationGuide(ezgl::renderer *g){
             std::string streetName = navigationGuide[strSeg].second;
             text=("move "+std::to_string(totalLength) + " on "+streetName);
             g->draw_text({x,y},text);
-            std::cout << text << std::endl;
+            //std::cout << text << std::endl;
             y=y+20;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
         return;
     }
@@ -934,6 +936,7 @@ void initial_setup(ezgl::application *application, bool /*new_window*/){
             G_CALLBACK(ToogleButton_set_Display_Color),
             application
     );
+
     g_signal_connect(
             application->get_object("DisplayPOI"),
             "toggled",
@@ -941,11 +944,28 @@ void initial_setup(ezgl::application *application, bool /*new_window*/){
             application
     );
 
+    g_signal_connect(
+            application->get_object("HELP"),
+            "toggled",
+            G_CALLBACK(ToogleButton_Help_Menu),
+            application
+    );
     // Create a Test button and link it with test_button callback fn.
-    application->create_button("NEXTPAGE", 6, NEXTPAGE);
+    application->create_button("NEXTPAGE", 7, NEXTPAGE);
 
     // Create a Test button and link it with test_button callback fn.
-    application->create_button("PREVIOUSPAGE", 7, PREVIOUSPAGE);
+    application->create_button("PREPAGE", 8, PREVIOUSPAGE);
+}
+void ToogleButton_Help_Menu(GtkToggleButton * /*togglebutton*/, gpointer user_data){
+    auto app = static_cast<ezgl::application *>(user_data);
+    if(DisplayHelp){
+        DisplayHelp = false;
+        app->update_message("CLOSE HELP MENU");
+    }else{
+        DisplayHelp = true;
+        app->update_message("ENABLE HELP MENU");
+    }
+    app->refresh_drawing();
 }
 void NEXTPAGE(GtkWidget */*widget*/, ezgl::application *application) {
     if(PAGE * 10 > navigationGuide.size()-10){
@@ -1353,7 +1373,7 @@ std::string stringNavigationGuide(){
         return "Error:NavigationGuide Empty";
     }
     std:: string string_navigationGuide;
-    std::cout<<"The navigation Size "+ navigationGuide.size();
+    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         string_navigationGuide="You have reached the destination";
     }else if(startingNum+9<navigationGuide.size()){
@@ -1361,7 +1381,7 @@ std::string stringNavigationGuide(){
             int totalLength = navigationGuide[strSeg].first;
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
     }else if(startingNum+9>navigationGuide.size()) {
         for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
@@ -1369,11 +1389,11 @@ std::string stringNavigationGuide(){
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
             //std::cout << string_navigationGuide << std::endl;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
     }
 
-    std::cout << string_navigationGuide << std::endl;
+    //std::cout << string_navigationGuide << std::endl;
     return string_navigationGuide;
 }
 void outputNavigationGuide() {
