@@ -360,7 +360,7 @@ void draw_NavigationGuide(ezgl::renderer *g){
         return;
     }
     std:: string string_navigationGuide;
-    std::cout<<"The navigation Size "+ navigationGuide.size();
+    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         text="You have reached the destination";
         g->draw_text({x,y},text);
@@ -371,9 +371,9 @@ void draw_NavigationGuide(ezgl::renderer *g){
             std::string streetName = navigationGuide[strSeg].second;
             text=("move "+std::to_string(totalLength) + " on "+streetName);
             g->draw_text({x,y},text);
-            std::cout << text << std::endl;
+            //std::cout << text << std::endl;
             y=y+20;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
         return;
     }else if(startingNum+9>navigationGuide.size()) {
@@ -382,9 +382,9 @@ void draw_NavigationGuide(ezgl::renderer *g){
             std::string streetName = navigationGuide[strSeg].second;
             text=("move "+std::to_string(totalLength) + " on "+streetName);
             g->draw_text({x,y},text);
-            std::cout << text << std::endl;
+            //std::cout << text << std::endl;
             y=y+20;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
         return;
     }
@@ -1373,7 +1373,7 @@ std::string stringNavigationGuide(){
         return "Error:NavigationGuide Empty";
     }
     std:: string string_navigationGuide;
-    std::cout<<"The navigation Size "+ navigationGuide.size();
+    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         string_navigationGuide="You have reached the destination";
     }else if(startingNum+9<navigationGuide.size()){
@@ -1381,7 +1381,7 @@ std::string stringNavigationGuide(){
             int totalLength = navigationGuide[strSeg].first;
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
     }else if(startingNum+9>navigationGuide.size()) {
         for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
@@ -1389,11 +1389,11 @@ std::string stringNavigationGuide(){
             std::string streetName = navigationGuide[strSeg].second;
             string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
             //std::cout << string_navigationGuide << std::endl;
-            std::cout<<strSeg;
+            //std::cout<<strSeg;
         }
     }
 
-    std::cout << string_navigationGuide << std::endl;
+    //std::cout << string_navigationGuide << std::endl;
     return string_navigationGuide;
 }
 void outputNavigationGuide() {
