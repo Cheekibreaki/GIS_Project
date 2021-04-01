@@ -101,7 +101,7 @@ void drawLabelList(ezgl::renderer *g, const std::vector<ezgl::point2d>& point_li
 void drawLineHelper(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawLineHelper_highway(ezgl::renderer *g ,std::vector<StreetSegmentIdx>StrIDList);
 void drawNightColor(ezgl::renderer *g);
-
+double cross_Product(ezgl::point2d v1,ezgl::point2d v2);
 
 void drawMap(){
     ezgl::application::settings settings;
@@ -366,25 +366,42 @@ void draw_NavigationGuide(ezgl::renderer *g){
         g->draw_text({x,y},text);
         return;
     }else if(startingNum+9<navigationGuide.size()){
-        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++) {
+        for(int strSeg=startingNum;strSeg<=startingNum+9;strSeg++) {
             int totalLength = navigationGuide[strSeg].first;
             std::string streetName = navigationGuide[strSeg].second;
-            text=("move "+std::to_string(totalLength) + " on "+streetName);
-            g->draw_text({x,y},text);
-            //std::cout << text << std::endl;
-            y=y+20;
-            //std::cout<<strSeg;
+            if(totalLength==-1){
+                text=("move straight on to " + navigationGuide[strSeg].second + "street");
+            }else if(totalLength==-2){
+                text=("move left on to " + navigationGuide[strSeg].second + "street");
+            }else if(totalLength==-3){
+                text=("move right on to " + navigationGuide[strSeg].second + "street");
+            }else {
+                text = ("move " + std::to_string(totalLength) + " on " + streetName);
+                //std::cout<<strSeg;
+            }
+            g->draw_text({x, y}, text);
+            y = y + 20;
         }
         return;
-    }else if(startingNum+9>navigationGuide.size()) {
+    }else if(startingNum+9>=navigationGuide.size()) {
         for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
             int totalLength = navigationGuide[strSeg].first;
             std::string streetName = navigationGuide[strSeg].second;
-            text=("move "+std::to_string(totalLength) + " on "+streetName);
-            g->draw_text({x,y},text);
-            //std::cout << text << std::endl;
-            y=y+20;
-            //std::cout<<strSeg;
+            if (totalLength == -1) {
+                text = ("move straight on to " + navigationGuide[strSeg].second + "street");
+            } else if (totalLength == -2) {
+                text = ("move left on to " + navigationGuide[strSeg].second + "street");
+            } else if (totalLength == -3) {
+                text = ("move right on to " + navigationGuide[strSeg].second + "street");
+            } else {
+                text = ("move " + std::to_string(totalLength) + " on " + streetName);
+
+                //std::cout << text << std::endl;
+
+                //std::cout<<strSeg;
+            }
+            g->draw_text({x, y}, text);
+            y = y + 20;
         }
         return;
     }
@@ -1382,17 +1399,34 @@ std::string stringNavigationGuide(){
     }else if(startingNum+9<navigationGuide.size()){
         for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++) {
             int totalLength = navigationGuide[strSeg].first;
-            std::string streetName = navigationGuide[strSeg].second;
-            string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
+            if(totalLength==-1){
+                string_navigationGuide.append("move straight on to " + navigationGuide[strSeg].second + "street \n");
+            }else if(totalLength==-2){
+                string_navigationGuide.append("move left on to " + navigationGuide[strSeg].second + "street \n");
+            }else if(totalLength==-3){
+                string_navigationGuide.append("move right on to " + navigationGuide[strSeg].second + "street \n");
+            }else{
+                std::string streetName = navigationGuide[strSeg].second;
+                string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
+            }
+
             //std::cout<<strSeg;
         }
     }else if(startingNum+9>navigationGuide.size()) {
         for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
             int totalLength = navigationGuide[strSeg].first;
-            std::string streetName = navigationGuide[strSeg].second;
-            string_navigationGuide.append("move "+std::to_string(totalLength) + " on "+streetName + "\n");
-            //std::cout << string_navigationGuide << std::endl;
-            //std::cout<<strSeg;
+            if (totalLength == -1) {
+                string_navigationGuide.append("move straight on to " + navigationGuide[strSeg].second + "street \n");
+            } else if (totalLength == -2) {
+                string_navigationGuide.append("move right on to " + navigationGuide[strSeg].second + "street \n");
+            } else if (totalLength == -3) {
+                string_navigationGuide.append("move left on to " + navigationGuide[strSeg].second + "street \n");
+            } else {
+                std::string streetName = navigationGuide[strSeg].second;
+                string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
+                //std::cout << string_navigationGuide << std::endl;
+                //std::cout<<strSeg;
+            }
         }
     }
 
@@ -1401,7 +1435,10 @@ std::string stringNavigationGuide(){
 }
 void outputNavigationGuide() {
     navigationGuide.clear();
-    if(highlightNaviRoute.empty()) return;
+    if(highlightNaviRoute.empty()) {
+        std::cout<<"highlightNaviRoute empty"<<std::endl;
+        return;
+    }
     int totalLength =0;
     int curSegIdx;
     int nextSegIdx;
@@ -1415,7 +1452,7 @@ void outputNavigationGuide() {
             totalLength+=findStreetSegmentLength(curSegIdx);
             streetName=getStreetName(curStrIdx);
             std::pair<int,std::string> street = std::make_pair (totalLength,streetName);
-            std::cout<<streetName<<std::endl;
+            //std::cout<<streetName<<std::endl;
             navigationGuide.push_back(street);
             return;
         }
@@ -1423,14 +1460,64 @@ void outputNavigationGuide() {
         nextStrIdx=SegsInfoList[nextSegIdx].segInfo.streetID;
         if(curStrIdx==nextStrIdx){
             totalLength=totalLength+findStreetSegmentLength(curSegIdx);
-            std::cout<<streetName<<std::endl;
+            //std::cout<<streetName<<std::endl;
         }else if(curStrIdx!=nextStrIdx){
             totalLength=totalLength+findStreetSegmentLength(curSegIdx);
             streetName=getStreetName(curStrIdx);
             std::pair<int,std::string> street = std::make_pair (totalLength,streetName);
             navigationGuide.push_back(street);
-            std::cout<<streetName<<std::endl;
+            //std::cout<<streetName<<std::endl;
             totalLength=0;
+
+            int curIntersectionIdx1=SegsInfoList[curSegIdx].segInfo.from;
+            int curIntersectionIdx2=SegsInfoList[curSegIdx].segInfo.to;
+            int nextIntersectionIdx1=SegsInfoList[nextSegIdx].segInfo.from;
+            int nextIntersectionIdx2=SegsInfoList[nextSegIdx].segInfo.to;
+            int curToIntersectionSeg;
+            int curFromIntersectionSeg;
+            int nextToIntersectionSeg;
+            int nextFromIntersectionSeg;
+            if(curIntersectionIdx1==nextIntersectionIdx1){
+                curToIntersectionSeg=curIntersectionIdx1;
+                nextFromIntersectionSeg=curIntersectionIdx1;
+                curFromIntersectionSeg=curIntersectionIdx2;
+                nextToIntersectionSeg=nextIntersectionIdx2;
+            }else if(curIntersectionIdx1==nextIntersectionIdx2){
+                curToIntersectionSeg=curIntersectionIdx1;
+                nextFromIntersectionSeg=curIntersectionIdx1;
+                curFromIntersectionSeg=curIntersectionIdx2;
+                nextToIntersectionSeg=nextIntersectionIdx1;
+            }else if(curIntersectionIdx2==nextIntersectionIdx1){
+                curToIntersectionSeg=curIntersectionIdx2;
+                nextFromIntersectionSeg=curIntersectionIdx2;
+                curFromIntersectionSeg=curIntersectionIdx1;
+                nextToIntersectionSeg=nextIntersectionIdx2;
+            }else if(curIntersectionIdx2==nextIntersectionIdx2){
+                curToIntersectionSeg=curIntersectionIdx2;
+                nextFromIntersectionSeg=curIntersectionIdx2;
+                curFromIntersectionSeg=curIntersectionIdx1;
+                nextToIntersectionSeg=nextIntersectionIdx1;
+            }
+            ezgl::point2d curFrom2d =LatLon_to_point2d(getIntersectionPosition(curFromIntersectionSeg));
+            ezgl::point2d curTo2d =LatLon_to_point2d(getIntersectionPosition(curToIntersectionSeg));
+            ezgl::point2d nextFrom2d =LatLon_to_point2d(getIntersectionPosition(nextFromIntersectionSeg));
+            ezgl::point2d nextTo2d =LatLon_to_point2d(getIntersectionPosition(nextToIntersectionSeg));
+
+            ezgl::point2d v1 = ezgl::point2d(curTo2d.x-curFrom2d.x,curTo2d.y-curFrom2d.y);
+            ezgl::point2d v2 = ezgl::point2d(nextTo2d.x-nextFrom2d.x,nextTo2d.y-nextFrom2d.y);
+            double output = cross_Product(v1,v2);
+            std::cout<<output<<std::endl;
+            streetName=getStreetName(nextStrIdx);
+            if(output==0){//move street
+                std::pair<int,std::string> street = std::make_pair (-1,streetName);
+                navigationGuide.push_back(street);
+            }else if(output>0){//left turn
+                std::pair<int,std::string> street = std::make_pair (-2,streetName);
+                navigationGuide.push_back(street);
+            }else{//right turn
+                std::pair<int,std::string> street = std::make_pair (-3,streetName);
+                navigationGuide.push_back(street);
+            }
         }
     }
 
@@ -1458,4 +1545,8 @@ void outputNavigationGuide() {
 //        curStreetId=SegsInfoList[curSegIdx].segInfo.streetID;
 //        totalLength += findStreetSegmentLength(curSegIdx);
 //    }
+}
+double cross_Product(ezgl::point2d v1,ezgl::point2d v2){
+    double output=(v1.x*v2.y)-(v2.x*v1.y);
+    return output;
 }
