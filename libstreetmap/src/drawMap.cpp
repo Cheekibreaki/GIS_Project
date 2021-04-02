@@ -81,11 +81,18 @@ void PREVIOUSPAGE(GtkWidget */*widget*/, ezgl::application *application);
 
 std::string searchMode = "Select MODE ...";
 void Entry_search_Controller(GtkWidget *wid, gpointer data);
-void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, std::string text);
-void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text);
-void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
-void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text);
-void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::string text);
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * text_Entry, const std::string& text);
+void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, const std::string& text);
+void search_Mode_STREET(ezgl::application* app,
+                        GtkEntry * text_Entry, const std::string& text,
+                        GtkEntry * text_Entry2, const std::string& text2);
+void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, const std::string& text);
+void search_Mode_NAVIGATION(ezgl::application* app,
+                            GtkEntry * text_Entry, const std::string& text,
+                            GtkEntry * text_Entry2, const std::string& text2);
+
+void create_Entry(ezgl::application* app);
+void destory_Entry(ezgl::application* app);
 
 StreetIdx checkFirst_StreetIdx_PartialStN(std::string& partialName);
 IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialName);
@@ -950,11 +957,6 @@ void initial_setup(ezgl::application *application, bool /*new_window*/){
             G_CALLBACK(ToogleButton_Help_Menu),
             application
     );
-    // Create a Test button and link it with test_button callback fn.
-    application->create_button("NEXTPAGE", 7, NEXTPAGE);
-
-    // Create a Test button and link it with test_button callback fn.
-    application->create_button("PREPAGE", 8, PREVIOUSPAGE);
 }
 void ToogleButton_Help_Menu(GtkToggleButton * /*togglebutton*/, gpointer user_data){
     auto app = static_cast<ezgl::application *>(user_data);
@@ -1071,6 +1073,7 @@ void ComboBoxText_Reload_Map (GtkComboBox */*widget*/, gpointer user_data){
     app->refresh_drawing();
 }
 
+
 void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data){
     highlight_clear();
     auto app = static_cast<ezgl::application *>(user_data);
@@ -1080,6 +1083,22 @@ void ComboBoxText_Change_Search_Mode(GtkComboBox */*widget*/, gpointer user_data
 
     auto* combo_Box = (GtkComboBoxText * ) app->get_object("FuncMode");
     searchMode = (std::string)gtk_combo_box_text_get_active_text(combo_Box);
+
+    if(searchMode == "NAVIGATION"){
+        app->create_button("NEXTPAGE", 7, NEXTPAGE);
+        app->create_button("PREPAGE", 8, PREVIOUSPAGE);
+        create_Entry(app);
+        app->refresh_drawing();
+        return;
+    }
+    else if(searchMode == "TWOSTREET"){
+        create_Entry(app);
+    }
+    else{
+        destory_Entry(app);
+    }
+    app->destroy_button("NEXTPAGE");
+    app->destroy_button("PREPAGE");
     app->refresh_drawing();
 }
 
@@ -1108,13 +1127,19 @@ void Entry_search_Controller(GtkWidget */*wid*/, gpointer data){
         search_Mode_POI(app, text_Entry, text);
     }
     if(searchMode == "STREET"){
-        search_Mode_STREET(app, text_Entry, text);
+        GtkGrid *in_grid = (GtkGrid *)app->get_object("SearchGrid");
+        GtkEntry *text_Entry2 = (GtkEntry* )GTK_WIDGET(gtk_container_get_children(GTK_CONTAINER(in_grid))->data);
+        std::string text2 = (std::string)gtk_entry_get_text(text_Entry2);
+        search_Mode_STREET(app, text_Entry, text, text_Entry2, text2);
     }
     if(searchMode == "TWOSTREET"){
         search_Mode_TWOSTREET(app, text_Entry, text);
     }
     if(searchMode == "NAVIGATION"){
-        search_Mode_NAVIGATION(app, text_Entry, text);
+        GtkGrid *in_grid = (GtkGrid *)app->get_object("SearchGrid");
+        GtkEntry *text_Entry2 = (GtkEntry* )GTK_WIDGET(gtk_container_get_children(GTK_CONTAINER(in_grid))->data);
+        std::string text2 = (std::string)gtk_entry_get_text(text_Entry2);
+        search_Mode_NAVIGATION(app, text_Entry, text, text_Entry2, text2);
     }
     app->refresh_drawing();
 }
@@ -1175,7 +1200,7 @@ void CheckButton_set_POI_display (GtkToggleButton */*togglebutton*/, gpointer us
 
 
 /*Supportive Helper Functions*/
-void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * /*text_Entry*/, std::string text){
+void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * /*text_Entry*/, const std::string& text){
     // ReadFrom Intersect Tree
     auto IntersectIdxList = IntersectNameTree.getIdList(text);
     if(IntersectIdxList.empty()){
@@ -1188,7 +1213,7 @@ void search_Mode_INTERSECT(ezgl::application* app, GtkEntry * /*text_Entry*/, st
     }
 }
 
-void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, const std::string& text){
     // ReadFrom POI Tree
     auto POIIdxList = POINameTree.getIdList(text);
     if(POIIdxList.empty()){
@@ -1203,7 +1228,9 @@ void search_Mode_POI(ezgl::application* app, GtkEntry * text_Entry, std::string 
     //highlightIntersectList.push_back();
 }
 
-void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+void search_Mode_STREET(ezgl::application* app,
+                        GtkEntry * text_Entry, const std::string& text,
+                        GtkEntry * text_Entry2, const std::string& text2){
     auto StreetIdxList = findStreetIdsFromPartialStreetName(text);
     if(StreetIdxList.empty()){
         app->update_message("Street Name Not Found");
@@ -1222,7 +1249,7 @@ void search_Mode_STREET(ezgl::application* app, GtkEntry * text_Entry, std::stri
     calc_screen_fit(app, setScreen);
 }
 
-void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::string text){
+void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, const std::string& text){
     int idx = text.find('&');
     if(idx == -1){
         app->update_message("TwoStreetIntersect & no found");
@@ -1265,42 +1292,54 @@ void search_Mode_TWOSTREET(ezgl::application* app, GtkEntry * text_Entry, std::s
     gtk_entry_set_text(text_Entry, (firstStreet+" & "+secondStreet).c_str());
 }
 
-void search_Mode_NAVIGATION(ezgl::application* app, GtkEntry * text_Entry, std::string text){
-    int idx = text.find('/');
-    if(idx == -1){
-        app->update_message("NAVIGATION MODE needs / to seperate two INTERSECTIONs");
+void search_Mode_NAVIGATION(ezgl::application* app,
+                            GtkEntry * text_Entry, const std::string& text,
+                            GtkEntry * text_Entry2, const std::string& text2){
+
+
+    std::string firstIntersect = text;
+    std::string secondIntersect = text2;
+
+    if(firstIntersect.empty()||secondIntersect.empty()){
+
+        if(firstIntersect.empty()){
+            app->update_message("Please Enter First Intersection");
+        }
+        if(secondIntersect.empty()){
+            app->update_message("Please Enter Second Intersection");
+        }
+        if(firstIntersect.empty() && secondIntersect.empty()){
+            app->update_message("Please Enter Intersections");
+        }
         return;
     }
-
-    std::string firstIntersect = text.substr(0, idx);
-    std::string secondIntersect = text.substr(idx+1, text.size());
-
-    std::cout << firstIntersect + " " + secondIntersect << std::endl;
 
     IntersectionIdx firstIntersectIdx = checkFirst_IntersectIdx_PartialIntersect(firstIntersect);
     IntersectionIdx secondIntersectIdx = checkFirst_IntersectIdx_PartialIntersect(secondIntersect);
 
-    if(firstIntersectIdx == -1 && secondIntersectIdx == -1){
-        app->update_message("Both intersectionName no Found");
-        return;
-    }
-    if(firstIntersectIdx == -1){
-        app->update_message("First intersectionName no Found");
-        secondIntersect = getIntersectionName(secondIntersectIdx);
-        gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
-        return;
-    }
-    if(secondIntersectIdx == -1){
-        app->update_message("Second intersectionName no Found");
-        firstIntersect = getIntersectionName(firstIntersectIdx);
-        gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
-        return;
-    }
-    firstIntersect = getIntersectionName(firstIntersectIdx);
-    secondIntersect = getIntersectionName(secondIntersectIdx);
-    gtk_entry_set_text(text_Entry, (firstIntersect+" & "+secondIntersect).c_str());
 
+    if(firstIntersectIdx == -1 || secondIntersectIdx == -1){
+        if(firstIntersectIdx == -1){
+            app->update_message("First intersectionName no Found");
+        }else{
+            gtk_entry_set_text(text_Entry, (getIntersectionName(firstIntersectIdx)).c_str());
+        }
+        if(secondIntersectIdx == -1){
+            app->update_message("Second intersectionName no Found");
+        }else{
+            gtk_entry_set_text(text_Entry2, (getIntersectionName(secondIntersectIdx)).c_str());
+        }
+        if(firstIntersectIdx == -1 && secondIntersectIdx == -1){
+            app->update_message("Both intersectionName no Found");
+        }
+        return;
+    }
+    gtk_entry_set_text(text_Entry, (getIntersectionName(firstIntersectIdx)).c_str());
+    gtk_entry_set_text(text_Entry2, (getIntersectionName(secondIntersectIdx)).c_str());
+
+    app->update_message("Displaying Route");
     // Excute Navigation Process
+
     highlightNaviRoute = findPathBetweenIntersections(firstIntersectIdx, secondIntersectIdx, turn_penalty);
     outputNavigationGuide();
 }
@@ -1366,6 +1405,37 @@ IntersectionIdx checkFirst_IntersectIdx_PartialIntersect(std::string& partialNam
     if(tempIntersectIdxList.empty()) return -1;
     return tempIntersectIdxList[0];
 }
+
+void create_Entry(ezgl::application* app){
+    // get the internal Gtk grid
+    GtkGrid *in_grid = (GtkGrid *)app->get_object("SearchGrid");
+    GtkWidget *widget = GTK_WIDGET(gtk_container_get_children(GTK_CONTAINER(in_grid))->data);
+    if(std::string(gtk_widget_get_name(widget)) != "SecondInput"){
+        // add a row where we want to insert
+        gtk_grid_insert_column(in_grid, 2);
+
+        // create the Entry
+        GtkWidget *new_entry = gtk_entry_new();
+        gtk_widget_set_name(new_entry, "SecondInput");
+        g_signal_connect(
+                G_OBJECT(new_entry),
+                "activate",
+                G_CALLBACK(Entry_search_Controller),
+                app
+        );
+        gtk_grid_attach(in_grid, new_entry, 1, 0, 1, 1);
+        gtk_widget_show(new_entry);
+    }
+
+}
+void destory_Entry(ezgl::application* app){
+    GtkGrid *in_grid = (GtkGrid *)app->get_object("SearchGrid");
+    GtkWidget *widget = GTK_WIDGET(gtk_container_get_children(GTK_CONTAINER(in_grid))->data);
+    if(std::string(gtk_widget_get_name(widget)) == "SecondInput"){
+        gtk_widget_destroy(widget);
+    }
+}
+
 
 std::string stringNavigationGuide(){
     int startingNum= PAGE*10;
