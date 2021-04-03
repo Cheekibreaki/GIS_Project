@@ -47,8 +47,7 @@ std::vector<ezgl::point2d> highlightMousePress;
 int PAGE = 0;
 int CurIns = 0;
 int maxTextLength =33;
-ezgl::point2d naviStart;
-ezgl::point2d naviEnd;
+
 std::vector<std::pair<int,std::string>> navigationGuide;
 
 double turn_penalty = 15;
@@ -359,11 +358,11 @@ void draw_NavigationGuide(ezgl::renderer *g){
     g->set_coordinate_system(ezgl::SCREEN);
 
     g->set_color(255, 255, 255, 200);
-    g->fill_rectangle({10,42}, {230, 480});
+    g->fill_rectangle({10,42}, {250, 480});
     g->set_color(0, 0, 0, 200);
     bool isLine=false;
     double y=80;
-    double x=120;
+    double x=130;
     std::string text;
 
     int startingNum= PAGE*10;
@@ -386,7 +385,6 @@ void draw_NavigationGuide(ezgl::renderer *g){
         g->set_coordinate_system(ezgl::SCREEN);
     }
     std:: string string_navigationGuide;
-    //std::cout<<"The navigation Size "+ navigationGuide.size();
     if(startingNum>navigationGuide.size()){
         text="You have reached the destination";
         g->draw_text({x,y},text);
@@ -410,7 +408,6 @@ void draw_NavigationGuide(ezgl::renderer *g){
                 CurIns++;
                 text = (std::to_string(CurIns) + ". move " + std::to_string(totalLength) + "m on " + streetName);
                 isLine=false;
-                //std::cout<<strSeg;
             }
             if(text.length()>maxTextLength){
                 int k=0;
@@ -1246,8 +1243,6 @@ void Switch_set_OSM_display (GtkWidget */*widget*/, GdkEvent */*event*/, gpointe
 
     auto* switch_osm = (GtkSwitch *) app->get_object("DisplayOSM");
 
-    //std::cout << gtk_switch_get_state(switch_osm) << std::endl;
-
     if(gtk_switch_get_state(switch_osm)){
         DisplayOSM = false;
         app->update_message("Disable OSM");
@@ -1583,10 +1578,9 @@ void outputNavigationGuide() {
     navigationGuide.clear();
     instructionNumSet.clear();
     if(highlightNaviRoute.empty()) {
-        std::cout<<"highlightNaviRoute empty"<<std::endl;
         return;
     }
-    ezgl::point2d lastStartPoint=LatLon_to_point2d(getIntersectionPosition(SegsInfoList[highlightNaviRoute[0]].segInfo.from));;
+    ezgl::point2d lastStartPoint=highlightMousePress[0];//LatLon_to_point2d(getIntersectionPosition(SegsInfoList[highlightNaviRoute[0]].segInfo.from));
     int totalLength =0;
     int curSegIdx;
     int nextSegIdx;
@@ -1600,9 +1594,8 @@ void outputNavigationGuide() {
             totalLength+=findStreetSegmentLength(curSegIdx);
             streetName=getStreetName(curStrIdx);
             std::pair<int,std::string> street = std::make_pair (totalLength,streetName);
-            //std::cout<<streetName<<std::endl;
             navigationGuide.push_back(street);
-            ezgl::point2d midPoint = ((LatLon_to_point2d(getIntersectionPosition(SegsInfoList[curSegIdx].segInfo.to))+lastStartPoint) * ezgl::point2d(0.5,0.5));
+            ezgl::point2d midPoint = (highlightMousePress[highlightMousePress.size()-1]+lastStartPoint) * ezgl::point2d(0.5,0.5);
             instructionNumSet.push_back(midPoint);
             return;
         }
@@ -1610,13 +1603,11 @@ void outputNavigationGuide() {
         nextStrIdx=SegsInfoList[nextSegIdx].segInfo.streetID;
         if(curStrIdx==nextStrIdx){
             totalLength=totalLength+findStreetSegmentLength(curSegIdx);
-            //std::cout<<streetName<<std::endl;
         }else if(curStrIdx!=nextStrIdx){
             totalLength=totalLength+findStreetSegmentLength(curSegIdx);
             streetName=getStreetName(curStrIdx);
             std::pair<int,std::string> street = std::make_pair (totalLength,streetName);
             navigationGuide.push_back(street);
-            //std::cout<<streetName<<std::endl;
             totalLength=0;
 
             int curIntersectionIdx1=SegsInfoList[curSegIdx].segInfo.from;
@@ -1662,7 +1653,6 @@ void outputNavigationGuide() {
             ezgl::point2d v1 = ezgl::point2d(curTo2d.x-curFrom2d.x,curTo2d.y-curFrom2d.y);
             ezgl::point2d v2 = ezgl::point2d(nextTo2d.x-nextFrom2d.x,nextTo2d.y-nextFrom2d.y);
             double output = cross_Product(v1,v2);
-            std::cout<<output<<std::endl;
             streetName=getStreetName(nextStrIdx);
             if(output==0){//move street
                 std::pair<int,std::string> streetInfo = std::make_pair (-1,streetName);
