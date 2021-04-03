@@ -46,7 +46,9 @@ std::vector<ezgl::point2d> highlightMousePress;
 
 int PAGE = 0;
 int CurIns = 0;
-int textLength =33;
+int maxTextLength =33;
+ezgl::point2d naviStart;
+ezgl::point2d naviEnd;
 std::vector<std::pair<int,std::string>> navigationGuide;
 
 double turn_penalty = 15;
@@ -360,8 +362,8 @@ void draw_NavigationGuide(ezgl::renderer *g){
     g->fill_rectangle({10,42}, {230, 480});
     g->set_color(0, 0, 0, 200);
     bool isLine=false;
-    int y=80;
-    int x=120;
+    double y=80;
+    double x=120;
     std::string text;
 
     int startingNum= PAGE*10;
@@ -410,7 +412,7 @@ void draw_NavigationGuide(ezgl::renderer *g){
                 isLine=false;
                 //std::cout<<strSeg;
             }
-            if(text.length()>textLength){
+            if(text.length()>maxTextLength){
                 int k=0;
                 for(int i=0;i<text.length();i++){
                     if(text[i]==' '){
@@ -453,7 +455,7 @@ void draw_NavigationGuide(ezgl::renderer *g){
                 isLine=false;
             }
 
-            if(text.length()>textLength){
+            if(text.length()>maxTextLength){
                 int k=0;
                 for(int i=0;i<text.length();i++){
                     if(text[i]==' '){
@@ -943,7 +945,7 @@ void press_INTERSECT(ezgl::application* app, GdkEventButton* event, const ezgl::
         app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
     }
 }
-void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos){
+void press_POI(ezgl::application* /*app*/, GdkEventButton* event, const ezgl::point2d & mousePos){
     if(event->button == 1){
         highlightMousePress.clear();
 
@@ -961,7 +963,7 @@ void press_POI(ezgl::application* app, GdkEventButton* event, const ezgl::point2
         }
     }
 }
-void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & mousePos, const LatLon & pos){
+void press_NAVIGATION(ezgl::application* app, GdkEventButton* event, const ezgl::point2d & /*mousePos*/, const LatLon & pos){
     if(event->button == 1){
         int id = findClosestIntersection(pos);
         app->update_message("Closest Intersection: " + IntersectInfoList[id].name);
@@ -1577,49 +1579,6 @@ void destory_Entry(ezgl::application* app){
 }
 
 
-std::string stringNavigationGuide(){
-    int startingNum= PAGE*10;
-    if(navigationGuide.empty()){
-        return "Error:NavigationGuide Empty";
-    }
-    std:: string string_navigationGuide;
-    if(startingNum>navigationGuide.size()){
-        string_navigationGuide="You have reached the destination";
-    }else if(startingNum+9<navigationGuide.size()){
-        for(int strSeg=startingNum;strSeg<startingNum+9;strSeg++) {
-            int totalLength = navigationGuide[strSeg].first;
-            if(totalLength==-1){
-                string_navigationGuide.append("move straight on to " + navigationGuide[strSeg].second + "street \n");
-            }else if(totalLength==-2){
-                string_navigationGuide.append("move left on to " + navigationGuide[strSeg].second + "street \n");
-            }else if(totalLength==-3){
-                string_navigationGuide.append("move right on to " + navigationGuide[strSeg].second + "street \n");
-            }else{
-                std::string streetName = navigationGuide[strSeg].second;
-                string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
-            }
-
-            //std::cout<<strSeg;
-        }
-    }else if(startingNum+9>navigationGuide.size()) {
-        for (int strSeg = startingNum; strSeg < navigationGuide.size(); strSeg++) {
-            int totalLength = navigationGuide[strSeg].first;
-            if (totalLength == -1) {
-                string_navigationGuide.append("move straight on to " + navigationGuide[strSeg].second + "street \n");
-            } else if (totalLength == -2) {
-                string_navigationGuide.append("move right on to " + navigationGuide[strSeg].second + "street \n");
-            } else if (totalLength == -3) {
-                string_navigationGuide.append("move left on to " + navigationGuide[strSeg].second + "street \n");
-            } else {
-                std::string streetName = navigationGuide[strSeg].second;
-                string_navigationGuide.append("move " + std::to_string(totalLength) + " on " + streetName + "\n");
-                //std::cout << string_navigationGuide << std::endl;
-                //std::cout<<strSeg;
-            }
-        }
-    }
-    return string_navigationGuide;
-}
 void outputNavigationGuide() {
     navigationGuide.clear();
     instructionNumSet.clear();
@@ -1664,10 +1623,10 @@ void outputNavigationGuide() {
             int curIntersectionIdx2=SegsInfoList[curSegIdx].segInfo.to;
             int nextIntersectionIdx1=SegsInfoList[nextSegIdx].segInfo.from;
             int nextIntersectionIdx2=SegsInfoList[nextSegIdx].segInfo.to;
-            int curToIntersectionSeg;
-            int curFromIntersectionSeg;
-            int nextToIntersectionSeg;
-            int nextFromIntersectionSeg;
+            int curToIntersectionSeg=0;
+            int curFromIntersectionSeg=0;
+            int nextToIntersectionSeg=0;
+            int nextFromIntersectionSeg=0;
             if(curIntersectionIdx1==nextIntersectionIdx1){
                 curToIntersectionSeg=curIntersectionIdx1;
                 nextFromIntersectionSeg=curIntersectionIdx1;
@@ -1700,28 +1659,20 @@ void outputNavigationGuide() {
             instructionNumSet.push_back(midPoint);
 
 
-
-
-
-
-
-
-
-
             ezgl::point2d v1 = ezgl::point2d(curTo2d.x-curFrom2d.x,curTo2d.y-curFrom2d.y);
             ezgl::point2d v2 = ezgl::point2d(nextTo2d.x-nextFrom2d.x,nextTo2d.y-nextFrom2d.y);
             double output = cross_Product(v1,v2);
             std::cout<<output<<std::endl;
             streetName=getStreetName(nextStrIdx);
             if(output==0){//move street
-                std::pair<int,std::string> street = std::make_pair (-1,streetName);
-                navigationGuide.push_back(street);
+                std::pair<int,std::string> streetInfo = std::make_pair (-1,streetName);
+                navigationGuide.push_back(streetInfo);
             }else if(output>0){//left turn
-                std::pair<int,std::string> street = std::make_pair (-2,streetName);
-                navigationGuide.push_back(street);
+                std::pair<int,std::string> streetInfo = std::make_pair (-2,streetName);
+                navigationGuide.push_back(streetInfo);
             }else{//right turn
-                std::pair<int,std::string> street = std::make_pair (-3,streetName);
-                navigationGuide.push_back(street);
+                std::pair<int,std::string> streetInfo = std::make_pair (-3,streetName);
+                navigationGuide.push_back(streetInfo);
             }
         }
     }
