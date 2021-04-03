@@ -222,19 +222,6 @@
           </packing>
         </child>
         <child>
-          <object class="GtkEntry" id="UserInput">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="primary_icon_name">edit-find</property>
-            <signal name="activate" handler="TextInput_Enter_Key_action" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">0</property>
-            <property name="width">2</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkComboBoxText" id="FuncMode">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -319,6 +306,29 @@
           <packing>
             <property name="left_attach">5</property>
             <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkGrid" id="SearchGrid">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkEntry" id="UserInput">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="primary_icon_name">edit-find</property>
+                <signal name="activate" handler="TextInput_Enter_Key_action" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
+            <property name="width">2</property>
           </packing>
         </child>
       </object>
