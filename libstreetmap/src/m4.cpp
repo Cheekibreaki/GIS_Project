@@ -15,7 +15,6 @@ struct IntersectNaviInfo{
     double bestTime = DBL_MAX;
     bool isTravel = false;
 };
-std::vector<IntersectNaviInfo> IntersectNaviInfoList;
 
 struct WaveElem{
     int IntersectId;
@@ -28,7 +27,24 @@ struct WaveElem{
     }
 };
 
-std::map<IntersectionIdx, std::map<IntersectionIdx, std::vector<StreetSegmentIdx> curPath>> PathStorage;
+/*struct PathInfo{
+    double travelTime;
+    std::vector<StreetSegmentIdx> curPath;
+};
+
+std::map<int, std::map<int, PathInfo>> PathStorage;*/
+
+
+void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty);
+
+/*void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
+                        std::vector<IntersectionIdx>&       relatedIntersect,
+                        const double                        turn_penalty);*/
+
+std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
+                                          const IntersectionIdx intersect_id_destination,
+                                          std::vector<IntersectNaviInfo>&     IntersectNaviInfoList);
+
 
 
 /// Intergrate Function
@@ -37,42 +53,45 @@ std::vector<CourierSubPath> travelingCourier(
         const std::vector<int>& depots,
         const float turn_penalty){
 
-    /// Step 1: MultiStart Dyjestra Method
+    /// Step 1: MultiDest Dyjestra Method
 
-    /// Step 2: Greedy Algo
+    // assemble all Intersections and Pass into MultiStart_Dij
+    std::vector<IntersectionIdx> allIntersect;
+    for(auto temp : deliveries){
+        allIntersect.push_back(temp.pickUp);
+        allIntersect.push_back(temp.dropOff);
+    }
+    allIntersect.insert(allIntersect.end(), depots.begin(), depots.end());
+
+    MultiDest_Dijkstra_Method(allIntersect, turn_penalty);
+
+    /// Step 2: Greedy Algo || MultiStart
+
 
     /// Step 3: 2/3 OPTs With Time Restriction
-
+    return{};
 }
 
 ///MultiStart Dyjestra Method (NOT CHANGED YET)
-void MultiStart_Dijkstra(
-        std::vector<IntersectionIdx> relatedIntersect,
-        const double turn_penalty){
+void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty){
 
-    for()
+    for(auto curIntersect: relatedIntersect){
+        MultiDest_Dijkstra(curIntersect, relatedIntersect, turn_penalty);
+    }
+}
 
+void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
+                        std::vector<IntersectionIdx>&       relatedIntersect,
+                        const double                        turn_penalty){
+
+    std::vector<IntersectNaviInfo> IntersectNaviInfoList;
     IntersectNaviInfoList.resize(getNumIntersections());
 
-    bool pathExist = NaviInfoHelper(intersect_id_start, intersect_id_destination, turn_penalty);
-    if(!pathExist) return {};
-    IntersectNaviInfoList.clear();
-
-    auto temp = backTracing(intersect_id_start, intersect_id_destination);
-
-    std::cout << "Total TravelTime + TURNING pen" << computePathTravelTime(temp, turn_penalty) << std::endl;
-
-    return temp;
-}
-bool NaviInfoHelper(
-        const IntersectionIdx intersect_id_start,
-        const IntersectionIdx intersect_id_destination,
-        const double turn_penalty){
 
     auto cmp = [](WaveElem lhs, WaveElem rhs){return (lhs.travelTime) > (rhs.travelTime);};
     std::priority_queue<WaveElem, std::vector<WaveElem>, decltype(cmp)> WaveFront(cmp);
 
-    WaveFront.push(WaveElem(intersect_id_start, -1, 0));
+    WaveFront.push(WaveElem(fromIntersect, -1, 0));
 
     while(!WaveFront.empty()){
 
@@ -82,13 +101,25 @@ bool NaviInfoHelper(
         IntersectionIdx currIntersectId = currWave.IntersectId;
 
         if(currWave.travelTime < IntersectNaviInfoList[currIntersectId].bestTime){
-
+            // Store THe bestTime into curretnIntersect
             IntersectNaviInfoList[currIntersectId].reachingEdge = currWave.reachingEdge;
             IntersectNaviInfoList[currIntersectId].bestTime = currWave.travelTime;
 
-            if(currIntersectId == intersect_id_destination){
-                return true;
+
+            for(auto itr = relatedIntersect.begin();itr != relatedIntersect.end(); itr++){
+                if(*itr==currIntersectId){
+                    relatedIntersect.erase(itr);
+                    PathStorage[fromIntersect][currIntersectId].travelTime
+                                                = IntersectNaviInfoList[currIntersectId].bestTime;
+                    PathStorage[fromIntersect][currIntersectId].curPath
+                                                = backTracing(fromIntersect, currIntersectId, IntersectNaviInfoList);
+                }
             }
+            if(relatedIntersect.empty()){
+                return;
+            }
+
+            // find All streetSegment of Current Intersection
             auto tempStSegsList = findStreetSegmentsOfIntersection(currIntersectId);
 
             // each outEdge of currNode
@@ -129,5 +160,6 @@ bool NaviInfoHelper(
         }
 
     }
-    return false;
+
+    IntersectNaviInfoList.clear();
 }

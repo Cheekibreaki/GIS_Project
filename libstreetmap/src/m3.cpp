@@ -148,7 +148,7 @@ bool NaviInfoHelper(
     return false;
 }
 
-std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
+std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx /*intersect_id_start*/,
                                           const IntersectionIdx intersect_id_destination){
 
     std::deque<StreetSegmentIdx> path;
