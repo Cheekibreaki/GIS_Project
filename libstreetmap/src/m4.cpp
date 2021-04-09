@@ -27,19 +27,19 @@ struct WaveElem{
     }
 };
 
-/*struct PathInfo{
+struct PathInfo{
     double travelTime;
     std::vector<StreetSegmentIdx> curPath;
 };
 
-std::map<int, std::map<int, PathInfo>> PathStorage;*/
+std::map<int, std::map<int, PathInfo>> PathStorage;
 
 
 void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty);
 
-/*void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
+void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
                         std::vector<IntersectionIdx>&       relatedIntersect,
-                        const double                        turn_penalty);*/
+                        const double                        turn_penalty);
 
 std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
                                           const IntersectionIdx intersect_id_destination,
@@ -78,6 +78,7 @@ void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, c
     for(auto curIntersect: relatedIntersect){
         MultiDest_Dijkstra(curIntersect, relatedIntersect, turn_penalty);
     }
+
 }
 
 void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
@@ -86,7 +87,6 @@ void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
 
     std::vector<IntersectNaviInfo> IntersectNaviInfoList;
     IntersectNaviInfoList.resize(getNumIntersections());
-
 
     auto cmp = [](WaveElem lhs, WaveElem rhs){return (lhs.travelTime) > (rhs.travelTime);};
     std::priority_queue<WaveElem, std::vector<WaveElem>, decltype(cmp)> WaveFront(cmp);

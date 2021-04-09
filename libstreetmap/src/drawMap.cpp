@@ -173,10 +173,6 @@ void draw_main_canvas(ezgl::renderer *g){
 
     highlight_mouse_press(g);
 
-    //std::vector<int> related
-
-    MultiDest_Dijkstra(fromIntersect, relatedIntersect, 15);
-
 }
 
 void drawNightColor(ezgl::renderer *g){

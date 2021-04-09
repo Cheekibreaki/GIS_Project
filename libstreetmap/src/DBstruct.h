@@ -257,14 +257,3 @@ ezgl::point2d LatLon_to_point2d(LatLon curLatLon);
 
 
 /* Supportive Func END */
-
-struct PathInfo{
-    double travelTime;
-    std::vector<StreetSegmentIdx> curPath;
-};
-
-extern std::map<int, std::map<int, PathInfo>> PathStorage;
-
-void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
-                        std::vector<IntersectionIdx>&       relatedIntersect,
-                        const double                        turn_penalty);
