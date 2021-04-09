@@ -182,15 +182,15 @@ void LoadNaturalFeatureList(){
         NaturalFeatureList[feature_id].type=getFeatureType(feature_id);
         NaturalFeatureList[feature_id].polyList.resize(getNumFeaturePoints(feature_id));
 
-            for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
-                LatLon temp=getFeaturePoint(feature_id,i);
-                double x= x_from_lon(temp.longitude());
-                double y= y_from_lat(temp.latitude());
-                NaturalFeatureList[feature_id].polyList[i]= ezgl::point2d(x,y);
-            }
+        for(int i= 0; i < getNumFeaturePoints(feature_id); i++){
+            LatLon temp=getFeaturePoint(feature_id,i);
+            double x= x_from_lon(temp.longitude());
+            double y= y_from_lat(temp.latitude());
+            NaturalFeatureList[feature_id].polyList[i]= ezgl::point2d(x,y);
+        }
         if(NaturalFeatureList[feature_id].polyList[0]
-        == NaturalFeatureList[feature_id].polyList[getNumFeaturePoints(feature_id)-1]
-        && NaturalFeatureList[feature_id].polyList.size()>1){
+           == NaturalFeatureList[feature_id].polyList[getNumFeaturePoints(feature_id)-1]
+           && NaturalFeatureList[feature_id].polyList.size()>1){
             NaturalFeatureList[feature_id].isPoly=true;
         }
     }
@@ -332,34 +332,34 @@ void LoadPoiInfoList(){
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/bank_night.png";
 
         } else if (CheckTypeIconForPOI("shop", PoiInfoList[Idx].type) == true||
-                CheckTypeIconForPOI("center", PoiInfoList[Idx].type) == true) {
+                   CheckTypeIconForPOI("center", PoiInfoList[Idx].type) == true) {
 
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/shop.png";
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/shop_night.png";
 
         } else if (CheckTypeIconForPOI("school", PoiInfoList[Idx].type)||
-                CheckTypeIconForPOI("college", PoiInfoList[Idx].type)||
-                CheckTypeIconForPOI("university", PoiInfoList[Idx].type)||
-                CheckTypeIconForPOI("School", PoiInfoList[Idx].type)||
-                CheckTypeIconForPOI("college", PoiInfoList[Idx].type)) {
-                        PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/school.png";
-                        PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/school_night.png";
+                   CheckTypeIconForPOI("college", PoiInfoList[Idx].type)||
+                   CheckTypeIconForPOI("university", PoiInfoList[Idx].type)||
+                   CheckTypeIconForPOI("School", PoiInfoList[Idx].type)||
+                   CheckTypeIconForPOI("college", PoiInfoList[Idx].type)) {
+            PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/school.png";
+            PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/school_night.png";
 
 
         } else if (CheckTypeIconForPOI("hospital", PoiInfoList[Idx].type) ||
-                CheckTypeIconForPOI("clinic", PoiInfoList[Idx].type)) {
+                   CheckTypeIconForPOI("clinic", PoiInfoList[Idx].type)) {
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/hospital.png";
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/hosptial_night.png";
 
 
         } else if (CheckTypeIconForPOI("park", PoiInfoList[Idx].type) == true&&
-        CheckTypeIconForPOI("parking", PoiInfoList[Idx].type)==false) {
+                   CheckTypeIconForPOI("parking", PoiInfoList[Idx].type)==false) {
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/park.png";
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/park_night.png";
 
 
         } else if (CheckTypeIconForPOI("restaurant", PoiInfoList[Idx].type) == true||
-                CheckTypeIconForPOI("food", PoiInfoList[Idx].type)) {
+                   CheckTypeIconForPOI("food", PoiInfoList[Idx].type)) {
             PoiInfoList[Idx].icon_day="libstreetmap/resources/labels/restaurant.png";
             PoiInfoList[Idx].icon_night="libstreetmap/resources/labels/restaurant_night.png";
         }
@@ -1023,5 +1023,4 @@ POIIdx findClosestPOI(LatLon my_position, std::string POIname){
     }
     return closestPOIIdx;
 }
-
 
