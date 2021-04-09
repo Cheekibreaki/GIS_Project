@@ -2,6 +2,13 @@
 // Created by cheny811 on 2021-04-09.
 //
 
+#include "DBstruct.h"
+#include "m4.h"
+#include "m1.h"
+#include <queue>
+#include <float.h>
+#include <map>
+
 /// Structure Area
 struct IntersectNaviInfo{
     StreetSegmentIdx reachingEdge = -1;
@@ -10,22 +17,19 @@ struct IntersectNaviInfo{
 };
 std::vector<IntersectNaviInfo> IntersectNaviInfoList;
 
-double lineDistance;
-
 struct WaveElem{
     int IntersectId;
     int reachingEdge;
     double travelTime;
-    double cost;
-
-    WaveElem (int curI, int rE, double tT, double cT) {
+    WaveElem (int curI, int rE, double tT) {
         IntersectId = curI;
         reachingEdge = rE;
         travelTime = tT;
-        cost = cT;
-
     }
 };
+
+std::map<IntersectionIdx, std::map<IntersectionIdx, std::vector<StreetSegmentIdx> curPath>> PathStorage;
+
 
 /// Intergrate Function
 std::vector<CourierSubPath> travelingCourier(
@@ -42,37 +46,36 @@ std::vector<CourierSubPath> travelingCourier(
 }
 
 ///MultiStart Dyjestra Method (NOT CHANGED YET)
-std::vector<StreetSegmentIdx> findPathBetweenIntersections(
-        const IntersectionIdx intersect_id_start,
-        const IntersectionIdx intersect_id_destination,
+void MultiStart_Dijkstra(
+        std::vector<IntersectionIdx> relatedIntersect,
         const double turn_penalty){
 
-    LatLon fromPos = getIntersectionPosition(intersect_id_start);
-    LatLon toPos = getIntersectionPosition(intersect_id_destination);
-    lineDistance = findDistanceBetweenTwoPoints(std::make_pair(fromPos, toPos));
+    for()
 
     IntersectNaviInfoList.resize(getNumIntersections());
 
-    std::vector<StreetSegmentIdx> path;
     bool pathExist = NaviInfoHelper(intersect_id_start, intersect_id_destination, turn_penalty);
-    if(pathExist) path = backTracing(intersect_id_start, intersect_id_destination);
-
+    if(!pathExist) return {};
     IntersectNaviInfoList.clear();
-    return path;
+
+    auto temp = backTracing(intersect_id_start, intersect_id_destination);
+
+    std::cout << "Total TravelTime + TURNING pen" << computePathTravelTime(temp, turn_penalty) << std::endl;
+
+    return temp;
 }
 bool NaviInfoHelper(
         const IntersectionIdx intersect_id_start,
         const IntersectionIdx intersect_id_destination,
         const double turn_penalty){
 
-    auto cmp = [](WaveElem lhs, WaveElem rhs){
-        return (lhs.cost) > (rhs.cost);
-    };
+    auto cmp = [](WaveElem lhs, WaveElem rhs){return (lhs.travelTime) > (rhs.travelTime);};
     std::priority_queue<WaveElem, std::vector<WaveElem>, decltype(cmp)> WaveFront(cmp);
 
-    WaveFront.push(WaveElem(intersect_id_start, -1, 0, 0));
+    WaveFront.push(WaveElem(intersect_id_start, -1, 0));
 
     while(!WaveFront.empty()){
+
         WaveElem currWave = WaveFront.top();
         WaveFront.pop();
 
@@ -110,26 +113,21 @@ bool NaviInfoHelper(
                 }
 
                 if(IntersectNaviInfoList[toIntersect].isTravel) continue;
+                // Save To INTERSECTIONINFO into the WaveFront
+                // Initalize with WaveElem("curIntersect", "reachingEdge", "travelTime")
 
-                double curTravelTime;
-                LatLon fromPos = getIntersectionPosition(toIntersect);
-                LatLon toPos = getIntersectionPosition(intersect_id_destination);
-                double curDistance = findDistanceBetweenTwoPoints(std::make_pair(fromPos, toPos));
-                double kVal = curDistance/60;
-                if(currIntersectId != intersect_id_start &&
-                   SegsInfoList[currStSegsId].segInfo.streetID !=
-                   SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID){
-                    curTravelTime = IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty;
-
-                    WaveFront.push(WaveElem(toIntersect, currStSegsId, curTravelTime, kVal+curTravelTime));
-                }
-                else{
-                    curTravelTime = IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time;
-                    WaveFront.push(WaveElem(toIntersect, currStSegsId, curTravelTime, kVal+curTravelTime));
+                if(currStSegsId != IntersectNaviInfoList[currIntersectId].reachingEdge
+                   && currIntersectId != intersect_id_start){
+                    WaveFront.push(WaveElem(toIntersect, currStSegsId,
+                                            IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty));
+                }else{
+                    WaveFront.push(WaveElem(toIntersect, currStSegsId,
+                                            IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time));
                 }
             }
             IntersectNaviInfoList[currIntersectId].isTravel = true;
         }
+
     }
     return false;
 }
