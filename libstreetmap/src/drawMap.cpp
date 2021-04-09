@@ -1478,7 +1478,7 @@ void search_Mode_NAVIGATION(ezgl::application* app,
     secondPos = ezgl::point2d(x1,y1);
     ezgl::rectangle setScreen(firstPos,secondPos);
 
-    calc_screen_fit(app, setScreen);
+    //calc_screen_fit(app, setScreen);
 }
 void calc_screen_fit(ezgl::application* app, ezgl::rectangle& setScreen){
     auto initScreen = app->get_renderer()->get_visible_screen();

@@ -1,14 +1,8 @@
 //
-// Created by cheny811 on 2021-03-27.
+// Created by cheny811 on 2021-04-09.
 //
-#include "m3.h"
-#include "m1.h"
-#include "DBstruct.h"
-#include <queue>
-#include <deque>
-#include <float.h>
-#include <utility>
 
+/// Structure Area
 struct IntersectNaviInfo{
     StreetSegmentIdx reachingEdge = -1;
     double bestTime = DBL_MAX;
@@ -32,30 +26,22 @@ struct WaveElem{
 
     }
 };
-double computePathTravelTime(const std::vector<StreetSegmentIdx>& path, const double turn_penalty){
-    double totalTurnPenalty = 0;
-    if(path.size() > 2){
-        for(int i=0 ; i < path.size()-1 ; i++ ){
-            if(SegsInfoList[path[i]].segInfo.streetID != SegsInfoList[path[i+1]].segInfo.streetID){
-                totalTurnPenalty+=turn_penalty;
-            }
-        }
-    }
-    double totalTraveTime = 0;
-    for(auto curStSegId : path){
-        totalTraveTime += SegsInfoList[curStSegId].time;
-    }
 
-    return totalTraveTime + totalTurnPenalty;
+/// Intergrate Function
+std::vector<CourierSubPath> travelingCourier(
+        const std::vector<DeliveryInf>& deliveries,
+        const std::vector<int>& depots,
+        const float turn_penalty){
+
+    /// Step 1: MultiStart Dyjestra Method
+
+    /// Step 2: Greedy Algo
+
+    /// Step 3: 2/3 OPTs With Time Restriction
+
 }
 
-bool NaviInfoHelper(const IntersectionIdx intersect_id_start,
-                    const IntersectionIdx intersect_id_destination,
-                    const double turn_penalty);
-std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
-                                          const IntersectionIdx intersect_id_destination);
-
-
+///MultiStart Dyjestra Method (NOT CHANGED YET)
 std::vector<StreetSegmentIdx> findPathBetweenIntersections(
         const IntersectionIdx intersect_id_start,
         const IntersectionIdx intersect_id_destination,
@@ -131,8 +117,8 @@ bool NaviInfoHelper(
                 double curDistance = findDistanceBetweenTwoPoints(std::make_pair(fromPos, toPos));
                 double kVal = curDistance/60;
                 if(currIntersectId != intersect_id_start &&
-                SegsInfoList[currStSegsId].segInfo.streetID !=
-                SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID){
+                   SegsInfoList[currStSegsId].segInfo.streetID !=
+                   SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID){
                     curTravelTime = IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty;
 
                     WaveFront.push(WaveElem(toIntersect, currStSegsId, curTravelTime, kVal+curTravelTime));
@@ -146,29 +132,4 @@ bool NaviInfoHelper(
         }
     }
     return false;
-}
-
-std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
-                                          const IntersectionIdx intersect_id_destination){
-
-    std::deque<StreetSegmentIdx> path;
-
-    auto curIntersectId = intersect_id_destination;
-    auto previousEdge = IntersectNaviInfoList[curIntersectId].reachingEdge;
-
-    while(previousEdge != -1){
-        path.push_front(previousEdge);
-
-        auto fromIntersect = SegsInfoList[previousEdge].segInfo.from;
-        auto toIntersect = SegsInfoList[previousEdge].segInfo.to;
-
-        if(toIntersect == curIntersectId){
-            curIntersectId = fromIntersect;
-        }else{
-            curIntersectId = toIntersect;
-        }
-        previousEdge = IntersectNaviInfoList[curIntersectId].reachingEdge;
-    }
-
-    return std::vector<StreetSegmentIdx>(path.begin(), path.end());
 }
