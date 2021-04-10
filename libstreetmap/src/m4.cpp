@@ -20,6 +20,7 @@ struct WaveElem{
     int IntersectId;
     int reachingEdge;
     double travelTime;
+
     WaveElem (int curI, int rE, double tT) {
         IntersectId = curI;
         reachingEdge = rE;
@@ -33,7 +34,8 @@ struct PathInfo{
 };
 
 std::map<int, std::map<int, PathInfo>> PathStorage;
-//std::map<int, std::map<int, PathInfo>> PathStorage;
+
+
 
 
 void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty);
@@ -44,7 +46,7 @@ void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
 
 std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
                                           const IntersectionIdx intersect_id_destination,
-                                          std::vector<IntersectNaviInfo>&     IntersectNaviInfoList);
+                                          const std::vector<IntersectNaviInfo>&     IntersectNaviInfoList);
 
 
 
@@ -61,9 +63,9 @@ std::vector<CourierSubPath> travelingCourier(
         allIntersect.push_back(temp.pickUp);
         allIntersect.push_back(temp.dropOff);
     }
-    allIntersect.insert(allIntersect.end(), depots.begin(), depots.end());
+    //allIntersect.insert(allIntersect.end(), depots.begin(), depots.end());
 
-    MultiDest_Dijkstra_Method(allIntersect, turn_penalty);
+    //MultiDest_Dijkstra_Method(allIntersect, turn_penalty);
 
     /// Step 2: Greedy Algo || MultiStart
     std::vector<CourierSubPath> courierPaths;
@@ -160,97 +162,129 @@ std::vector<CourierSubPath> travelingCourier(
 
 
     /// Step 3: 2/3 OPTs With Time Restriction
+    for(auto itr = PathStorage.begin(); itr!= PathStorage.end(); itr++){
+        itr->second.clear();
+    }
+    PathStorage.clear();
     return{};
 }
 
 ///MultiStart Dyjestra Method (NOT CHANGED YET)
 void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty){
 
-    for(auto curIntersect: relatedIntersect){
+
+    for(auto curIntersect: relatedIntersect) {
         MultiDest_Dijkstra(curIntersect, relatedIntersect, turn_penalty);
+
+
     }
 
 }
-
-void MultiDest_Dijkstra(const IntersectionIdx               fromIntersect,
+ void MultiDest_Dijkstra(const IntersectionIdx               intersect_id_start,
                         std::vector<IntersectionIdx>&       relatedIntersect,
                         const double                        turn_penalty){
 
-    std::vector<IntersectNaviInfo> IntersectNaviInfoList;
-    IntersectNaviInfoList.resize(getNumIntersections());
+     std::vector<IntersectNaviInfo> IntersectNaviInfoList(getNumIntersections());
 
-    auto cmp = [](WaveElem lhs, WaveElem rhs){return (lhs.travelTime) > (rhs.travelTime);};
-    std::priority_queue<WaveElem, std::vector<WaveElem>, decltype(cmp)> WaveFront(cmp);
+     auto cmp = [](WaveElem lhs, WaveElem rhs){
+         return (lhs.travelTime) > (rhs.travelTime);
+     };
+     std::priority_queue<WaveElem, std::vector<WaveElem>, decltype(cmp)> WaveFront(cmp);
 
-    WaveFront.push(WaveElem(fromIntersect, -1, 0));
+     WaveFront.push(WaveElem(intersect_id_start, -1, 0));
 
-    while(!WaveFront.empty()){
+     while(!WaveFront.empty()){
+         WaveElem currWave = WaveFront.top();
+         WaveFront.pop();
 
-        WaveElem currWave = WaveFront.top();
-        WaveFront.pop();
+         IntersectionIdx currIntersectId = currWave.IntersectId;
 
-        IntersectionIdx currIntersectId = currWave.IntersectId;
+         if(currWave.travelTime < IntersectNaviInfoList[currIntersectId].bestTime){
 
-        if(currWave.travelTime < IntersectNaviInfoList[currIntersectId].bestTime){
-            // Store THe bestTime into curretnIntersect
-            IntersectNaviInfoList[currIntersectId].reachingEdge = currWave.reachingEdge;
-            IntersectNaviInfoList[currIntersectId].bestTime = currWave.travelTime;
+             IntersectNaviInfoList[currIntersectId].reachingEdge = currWave.reachingEdge;
+             IntersectNaviInfoList[currIntersectId].bestTime = currWave.travelTime;
 
+             for(auto itr = relatedIntersect.begin();itr != relatedIntersect.end(); itr++){
+                 if(*itr==currIntersectId){
+                     relatedIntersect.erase(itr);
+                     PathStorage[intersect_id_start][currIntersectId].travelTime
+                             = IntersectNaviInfoList[currIntersectId].bestTime;
+                     PathStorage[intersect_id_start][currIntersectId].curPath
+                             = backTracing(intersect_id_start, currIntersectId, IntersectNaviInfoList);
+                 }
+             }
+             if(relatedIntersect.empty()){
+                 IntersectNaviInfoList.clear();
+                 return;
+             }
 
-            for(auto itr = relatedIntersect.begin();itr != relatedIntersect.end(); itr++){
-                if(*itr==currIntersectId){
-                    relatedIntersect.erase(itr);
-                    PathStorage[fromIntersect][currIntersectId].travelTime
-                                                = IntersectNaviInfoList[currIntersectId].bestTime;
-                    PathStorage[fromIntersect][currIntersectId].curPath
-                                                = backTracing(fromIntersect, currIntersectId, IntersectNaviInfoList);
-                }
-            }
-            if(relatedIntersect.empty()){
-                return;
-            }
+             auto tempStSegsList = findStreetSegmentsOfIntersection(currIntersectId);
 
-            // find All streetSegment of Current Intersection
-            auto tempStSegsList = findStreetSegmentsOfIntersection(currIntersectId);
+             // each outEdge of currNode
+             for(auto currStSegsId : tempStSegsList){
+                 const StrSeg_Info & curSegInfo = SegsInfoList[currStSegsId];
 
-            // each outEdge of currNode
-            for(auto currStSegsId : tempStSegsList){
-                const StrSeg_Info & curSegInfo = SegsInfoList[currStSegsId];
+                 IntersectionIdx toIntersect;
 
-                IntersectionIdx toIntersect;
+                 // Check From and To & ONEWAY
+                 if(curSegInfo.segInfo.oneWay){
+                     if(curSegInfo.segInfo.to == currIntersectId){
+                         continue;
+                     }else{
+                         toIntersect = curSegInfo.segInfo.to;
+                     }
+                 }else{
+                     if(curSegInfo.segInfo.to == currIntersectId){
+                         toIntersect = curSegInfo.segInfo.from;
+                     }else{
+                         toIntersect = curSegInfo.segInfo.to;
+                     }
+                 }
 
-                // Check From and To & ONEWAY
-                if(curSegInfo.segInfo.oneWay){
-                    if(curSegInfo.segInfo.to == currIntersectId){
-                        continue;
-                    }else{
-                        toIntersect = curSegInfo.segInfo.to;
-                    }
-                }else{
-                    if(curSegInfo.segInfo.to == currIntersectId){
-                        toIntersect = curSegInfo.segInfo.from;
-                    }else{
-                        toIntersect = curSegInfo.segInfo.to;
-                    }
-                }
+                 if(IntersectNaviInfoList[toIntersect].isTravel) continue;
 
-                if(IntersectNaviInfoList[toIntersect].isTravel) continue;
-                // Save To INTERSECTIONINFO into the WaveFront
-                // Initalize with WaveElem("curIntersect", "reachingEdge", "travelTime")
+                 double curTravelTime;
+                 if(currIntersectId != intersect_id_start &&
+                    SegsInfoList[currStSegsId].segInfo.streetID !=
+                    SegsInfoList[IntersectNaviInfoList[currIntersectId].reachingEdge].segInfo.streetID){
+                     curTravelTime = IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty;
+                     WaveFront.push(WaveElem(toIntersect, currStSegsId, curTravelTime));
+                 }
+                 else{
+                     curTravelTime = IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time;
+                     WaveFront.push(WaveElem(toIntersect, currStSegsId, curTravelTime));
+                 }
+             }
+             IntersectNaviInfoList[currIntersectId].isTravel = true;
+         }
+     }
 
-                if(currStSegsId != IntersectNaviInfoList[currIntersectId].reachingEdge
-                   && currIntersectId != intersect_id_start){
-                    WaveFront.push(WaveElem(toIntersect, currStSegsId,
-                                            IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time + turn_penalty));
-                }else{
-                    WaveFront.push(WaveElem(toIntersect, currStSegsId,
-                                            IntersectNaviInfoList[currIntersectId].bestTime + curSegInfo.time));
-                }
-            }
-            IntersectNaviInfoList[currIntersectId].isTravel = true;
+     return ;
+}
+
+std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
+                                          const IntersectionIdx intersect_id_destination,
+                                          const std::vector<IntersectNaviInfo>&     IntersectNaviInfoList){
+
+    std::deque<StreetSegmentIdx> path;
+    auto curIntersectId = intersect_id_destination;
+
+    auto previousEdge = IntersectNaviInfoList[curIntersectId].reachingEdge;
+    std::cout<< IntersectNaviInfoList[curIntersectId].bestTime<<std::endl;
+
+    while(previousEdge != -1){
+        path.push_front(previousEdge);
+
+        auto fromIntersect = SegsInfoList[previousEdge].segInfo.from;
+        auto toIntersect = SegsInfoList[previousEdge].segInfo.to;
+
+        if(toIntersect == curIntersectId){
+            curIntersectId = fromIntersect;
+        }else{
+            curIntersectId = toIntersect;
         }
-
+        previousEdge = IntersectNaviInfoList[curIntersectId].reachingEdge;
     }
 
-    IntersectNaviInfoList.clear();
+    return std::vector<StreetSegmentIdx>(path.begin(), path.end());
 }
