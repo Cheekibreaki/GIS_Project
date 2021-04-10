@@ -32,7 +32,7 @@ struct PathInfo{
     std::vector<StreetSegmentIdx> curPath;
 };
 
-std::map<int, std::map<int, PathInfo>> PathStorage;
+std::map<int, std::map<int,PathInfo>> PathStorage;
 
 
 void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty);
