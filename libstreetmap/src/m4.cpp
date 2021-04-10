@@ -32,6 +32,7 @@ struct PathInfo{
     std::vector<StreetSegmentIdx> curPath;
 };
 
+
 std::map<int, std::map<int, PathInfo>> PathStorage;
 
 
@@ -54,7 +55,6 @@ std::vector<CourierSubPath> travelingCourier(
         const float turn_penalty){
 
     /// Step 1: MultiDest Dyjestra Method
-
     // assemble all Intersections and Pass into MultiStart_Dij
     std::vector<IntersectionIdx> allIntersect;
     for(auto temp : deliveries){
@@ -66,6 +66,93 @@ std::vector<CourierSubPath> travelingCourier(
     MultiDest_Dijkstra_Method(allIntersect, turn_penalty);
 
     /// Step 2: Greedy Algo || MultiStart
+    std::vector<CourierSubPath> courierPaths;
+
+
+    double minTime = 999999999999999;
+    IntersectionIdx firstIntersect;
+    int firstId;//pickup or drop off Id
+    IntersectionIdx secondIntersect;
+    int secondId;//pickup or drop off Id
+    std::vector<StreetSegmentIdx> intersectPath;
+    for(tempDepot : depots){
+        for(tempDeliv : deliveries){
+            std::unordered_map<std::string,double>::const_iterator gotTempDepot = PathStorage.find (tempDepot);
+            std::unordered_map<std::string,double>::const_iterator gotTempDeliv = gotTempDepot->second.find(tempDeliv.pickUp);
+            double tempMinTime = gotTempDeliv->second.travelTime;
+            if(minTime>tempMinTime){
+                firstIntersect=tempDepot;
+                secondIntersect=tempDeliv.pickUp;
+                intersectPath=gotTempDeliv->second.curPath;
+            }
+        }
+    }
+    struct CourierSubPath tempCourierSubPath = {firstIntersect,secondIntersect,intersectPath};
+    courierPaths.push_back(tempCourierSubPath);
+
+
+
+    std::unordered_map<int, IntersectionIdx> unpicked;
+    std::unordered_map<int, IntersectionIdx> undroped;
+
+
+    for(int i=0;i<deliveries.size();i++){
+        if(i!=secondId){
+            unpicked.push_back(std::make_pair<int,IntersectionIdx>(i,deliveries[i].pickUp));
+        }
+    }
+    undroped.push_back(std::make_pair<int,IntersectionIdx>(secondId,deliveries[secondId].dropOff));
+
+    int delivCounter=deliveries.size();
+    while(delivCounter!=0){
+        bool isdroped=false;
+        double minTime=999999999999;
+        for(int i=0;i<unpicked.size();i++){
+            double tempTime;
+
+            //unfinished
+
+            if(tempTime<minTime){
+                minTime=tempTime;
+            }
+        }
+        for(int i=0;i<unpicked.size();i++){
+            double tempTime;
+
+            //unfinished
+
+
+            if(tempTime<minTime){
+                delivCounter--;
+                isdroped= true;
+                minTime=tempTime;
+            }
+        }
+
+
+
+    }
+
+
+
+
+    while(countDelivLeft!=0){
+        firstIntersect=secondIntersect;
+        for(tempDeliv : deliveries) {
+            std::unordered_map<std::string, double>::const_iterator gotTempFirst = PathStorage.find(firstIntersect);
+            std::unordered_map<std::string, double>::const_iterator gotTempPick = got->second.find(tempDeliv.pickUp);
+            std::unordered_map<std::string, double>::const_iterator gotTempDrop = got->second.find(tempDeliv.DropOff);
+            int tempPickMinTime = gotTempPick->second.travelTime;
+            int tempDropMinTime = gotTempDrop ->second.travelTime;
+            if (minTime > tempMinTime) {
+                firstIntersect = tempDepot;
+                secondIntersect = tempDeliv.pickUp;
+                intersectPath = gotTempDeliv->second.curPath;
+            }
+        }
+    }
+
+
 
 
     /// Step 3: 2/3 OPTs With Time Restriction
