@@ -32,8 +32,8 @@ struct PathInfo{
     std::vector<StreetSegmentIdx> curPath;
 };
 
-
 std::map<int, std::map<int, PathInfo>> PathStorage;
+//std::map<int, std::map<int, PathInfo>> PathStorage;
 
 
 void MultiDest_Dijkstra_Method(std::vector<IntersectionIdx>& relatedIntersect, const double turn_penalty);
@@ -69,21 +69,22 @@ std::vector<CourierSubPath> travelingCourier(
     std::vector<CourierSubPath> courierPaths;
 
 
-    double minTime = 999999999999999;
+    double minFirstTime = 999999999999999;
     IntersectionIdx firstIntersect;
     int firstId;//pickup or drop off Id
     IntersectionIdx secondIntersect;
     int secondId;//pickup or drop off Id
     std::vector<StreetSegmentIdx> intersectPath;
-    for(tempDepot : depots){
-        for(tempDeliv : deliveries){
-            std::unordered_map<std::string,double>::const_iterator gotTempDepot = PathStorage.find (tempDepot);
-            std::unordered_map<std::string,double>::const_iterator gotTempDeliv = gotTempDepot->second.find(tempDeliv.pickUp);
+    for(auto tempDepot : depots){
+        for(auto tempDeliv : deliveries){
+            std::unordered_map<int, std::unordered_map<int, PathInfo>>::const_iterator gotTempDepot = PathStorage.find (tempDepot);
+            std::unordered_map<int, PathInfo>::const_iterator gotTempDeliv = gotTempDepot->second.find(tempDeliv.pickUp);
             double tempMinTime = gotTempDeliv->second.travelTime;
-            if(minTime>tempMinTime){
+            if(minFirstTime>tempMinTime){
                 firstIntersect=tempDepot;
                 secondIntersect=tempDeliv.pickUp;
                 intersectPath=gotTempDeliv->second.curPath;
+                minFirstTime=tempMinTime;
             }
         }
     }
@@ -98,22 +99,25 @@ std::vector<CourierSubPath> travelingCourier(
 
     for(int i=0;i<deliveries.size();i++){
         if(i!=secondId){
-            unpicked.push_back(std::make_pair<int,IntersectionIdx>(i,deliveries[i].pickUp));
+            std::pair <int,IntersectionIdx> temp=std::make_pair(i,deliveries[i].pickUp);
+            unpicked.insert(temp);
         }
     }
-    undroped.push_back(std::make_pair<int,IntersectionIdx>(secondId,deliveries[secondId].dropOff));
+    std::pair <int,IntersectionIdx> firstDropOff=std::make_pair(secondId,deliveries[secondId].dropOff);
+    undroped.insert(firstDropOff);
 
     int delivCounter=deliveries.size();
     while(delivCounter!=0){
         bool isdroped=false;
-        double minTime=999999999999;
-        for(int i=0;i<unpicked.size();i++){
+        double minPathTime=999999999999;
+        for(auto it=undroped.begin();it!=undroped.end();it++){
             double tempTime;
+            int index=it->first;
 
             //unfinished
 
-            if(tempTime<minTime){
-                minTime=tempTime;
+            if(tempTime<minPathTime){
+                minPathTime=tempTime;
             }
         }
         for(int i=0;i<unpicked.size();i++){
@@ -122,10 +126,10 @@ std::vector<CourierSubPath> travelingCourier(
             //unfinished
 
 
-            if(tempTime<minTime){
+            if(tempTime<minPathTime){
                 delivCounter--;
                 isdroped= true;
-                minTime=tempTime;
+                minPathTime=tempTime;
             }
         }
 
@@ -136,21 +140,21 @@ std::vector<CourierSubPath> travelingCourier(
 
 
 
-    while(countDelivLeft!=0){
-        firstIntersect=secondIntersect;
-        for(tempDeliv : deliveries) {
-            std::unordered_map<std::string, double>::const_iterator gotTempFirst = PathStorage.find(firstIntersect);
-            std::unordered_map<std::string, double>::const_iterator gotTempPick = got->second.find(tempDeliv.pickUp);
-            std::unordered_map<std::string, double>::const_iterator gotTempDrop = got->second.find(tempDeliv.DropOff);
-            int tempPickMinTime = gotTempPick->second.travelTime;
-            int tempDropMinTime = gotTempDrop ->second.travelTime;
-            if (minTime > tempMinTime) {
-                firstIntersect = tempDepot;
-                secondIntersect = tempDeliv.pickUp;
-                intersectPath = gotTempDeliv->second.curPath;
-            }
-        }
-    }
+//    while(countDelivLeft!=0){
+//        firstIntersect=secondIntersect;
+//        for(tempDeliv : deliveries) {
+//            std::unordered_map<std::string, double>::const_iterator gotTempFirst = PathStorage.find(firstIntersect);
+//            std::unordered_map<std::string, double>::const_iterator gotTempPick = got->second.find(tempDeliv.pickUp);
+//            std::unordered_map<std::string, double>::const_iterator gotTempDrop = got->second.find(tempDeliv.DropOff);
+//            int tempPickMinTime = gotTempPick->second.travelTime;
+//            int tempDropMinTime = gotTempDrop ->second.travelTime;
+//            if (minTime > tempMinTime) {
+//                firstIntersect = tempDepot;
+//                secondIntersect = tempDeliv.pickUp;
+//                intersectPath = gotTempDeliv->second.curPath;
+//            }
+//        }
+//    }
 
 
 
