@@ -119,15 +119,20 @@ std::vector<CourierSubPath> travelingCourier(
         DeliveryInfo.push_back(temp);
     }
 
-    for(auto temp : DeliveryInfo){
-        std::cout << temp <<" ";
-    }
-
     /// Step 1: MultiDest Dyjestra Method
     for(auto curIntersect : DeliveryInfo){
         MultiDest_Dijkstra(curIntersect, turn_penalty);
     }
+
+
+    for(auto curIntersect : DeliveryInfo){
+        MultiDest_Dijkstra(curIntersect, turn_penalty);
+    }
+    for(auto temp : DeliveryInfo){
+        std::cout << temp <<"\t\t";
+    }std::cout << "\n";
     for(auto id1 : DeliveryInfo){
+        std::cout << id1 <<": ";
         for(auto id2 : DeliveryInfo){
             std::cout << PathStorage[id1][id2].travelTime<<"\t\t";
         }std::cout << "\n";
