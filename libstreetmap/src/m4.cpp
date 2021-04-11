@@ -11,94 +11,101 @@ std::vector<IntersectionIdx> DeliveryInfo;
 
 void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start, const double turn_penalty);
 
-std::list<int> Greedy_Method(int delivSize,int depotSize){
+std::list<int> Greedy_Method(int delivSize, int depotSize){
 
     std::list<int> greedyPath;
 
-    double minFirstTime = DBL_MAX;
-    IntersectionIdx firstIntersect;//start Depot
-    int firstId;//pickup or drop off Id
-    IntersectionIdx secondIntersect;//1st pickUp
-    int secondId;//pickup or drop off Id
+    double minTravelTime = DBL_MAX;
+    int startingDepot;
+    int nextIntersect = -1;
 
-    for(int curDepot=delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
-        for(int curPickup=0; curPickup < delivSize; curPickup++){
-            IntersectionIdx tempDepotIdx = DeliveryInfo[curDepot];
-            IntersectionIdx tempDelivIdx = DeliveryInfo[curPickup];
-            double tempMinTime = PathStorage[tempDepotIdx][tempDelivIdx].travelTime;
-            std::cout<<"temp: "<<tempMinTime<<std::endl;
-            if(minFirstTime>tempMinTime){
-                firstIntersect=tempDepotIdx;
-                secondIntersect=tempDelivIdx;
-                minFirstTime=tempMinTime;
+    // Find the closest starting Depot to Pickup
+    for(int curPickup = 0; curPickup < delivSize; curPickup++){
+        for(int curDepot = delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
+            if(minTravelTime > PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[curPickup]].travelTime){
+                minTravelTime = PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[curPickup]].travelTime;
+                startingDepot = curDepot;
+                nextIntersect = curPickup;
+            }
+            //std::cout <<PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[curPickup]].travelTime<<"\t";
+        }
+        //std::cout <<"\n";
+    }
+    //std::cout << startingDepot << " " << nextIntersect << "\n";
+    greedyPath.push_back(startingDepot);
+    greedyPath.push_back(nextIntersect);
+
+
+
+    // nextIntersect is the first pickup choosed from closest depot
+    std::set<int> unpicked;
+    std::set<int> undroped;
+
+    // Insert all unpicked except for first pickUp
+    for(int i = 0; i < delivSize; i++){
+        if(i == nextIntersect) continue;
+        unpicked.insert(i);
+    }
+    // Insert first drop Off
+    undroped.insert(nextIntersect + delivSize);
+
+
+    // Search through all Pickup & dropOff
+    while(!unpicked.empty() || !undroped.empty()){
+        /*std::cout <<"Unpicked: ";
+        for(int temp : unpicked){
+            std::cout <<temp<<" ";
+        }std::cout <<"\n";
+        std::cout <<"Undropped: ";
+        for(int temp : undroped){
+            std::cout <<temp<<" ";
+        }std::cout <<"\n";*/
+
+        // Initalize Local Variables
+        minTravelTime = DBL_MAX;
+        nextIntersect = -1;
+        const int previIntersect = greedyPath.back();
+
+        // Find the Closest PickUp/DropOff
+        for(int curPickUp : unpicked){
+            if(minTravelTime > PathStorage[DeliveryInfo[previIntersect]][DeliveryInfo[curPickUp]].travelTime){
+                minTravelTime = PathStorage[DeliveryInfo[previIntersect]][DeliveryInfo[curPickUp]].travelTime;
+                nextIntersect = curPickUp;
             }
         }
+        for(int curDropOff : undroped){
+            if(minTravelTime > PathStorage[DeliveryInfo[previIntersect]][DeliveryInfo[curDropOff]].travelTime){
+                minTravelTime = PathStorage[DeliveryInfo[previIntersect]][DeliveryInfo[curDropOff]].travelTime;
+                nextIntersect = curDropOff;
+            }
+        }
+
+        // Dynamic Unpick/Undrop
+        if(nextIntersect < delivSize){
+            unpicked.erase(nextIntersect);
+            undroped.insert(nextIntersect + delivSize);
+        }else{
+            undroped.erase(nextIntersect);
+        }
+
+        greedyPath.push_back(nextIntersect);
+
+        /*std::cout <<"Greedy Path: ";
+        for(int temp : greedyPath){
+            std::cout << temp <<" ";
+        }std::cout << "\n";*/
     }
-    std::cout<<"min: "<<minFirstTime<<std::endl;
-    greedyPath.push_back(firstIntersect);
-    greedyPath.push_back(secondIntersect);
 
-
-//    std::map<int, IntersectionIdx> unpicked;
-//    std::map<int, IntersectionIdx> undroped;
-//
-//    //Insert all unpicked except for first pickUp
-//    for(int i=0;i<deliveries.size();i++){
-//        if(i!=secondId){
-//            std::pair <int,IntersectionIdx> temp=std::make_pair(i,deliveries[i].pickUp);
-//            unpicked.insert(temp);
-//        }
-//    }
-//    //Insert first drop Off
-//    std::pair <int,IntersectionIdx> firstDropOff=std::make_pair(secondId,deliveries[secondId].dropOff);
-//    undroped.insert(firstDropOff);
-//
-//    //Switch intsections
-//    //firstIntersect=secondIntersect;
-//
-//    int delivCounter=deliveries.size();
-//    while(delivCounter!=0){
-//        firstIntersect=secondIntersect;
-//        bool isdroped=false;
-//        double minPathTime = DBL_MAX;
-//        for(auto it=undroped.begin();it!=undroped.end();it++){
-//            double tempTime;
-//            int index=it->first;
-//            IntersectionIdx curIntersectIdx=it->second;
-//            std::map<int, PathInfo>temp =PathStorage[firstIntersect];
-//            tempTime = temp[curIntersectIdx].travelTime;
-//            if(tempTime<minPathTime){
-//                secondId=index;
-//                secondIntersect=curIntersectIdx;
-//                minPathTime=tempTime;
-//                intersectPath=temp[curIntersectIdx].curPath;
-//            }
-//        }
-//        for(auto it=undroped.begin();it!=unpicked.end();it++){
-//            double tempTime;
-//            int index=it->first;
-//            IntersectionIdx curIntersectIdx=it->second;
-//            std::map<int, PathInfo>temp =PathStorage[firstIntersect];
-//            tempTime = temp[curIntersectIdx].travelTime;
-//            if(tempTime<minPathTime){
-//                secondId=index;
-//                delivCounter--;
-//                secondIntersect=curIntersectIdx;
-//                isdroped= true;
-//                minPathTime=tempTime;
-//                intersectPath=temp[curIntersectIdx].curPath;
-//            }
-//        }
-//        if(isdroped==true){
-//            delivCounter--;//need multiple
-//            undroped.erase(secondId);
-//        }else{
-//            unpicked.erase(secondId);//need multiple
-//            std::pair <int,IntersectionIdx> temp=std::make_pair(secondId,deliveries[secondId].dropOff);
-//            undroped.insert(temp);//need multiple
-//        }
-//    }
-    return {};
+    int endingDepot;
+    minTravelTime = DBL_MAX;
+    for(int curDepot = delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
+        if(minTravelTime > PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[nextIntersect]].travelTime){
+            minTravelTime = PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[nextIntersect]].travelTime;
+            endingDepot = curDepot;
+        }
+    }
+    greedyPath.push_back(endingDepot);
+    return greedyPath;
 }
 
 std::vector<CourierSubPath> travelingCourier(
@@ -107,10 +114,7 @@ std::vector<CourierSubPath> travelingCourier(
         const float turn_penalty){
 
 
-    // assemble all Intersections and Pass into MultiStart_Dij
-
-    DeliveryInfo.resize(deliveries.size()*2 + depots.size());
-
+    /// Step 0: assemble all Intersections and Pass into MultiStart_Dij
     for(auto temp : deliveries){
         DeliveryInfo.push_back(temp.pickUp);
     }
@@ -121,32 +125,59 @@ std::vector<CourierSubPath> travelingCourier(
         DeliveryInfo.push_back(temp);
     }
 
-    for(auto temp : DeliveryInfo){
-        std::cout << temp <<" ";
-    }
+    std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
+    std::cout <<"Depot Num:" <<depots.size()<<"\n";
+    std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
+    for(int temp: DeliveryInfo){
+        std::cout<< temp <<" ";
+    }std::cout <<"\n";
 
     /// Step 1: MultiDest Dyjestra Method
     for(auto curIntersect : DeliveryInfo){
         MultiDest_Dijkstra(curIntersect, turn_penalty);
     }
+
+    /*std::cout << "PathStorage: \n\t";
+    for(auto temp : DeliveryInfo){
+        std::cout << temp <<"\t";
+    }std::cout << "\n";
     for(auto id1 : DeliveryInfo){
+        std::cout << id1 <<": ";
         for(auto id2 : DeliveryInfo){
-            std::cout << PathStorage[id1][id2].travelTime<<"\t\t";
+            std::cout << (int)PathStorage[id1][id2].travelTime<<"\t";
         }std::cout << "\n";
-    }
+    }*/
+
     /// Step 2: Greedy Algo || MultiStart
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
+    if(greedyPath.empty()) return {};
+    std::cout <<"Greedy Path: ";
+    for(int temp : greedyPath){
+        std::cout << temp <<" ";
+    }std::cout << "\n";
 
     /// Step 3: 2/3 OPTs With Time Restriction
 
+    /// Step 4: cast list into CourierPath
+    std::vector<CourierSubPath> courierPath;
+    std::vector<int> tempGreedyPath(greedyPath.begin(), greedyPath.end());
 
-    /// Step 4: Free the Global Value
+    for(int i = 0; i < tempGreedyPath.size() - 1; i++){
+        CourierSubPath tempPath;
+        tempPath.start_intersection = DeliveryInfo[tempGreedyPath[i]];
+        tempPath.end_intersection = DeliveryInfo[tempGreedyPath[i+1]];
+        tempPath.subpath = PathStorage[tempPath.start_intersection][tempPath.end_intersection].curPath;
+        courierPath.push_back(tempPath);
+    }
+
+    /// Step 5: Free the Global Value
     for(auto itr = PathStorage.begin(); itr!= PathStorage.end(); itr++){
         itr->second.clear();
     }
     PathStorage.clear();
     DeliveryInfo.clear();
-    return{};
+
+    return courierPath;
 }
 
 ///MultiStart Dijkstra Method
@@ -182,8 +213,10 @@ void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start, const double t
 
             // If yes Then remove from list and save the Path information to Storage
             if(itr != relatedIntersect.end()){
-                PathStorage[intersect_id_start][currIntersectId].travelTime = IntersectNaviInfoList[currIntersectId].bestTime;
-                PathStorage[intersect_id_start][currIntersectId].curPath  = backTracing(intersect_id_start, currIntersectId, IntersectNaviInfoList);
+                PathInfo tempPath;
+                tempPath.travelTime = IntersectNaviInfoList[currIntersectId].bestTime;
+                tempPath.curPath = backTracing(intersect_id_start, currIntersectId, IntersectNaviInfoList);
+                PathStorage[intersect_id_start][currIntersectId] = tempPath;
                 relatedIntersect.erase(itr);
             }
 
