@@ -66,7 +66,6 @@ int main(int argc, char** argv) {
 
 
     //You can now do something with the map data
-    travelingCourier({},{},15);
     //drawMap();
     closeMap();
 
