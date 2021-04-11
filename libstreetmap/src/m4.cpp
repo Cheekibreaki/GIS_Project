@@ -137,7 +137,12 @@ std::vector<CourierSubPath> travelingCourier(
         MultiDest_Dijkstra(curIntersect, turn_penalty);
     }
 
-    /*std::cout << "PathStorage: \n\t";
+    // Throw expection of Delivery Point cannot be Reach
+    for(int idx = 0; idx < deliveries.size()*2; idx++){
+        if(PathStorage[DeliveryInfo[idx]][DeliveryInfo[0]].travelTime == DBL_MAX) return{};
+    }
+
+    std::cout << "PathStorage: \n\t";
     for(auto temp : DeliveryInfo){
         std::cout << temp <<"\t";
     }std::cout << "\n";
@@ -146,7 +151,7 @@ std::vector<CourierSubPath> travelingCourier(
         for(auto id2 : DeliveryInfo){
             std::cout << (int)PathStorage[id1][id2].travelTime<<"\t";
         }std::cout << "\n";
-    }*/
+    }
 
     /// Step 2: Greedy Algo || MultiStart
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
@@ -266,4 +271,12 @@ void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start, const double t
             IntersectNaviInfoList[currIntersectId].isTravel = true;
         }
     }
+
+
+    for(auto currIntersectId : relatedIntersect){
+        PathInfo tempPath;
+        tempPath.travelTime = DBL_MAX;
+        PathStorage[intersect_id_start][currIntersectId] = tempPath;
+    }
+
 }
