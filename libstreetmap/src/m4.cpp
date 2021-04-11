@@ -17,89 +17,86 @@ void Greedy_Method(const std::vector<DeliveryInf>& deliveries,
 
 
     double minFirstTime = DBL_MAX;
-    IntersectionIdx firstIntersect;
+    IntersectionIdx firstIntersect;//start Depot
     int firstId;//pickup or drop off Id
-    IntersectionIdx secondIntersect;
+    IntersectionIdx secondIntersect;//1st pickUp
     int secondId;//pickup or drop off Id
-    std::vector<StreetSegmentIdx> intersectPath;
-    for(auto tempDepot : depots){
-        for(auto tempDeliv : deliveries){
-            //std::unordered_map<int, std::unordered_map<int, PathInfo>>::const_iterator gotTempDepot = PathStorage.find (tempDepot);
-            std::map<int, PathInfo>temp =PathStorage[tempDepot];
-            //std::unordered_map<int, PathInfo>::const_iterator gotTempDeliv = gotTempDepot->second.find(tempDeliv.pickUp);
-            double tempMinTime = temp[tempDeliv.pickUp].travelTime;
+
+    for(int curDepot=delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
+        for(int curPickup=0; curPickup < delivSize; curPickup++){
+            /*IntersectionIdx tempDepotIdx = DeliveryInfo[curDepot];
+            IntersectionIdx tempDelivIdx = DeliveryInfo[curPickup];
+            double tempMinTime = PathStorage[tempDepotIdx][tempDelivIdx].travelTime;
             if(minFirstTime>tempMinTime){
-                firstIntersect=tempDepot;
-                secondIntersect=tempDeliv.pickUp;
-                intersectPath=temp[tempDeliv.pickUp].curPath;
+                firstIntersect=tempDepotIdx;
+                secondIntersect=tempDelivIdx;
                 minFirstTime=tempMinTime;
             }
         }
     }
-    struct CourierSubPath tempCourierSubPath = {firstIntersect,secondIntersect,intersectPath};
-    courierPaths.push_back(tempCourierSubPath);
+   // greedyPath.push_back(firstIntersect);
+   // greedyPath.push_back(secondIntersect);
 
 
-
-    std::map<int, IntersectionIdx> unpicked;
-    std::map<int, IntersectionIdx> undroped;
-
-    //Insert all unpicked except for first pickUp
-    for(int i=0;i<deliveries.size();i++){
-        if(i!=secondId){
-            std::pair <int,IntersectionIdx> temp=std::make_pair(i,deliveries[i].pickUp);
-            unpicked.insert(temp);
-        }
-    }
-    //Insert first drop Off
-    std::pair <int,IntersectionIdx> firstDropOff=std::make_pair(secondId,deliveries[secondId].dropOff);
-    undroped.insert(firstDropOff);
-
-    //Switch intsections
-    //firstIntersect=secondIntersect;
-
-    int delivCounter=deliveries.size();
-    while(delivCounter!=0){
-        firstIntersect=secondIntersect;
-        bool isdroped=false;
-        double minPathTime = DBL_MAX;
-        for(auto it=undroped.begin();it!=undroped.end();it++){
-            double tempTime;
-            int index=it->first;
-            IntersectionIdx curIntersectIdx=it->second;
-            std::map<int, PathInfo>temp =PathStorage[firstIntersect];
-            tempTime = temp[curIntersectIdx].travelTime;
-            if(tempTime<minPathTime){
-                secondId=index;
-                secondIntersect=curIntersectIdx;
-                minPathTime=tempTime;
-                intersectPath=temp[curIntersectIdx].curPath;
-            }
-        }
-        for(auto it=undroped.begin();it!=unpicked.end();it++){
-            double tempTime;
-            int index=it->first;
-            IntersectionIdx curIntersectIdx=it->second;
-            std::map<int, PathInfo>temp =PathStorage[firstIntersect];
-            tempTime = temp[curIntersectIdx].travelTime;
-            if(tempTime<minPathTime){
-                secondId=index;
-                delivCounter--;
-                secondIntersect=curIntersectIdx;
-                isdroped= true;
-                minPathTime=tempTime;
-                intersectPath=temp[curIntersectIdx].curPath;
-            }
-        }
-        if(isdroped==true){
-            delivCounter--;//need multiple
-            undroped.erase(secondId);
-        }else{
-            unpicked.erase(secondId);//need multiple
-            std::pair <int,IntersectionIdx> temp=std::make_pair(secondId,deliveries[secondId].dropOff);
-            undroped.insert(temp);//need multiple
-        }
-    }
+//    std::map<int, IntersectionIdx> unpicked;
+//    std::map<int, IntersectionIdx> undroped;
+//
+//    //Insert all unpicked except for first pickUp
+//    for(int i=0;i<deliveries.size();i++){
+//        if(i!=secondId){
+//            std::pair <int,IntersectionIdx> temp=std::make_pair(i,deliveries[i].pickUp);
+//            unpicked.insert(temp);
+//        }
+//    }
+//    //Insert first drop Off
+//    std::pair <int,IntersectionIdx> firstDropOff=std::make_pair(secondId,deliveries[secondId].dropOff);
+//    undroped.insert(firstDropOff);
+//
+//    //Switch intsections
+//    //firstIntersect=secondIntersect;
+//
+//    int delivCounter=deliveries.size();
+//    while(delivCounter!=0){
+//        firstIntersect=secondIntersect;
+//        bool isdroped=false;
+//        double minPathTime = DBL_MAX;
+//        for(auto it=undroped.begin();it!=undroped.end();it++){
+//            double tempTime;
+//            int index=it->first;
+//            IntersectionIdx curIntersectIdx=it->second;
+//            std::map<int, PathInfo>temp =PathStorage[firstIntersect];
+//            tempTime = temp[curIntersectIdx].travelTime;
+//            if(tempTime<minPathTime){
+//                secondId=index;
+//                secondIntersect=curIntersectIdx;
+//                minPathTime=tempTime;
+//                intersectPath=temp[curIntersectIdx].curPath;
+//            }
+//        }
+//        for(auto it=undroped.begin();it!=unpicked.end();it++){
+//            double tempTime;
+//            int index=it->first;
+//            IntersectionIdx curIntersectIdx=it->second;
+//            std::map<int, PathInfo>temp =PathStorage[firstIntersect];
+//            tempTime = temp[curIntersectIdx].travelTime;
+//            if(tempTime<minPathTime){
+//                secondId=index;
+//                delivCounter--;
+//                secondIntersect=curIntersectIdx;
+//                isdroped= true;
+//                minPathTime=tempTime;
+//                intersectPath=temp[curIntersectIdx].curPath;
+//            }
+//        }
+//        if(isdroped==true){
+//            delivCounter--;//need multiple
+//            undroped.erase(secondId);
+//        }else{
+//            unpicked.erase(secondId);//need multiple
+//            std::pair <int,IntersectionIdx> temp=std::make_pair(secondId,deliveries[secondId].dropOff);
+//            undroped.insert(temp);//need multiple
+//        }
+//    }
 }
 
 std::vector<CourierSubPath> travelingCourier(
