@@ -23,18 +23,18 @@ std::list<int> Greedy_Method(int delivSize,int depotSize){
 
     for(int curDepot=delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
         for(int curPickup=0; curPickup < delivSize; curPickup++){
-            /*IntersectionIdx tempDepotIdx = DeliveryInfo[curDepot];
+            IntersectionIdx tempDepotIdx = DeliveryInfo[curDepot];
             IntersectionIdx tempDelivIdx = DeliveryInfo[curPickup];
             double tempMinTime = PathStorage[tempDepotIdx][tempDelivIdx].travelTime;
             if(minFirstTime>tempMinTime){
                 firstIntersect=tempDepotIdx;
                 secondIntersect=tempDelivIdx;
                 minFirstTime=tempMinTime;
-            }*/
+            }
         }
     }
-    // greedyPath.push_back(firstIntersect);
-    // greedyPath.push_back(secondIntersect);
+    greedyPath.push_back(firstIntersect);
+    greedyPath.push_back(secondIntersect);
 
 
 //    std::map<int, IntersectionIdx> unpicked;
@@ -96,6 +96,7 @@ std::list<int> Greedy_Method(int delivSize,int depotSize){
 //            undroped.insert(temp);//need multiple
 //        }
 //    }
+    return {};
 }
 
 std::vector<CourierSubPath> travelingCourier(
@@ -105,6 +106,9 @@ std::vector<CourierSubPath> travelingCourier(
 
 
     // assemble all Intersections and Pass into MultiStart_Dij
+
+    DeliveryInfo.resize(deliveries.size()*2 + depots.size());
+
     for(auto temp : deliveries){
         DeliveryInfo.push_back(temp.pickUp);
     }
@@ -113,6 +117,10 @@ std::vector<CourierSubPath> travelingCourier(
     }
     for(auto temp : depots){
         DeliveryInfo.push_back(temp);
+    }
+
+    for(auto temp : DeliveryInfo){
+        std::cout << temp <<" ";
     }
 
     /// Step 1: MultiDest Dyjestra Method
