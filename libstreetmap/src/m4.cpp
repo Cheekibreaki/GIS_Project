@@ -3,18 +3,17 @@
 #include "m4.h"
 #include "m1.h"
 #include <queue>
+#include <list>
 #include <set>
 ///This is a new line
 std::map<int, std::map<int,PathInfo>> PathStorage;
-void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start,
-                        const std::set<IntersectionIdx>& allIntersects,
-                        const double turn_penalty);
+std::vector<IntersectionIdx> DeliveryInfo;
 
+void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start, const double turn_penalty);
 
-void Greedy_Method(const std::vector<DeliveryInf>& deliveries,
-                   const std::vector<int>& depots){
-    std::vector<CourierSubPath> courierPaths;
+std::list<int> Greedy_Method(int delivSize,int depotSize){
 
+    std::list<int> greedyPath;
 
     double minFirstTime = DBL_MAX;
     IntersectionIdx firstIntersect;//start Depot
@@ -31,11 +30,11 @@ void Greedy_Method(const std::vector<DeliveryInf>& deliveries,
                 firstIntersect=tempDepotIdx;
                 secondIntersect=tempDelivIdx;
                 minFirstTime=tempMinTime;
-            }
+            }*/
         }
     }
-   // greedyPath.push_back(firstIntersect);
-   // greedyPath.push_back(secondIntersect);
+    // greedyPath.push_back(firstIntersect);
+    // greedyPath.push_back(secondIntersect);
 
 
 //    std::map<int, IntersectionIdx> unpicked;
@@ -104,22 +103,29 @@ std::vector<CourierSubPath> travelingCourier(
         const std::vector<int>& depots,
         const float turn_penalty){
 
-    /// Step 1: MultiDest Dyjestra Method
 
     // assemble all Intersections and Pass into MultiStart_Dij
-    std::set<IntersectionIdx> allIntersect;
     for(auto temp : deliveries){
-        allIntersect.insert(temp.pickUp);
-        allIntersect.insert(temp.dropOff);
+        DeliveryInfo.push_back(temp.pickUp);
     }
-    allIntersect.insert(depots.begin(), depots.end());
-
-    for(auto curIntersect : allIntersect){
-        MultiDest_Dijkstra(curIntersect, allIntersect, turn_penalty);
+    for(auto temp : deliveries){
+        DeliveryInfo.push_back(temp.dropOff);
+    }
+    for(auto temp : depots){
+        DeliveryInfo.push_back(temp);
     }
 
+    /// Step 1: MultiDest Dyjestra Method
+    for(auto curIntersect : DeliveryInfo){
+        MultiDest_Dijkstra(curIntersect, turn_penalty);
+    }
+    for(auto id1 : DeliveryInfo){
+        for(auto id2 : DeliveryInfo){
+            std::cout << PathStorage[id1][id2].travelTime<<"\t\t";
+        }std::cout << "\n";
+    }
     /// Step 2: Greedy Algo || MultiStart
-    Greedy_Method(deliveries, depots);
+    std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
 
     /// Step 3: 2/3 OPTs With Time Restriction
 
@@ -129,17 +135,16 @@ std::vector<CourierSubPath> travelingCourier(
         itr->second.clear();
     }
     PathStorage.clear();
+    DeliveryInfo.clear();
     return{};
 }
 
 ///MultiStart Dijkstra Method
 
-void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start,
-                        const std::set<IntersectionIdx>& allIntersects,
-                        const double turn_penalty){
+void MultiDest_Dijkstra(const IntersectionIdx intersect_id_start, const double turn_penalty){
 
     // Temparay Structure
-    std::set<IntersectionIdx> relatedIntersect = allIntersects;
+    std::set<IntersectionIdx> relatedIntersect(DeliveryInfo.begin(), DeliveryInfo.end());
     std::vector<IntersectNaviInfo> IntersectNaviInfoList(getNumIntersections());
 
     // Temparay Structure: WaveFront Initialization
