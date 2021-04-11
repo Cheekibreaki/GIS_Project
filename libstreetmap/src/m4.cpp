@@ -26,6 +26,7 @@ std::list<int> Greedy_Method(int delivSize,int depotSize){
             IntersectionIdx tempDepotIdx = DeliveryInfo[curDepot];
             IntersectionIdx tempDelivIdx = DeliveryInfo[curPickup];
             double tempMinTime = PathStorage[tempDepotIdx][tempDelivIdx].travelTime;
+            std::cout<<"temp: "<<tempMinTime<<std::endl;
             if(minFirstTime>tempMinTime){
                 firstIntersect=tempDepotIdx;
                 secondIntersect=tempDelivIdx;
@@ -33,6 +34,7 @@ std::list<int> Greedy_Method(int delivSize,int depotSize){
             }
         }
     }
+    std::cout<<"min: "<<minFirstTime<<std::endl;
     greedyPath.push_back(firstIntersect);
     greedyPath.push_back(secondIntersect);
 
