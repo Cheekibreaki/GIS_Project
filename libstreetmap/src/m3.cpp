@@ -118,7 +118,6 @@ std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_sta
 
     std::deque<StreetSegmentIdx> path;
     auto curIntersectId = intersect_id_destination;
-    std::cout << IntersectNaviInfoList[curIntersectId].bestTime << std::endl;
 
     auto previousEdge = IntersectNaviInfoList[curIntersectId].reachingEdge;
 

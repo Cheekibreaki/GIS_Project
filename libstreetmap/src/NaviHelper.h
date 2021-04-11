@@ -6,6 +6,7 @@
 #include "DBstruct.h"
 #include <float.h>
 #include <utility>
+#include <map>
 
 struct IntersectNaviInfo{
     StreetSegmentIdx reachingEdge = -1;
@@ -24,6 +25,13 @@ struct WaveElem{
         travelTime = tT;
     }
 };
+
+struct PathInfo{
+    double travelTime;
+    std::vector<StreetSegmentIdx> curPath;
+};
+
+extern std::map<int, std::map<int,PathInfo>> PathStorage;
 
 std::vector<StreetSegmentIdx> backTracing(const IntersectionIdx intersect_id_start,
                                           const IntersectionIdx intersect_id_destination,
