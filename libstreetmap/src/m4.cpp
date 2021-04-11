@@ -21,8 +21,8 @@ std::list<int> Greedy_Method(int delivSize,int depotSize){
     IntersectionIdx secondIntersect;//1st pickUp
     int secondId;//pickup or drop off Id
 
-    for(int curDepot=delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
-        for(int curPickup=0; curPickup < delivSize; curPickup++){
+    for(int curDepot = delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
+        for(int curPickup = 0; curPickup < delivSize; curPickup++){
             IntersectionIdx tempDepotIdx = DeliveryInfo[curDepot];
             IntersectionIdx tempDelivIdx = DeliveryInfo[curPickup];
             double tempMinTime = PathStorage[tempDepotIdx][tempDelivIdx].travelTime;
