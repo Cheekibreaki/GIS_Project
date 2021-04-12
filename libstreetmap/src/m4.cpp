@@ -5,7 +5,9 @@
 #include <queue>
 #include <list>
 #include <set>
-///This is a new line
+#include <cstdlib>
+#include <ctime>
+
 std::map<int, std::map<int,PathInfo>> PathStorage;
 std::vector<IntersectionIdx> DeliveryInfo;
 
@@ -14,7 +16,22 @@ void MultiDest_Dijkstra(std::set<IntersectionIdx> relatedIntersect,
                         const IntersectionIdx intersect_id_start, const double turn_penalty);
 std::list<int> Greedy_Method(int delivSize, int depotSize);
 
+std::list<int> twoOptSwap(std::list<int> srcPath, int delivSize){
+    auto optModifyPath = srcPath;
+    bool legal = false;
+    while(!legal){
+        auto itr = optModifyPath.begin(), itr1 = optModifyPath.begin();
+        int cutPos = rand() % (optModifyPath.size()-1);
 
+        std::advance(itr, cutPos);
+        std::advance(itr1,cutPos+1);
+
+        if(*itr != (*itr1) - delivSize){
+            std::swap(*itr, *itr1);
+            legal = true;
+        }
+    }
+}
 
 std::vector<CourierSubPath> travelingCourier(
         const std::vector<DeliveryInf>& deliveries,
@@ -53,7 +70,28 @@ std::vector<CourierSubPath> travelingCourier(
     if(greedyPath.empty()) return {};
 
     /// Step 3: 2/3 OPTs With Time Restriction
+    // Generate Random Seed
+    srand(time(NULL));
 
+    std::multimap<double, std::list<int>> optPathList;
+
+    // Cut a random Position of greedyPath
+
+
+
+
+
+
+    auto itr = optPathList.begin();
+    while(itr != optPathList.end() || itr->totalTravelTime < saveOptPath.totalTravelTime){
+        itr++;
+    }
+    if(itr == optPathList.end()){
+        optPathList.push_back(saveOptPath);
+    }
+    else if(itr->totalTravelTime >= saveOptPath.totalTravelTime){
+        optPathLIst.insert(itr, saveOptPath);
+    }
 
 
     /// Step 4: cast list into CourierPath
