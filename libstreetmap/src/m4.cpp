@@ -48,24 +48,9 @@ std::vector<CourierSubPath> travelingCourier(
         if(PathStorage[DeliveryInfo[idx]][DeliveryInfo[0]].travelTime == DBL_MAX) return{};
     }
 
-    /*std::cout << "PathStorage: \n\t";
-    for(auto temp : DeliveryInfo){
-        std::cout << temp <<"\t";
-    }std::cout << "\n";
-    for(auto id1 : DeliveryInfo){
-        std::cout << id1 <<": ";
-        for(auto id2 : DeliveryInfo){
-            std::cout << (int)PathStorage[id1][id2].travelTime<<"\t";
-        }std::cout << "\n";
-    }*/
-
     /// Step 2: Greedy Algo || MultiStart
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
     if(greedyPath.empty()) return {};
-    /*std::cout <<"Greedy Path: ";
-    for(int temp : greedyPath){
-        std::cout << temp <<" ";
-    }std::cout << "\n";*/
 
     /// Step 3: 2/3 OPTs With Time Restriction
 
@@ -110,11 +95,8 @@ std::list<int> Greedy_Method(int delivSize, int depotSize){
                 startingDepot = curDepot;
                 nextIntersect = curPickup;
             }
-            //std::cout <<PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[curPickup]].travelTime<<"\t";
         }
-        //std::cout <<"\n";
     }
-    //std::cout << startingDepot << " " << nextIntersect << "\n";
     greedyPath.push_back(startingDepot);
     greedyPath.push_back(nextIntersect);
 
@@ -135,14 +117,6 @@ std::list<int> Greedy_Method(int delivSize, int depotSize){
 
     // Search through all Pickup & dropOff
     while(!unpicked.empty() || !undroped.empty()){
-        /*std::cout <<"Unpicked: ";
-        for(int temp : unpicked){
-            std::cout <<temp<<" ";
-        }std::cout <<"\n";
-        std::cout <<"Undropped: ";
-        for(int temp : undroped){
-            std::cout <<temp<<" ";
-        }std::cout <<"\n";*/
 
         // Initalize Local Variables
         minTravelTime = DBL_MAX;
@@ -172,11 +146,6 @@ std::list<int> Greedy_Method(int delivSize, int depotSize){
         }
 
         greedyPath.push_back(nextIntersect);
-
-        /*std::cout <<"Greedy Path: ";
-        for(int temp : greedyPath){
-            std::cout << temp <<" ";
-        }std::cout << "\n";*/
     }
 
     int endingDepot;
