@@ -5,6 +5,8 @@
 #include <queue>
 #include <list>
 #include <set>
+
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
@@ -63,18 +65,49 @@ std::vector<CourierSubPath> travelingCourier(
 
     /// Step 3: 2/3 OPTs With Time Restriction
     //std::multimap<double, std::list<int>> optPathList;
+
+    std::cout <<"Getting Clocks\n";
     auto currentTime = std::chrono::high_resolution_clock::now();
     auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
-    std::cout << wallClock.count() <<std::endl;
 
+    std::list<int> optPath(greedyPath);
+    optPath.pop_back();
+    optPath.pop_front();
 
+    double cost = check_path_time(optPath);
+    double T = TIME_LIMIT - wallClock.count();
+
+    bool noChange = false;
+
+    /*while(T != 10 && !noChange){
+        auto modifyPath = twoOpt(optPath, deliveries.size());
+        double modifyCost = check_path_time(modifyPath);
+        double deltaCost = modifyCost - cost;
+        if(modifyCost < cost || rand() % 2 < exp(-deltaCost/(T*0.9))){
+            optPath = modifyPath;
+            cost = modifyCost;
+        }
+
+        if(std::abs(deltaCost)/modifyCost < 0.1) noChange = true;
+
+        currentTime = std::chrono::high_resolution_clock::now();
+        wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
+        T = TIME_LIMIT - wallClock.count();
+
+        std::cout <<"Time Left:" <<T<<"\v";
+    }*/
+    int startingDepot= find_closest_depot(optPath.front(), deliveries.size());
+    int endingDepot = find_closest_depot(optPath.back(), deliveries.size());
+
+    optPath.push_front(startingDepot);
+    optPath.push_back(endingDepot);
 
     /// Step 4: cast list into CourierPath
     std::vector<CourierSubPath> courierPath;
-    auto itr = greedyPath.begin();
+    auto itr = optPath.begin();
     std::advance(itr, 1);
-    int lastNum = greedyPath.front();
-    for(; itr != greedyPath.end(); itr++){
+    int lastNum = optPath.front();
+    for(; itr != optPath.end(); itr++){
         CourierSubPath tempPath;
         tempPath.start_intersection = DeliveryInfo[lastNum];
         tempPath.end_intersection = DeliveryInfo[*itr];
