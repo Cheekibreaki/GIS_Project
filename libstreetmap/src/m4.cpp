@@ -65,6 +65,8 @@ std::vector<CourierSubPath> travelingCourier(
         if(PathStorage[DeliveryInfo[idx]][DeliveryInfo[0]].travelTime == DBL_MAX) return{};
     }
 
+
+
     /// Step 2: Greedy Algo
     std::cout <<"Running greedyAlgo....\n";
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
@@ -106,7 +108,7 @@ std::vector<CourierSubPath> travelingCourier(
         currentTime = std::chrono::high_resolution_clock::now();
         wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
         double T = wallClock.count();
-        std::cout <<"Time:" <<T<<"\n";
+        //std::cout <<"Time:" <<T<<"\n";
 
         auto modifyPath = twoOpt(optPath, deliveries.size());
         double modifyCost = check_path_time(modifyPath);
