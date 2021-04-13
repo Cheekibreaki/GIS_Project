@@ -65,37 +65,29 @@ std::vector<CourierSubPath> travelingCourier(
 
     /// Step 3: 2/3 OPTs With Time Restriction
     //std::multimap<double, std::list<int>> optPathList;
-
-    std::cout <<"Getting Clocks\n";
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
-
     std::list<int> optPath(greedyPath);
     optPath.pop_back();
     optPath.pop_front();
 
     double cost = check_path_time(optPath);
-    double T = TIME_LIMIT - wallClock.count();
+    std::cout <<"GreedyCost: "<<cost <<"\n";
+    double T = TIME_LIMIT;
+    //bool noChange = false;
 
-    bool noChange = false;
-
-    /*while(T != 10 && !noChange){
+    while(T > 40 /*&& !noChange*/){
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
+        T = TIME_LIMIT - wallClock.count();
         auto modifyPath = twoOpt(optPath, deliveries.size());
         double modifyCost = check_path_time(modifyPath);
         double deltaCost = modifyCost - cost;
-        if(modifyCost < cost || rand() % 2 < exp(-deltaCost/(T*0.9))){
+        if(modifyCost < cost /*|| rand() % 2 < exp(-deltaCost/(T0.9))*/){
             optPath = modifyPath;
             cost = modifyCost;
         }
+    }
+    std::cout <<"OptCost: "<<cost <<"\n";
 
-        if(std::abs(deltaCost)/modifyCost < 0.1) noChange = true;
-
-        currentTime = std::chrono::high_resolution_clock::now();
-        wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
-        T = TIME_LIMIT - wallClock.count();
-
-        std::cout <<"Time Left:" <<T<<"\v";
-    }*/
     int startingDepot= find_closest_depot(optPath.front(), deliveries.size());
     int endingDepot = find_closest_depot(optPath.back(), deliveries.size());
 
