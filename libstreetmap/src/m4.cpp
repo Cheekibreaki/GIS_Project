@@ -53,6 +53,7 @@ std::vector<CourierSubPath> travelingCourier(
     }std::cout <<"\n";
 
     /// Step 1: MultiDest Dyjestra Method
+    std::cout <<"Running MultiDest....\n";
     MultiDest_Dijkstra_method(turn_penalty);
 
     // Throw expection of Delivery Point cannot be Reach
@@ -61,6 +62,7 @@ std::vector<CourierSubPath> travelingCourier(
     }
 
     /// Step 2: Greedy Algo
+    std::cout <<"Running greedyAlgo....\n";
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
 
     /// Step 3: 2/3 OPTs With Time Restriction
@@ -74,16 +76,20 @@ std::vector<CourierSubPath> travelingCourier(
     double T = TIME_LIMIT;
     //bool noChange = false;
 
-    while(T > 40 /*&& !noChange*/){
+    while(T > 47 /*&& !noChange*/){
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
         T = TIME_LIMIT - wallClock.count();
-        auto modifyPath = twoOpt(optPath, deliveries.size());
+        std::cout <<"TIME LEFT:" <<T<<"\n";
+        /*auto modifyPath = twoOpt(optPath, deliveries.size());
         double modifyCost = check_path_time(modifyPath);
         double deltaCost = modifyCost - cost;
-        if(modifyCost < cost /*|| rand() % 2 < exp(-deltaCost/(T0.9))*/){
+        if(modifyCost < cost *//*|| rand() % 2 < exp(-deltaCost/(T0.9))*//*){
             optPath = modifyPath;
             cost = modifyCost;
+        }*/
+        for(int i=0;i<10000;i++){
+            for(int j =0; j<1000; j++){}
         }
     }
     std::cout <<"OptCost: "<<cost <<"\n";
