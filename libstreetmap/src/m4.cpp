@@ -26,6 +26,10 @@ double check_path_time(std::list<int> Path);
 bool check_legal(std::list<int> Path, int delivSize);
 int find_closest_depot(int checkIntersect, int delivSize);
 
+std::vector<CourierSubPath> create_courierPath(const std::list<int>& optPath);
+void free_globals();
+
+
 std::vector<CourierSubPath> travelingCourier(
         const std::vector<DeliveryInf>& deliveries,
         const std::vector<int>& depots,
@@ -64,60 +68,53 @@ std::vector<CourierSubPath> travelingCourier(
     /// Step 2: Greedy Algo
     std::cout <<"Running greedyAlgo....\n";
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
+    if(greedyPath.empty()) return{};
+    if(greedyPath.size() == 4){
+        auto couierPath = create_courierPath(greedyPath);
+        free_globals();
+        return couierPath;
+    }
 
     /// Step 3: 2/3 OPTs With Time Restriction
-    //std::multimap<double, std::list<int>> optPathList;
     std::list<int> optPath(greedyPath);
     optPath.pop_back();
     optPath.pop_front();
+    //std::multimap<double, std::list<int>> optPathList;
 
     double cost = check_path_time(optPath);
-    std::cout <<"GreedyCost: "<<cost <<"\n";
+    std::cout << "GreedyCost: " << cost << "\n";
     bool timeOut = false;
 
-    while(!timeOut){
+    while (!timeOut) {
         auto currentTime = std::chrono::high_resolution_clock::now();
-        auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
+        auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
         double T = wallClock.count();
-        std::cout <<"TIME:" <<T<<"\n";
+        std::cout <<"Time:" <<T<<"\n";
+
         auto modifyPath = twoOpt(optPath, deliveries.size());
         double modifyCost = check_path_time(modifyPath);
         double deltaCost = modifyCost - cost;
-        if(modifyCost < cost /*|| rand() % 2 < exp(-deltaCost/(T0.9))*/){
+        if (modifyCost < cost) {
             optPath = modifyPath;
             cost = modifyCost;
         }
-        if(TIME_LIMIT * 0.9 < T) timeOut = true;
-        if(std::abs(deltaCost)/modifyCost < 0.5) timeOut = true;
+        if (TIME_LIMIT * 0.9 < T) {
+            timeOut = true;
+        }
     }
-    std::cout <<"OptCost: "<<cost <<"\n";
+    std::cout << "OptCost: " << cost << "\n";
 
-    int startingDepot= find_closest_depot(optPath.front(), deliveries.size());
+    int startingDepot = find_closest_depot(optPath.front(), deliveries.size());
     int endingDepot = find_closest_depot(optPath.back(), deliveries.size());
 
     optPath.push_front(startingDepot);
     optPath.push_back(endingDepot);
 
     /// Step 4: cast list into CourierPath
-    std::vector<CourierSubPath> courierPath;
-    auto itr = optPath.begin();
-    std::advance(itr, 1);
-    int lastNum = optPath.front();
-    for(; itr != optPath.end(); itr++){
-        CourierSubPath tempPath;
-        tempPath.start_intersection = DeliveryInfo[lastNum];
-        tempPath.end_intersection = DeliveryInfo[*itr];
-        tempPath.subpath = PathStorage[tempPath.start_intersection][tempPath.end_intersection].curPath;
-        courierPath.push_back(tempPath);
-        lastNum = *itr;
-    }
+    auto courierPath = create_courierPath(optPath);
 
     /// Step 5: Free the Global Value
-    for(auto & i : PathStorage){
-        i.second.clear();
-    }
-    PathStorage.clear();
-    DeliveryInfo.clear();
+    free_globals();
 
     return courierPath;
 }
@@ -301,8 +298,6 @@ void MultiDest_Dijkstra_method(const float turn_penalty){
 }
 
 
-
-
 // Useful Helper Functions
 std::list<int> twoOpt(const std::list<int>& srcPath, int delivSize){
     std::list<int> optModifyPath, midPath;
@@ -365,4 +360,28 @@ int find_closest_depot(int checkIntersect, int delivSize){
         }
     }
     return endingDepot;
+}
+
+std::vector<CourierSubPath> create_courierPath(const std::list<int>& optPath){
+    std::vector<CourierSubPath> courierPath;
+    auto itr = optPath.begin();
+    std::advance(itr, 1);
+    int lastNum = optPath.front();
+    for(; itr != optPath.end(); itr++){
+        CourierSubPath tempPath;
+        tempPath.start_intersection = DeliveryInfo[lastNum];
+        tempPath.end_intersection = DeliveryInfo[*itr];
+        tempPath.subpath = PathStorage[tempPath.start_intersection][tempPath.end_intersection].curPath;
+        courierPath.push_back(tempPath);
+        lastNum = *itr;
+    }
+    return courierPath;
+}
+
+void free_globals(){
+    for(auto & i : PathStorage){
+        i.second.clear();
+    }
+    PathStorage.clear();
+    DeliveryInfo.clear();
 }
