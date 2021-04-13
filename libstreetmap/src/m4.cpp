@@ -16,21 +16,50 @@ void MultiDest_Dijkstra(std::set<IntersectionIdx> relatedIntersect,
                         const IntersectionIdx intersect_id_start, const double turn_penalty);
 std::list<int> Greedy_Method(int delivSize, int depotSize);
 
-std::list<int> twoOptSwap(std::list<int> srcPath, int delivSize){
-    auto optModifyPath = srcPath;
-    bool legal = false;
-    while(!legal){
-        auto itr = optModifyPath.begin(), itr1 = optModifyPath.begin();
-        int cutPos = rand() % (optModifyPath.size()-1);
+double check_path_time(std::list<int> Path);
+int find_closest_depot(int checkIntersect, int delivSize);
 
-        std::advance(itr, cutPos);
-        std::advance(itr1,cutPos+1);
 
-        if(*itr != (*itr1) - delivSize){
-            std::swap(*itr, *itr1);
-            legal = true;
+bool check_legal(std::list<int> Path, int delivSize){
+
+    for(auto itr = Path.begin(); itr != Path.end(); itr++) {
+        if(*itr >= delivSize){
+            for(auto itr1 = itr; itr1 != Path.end(); itr1++){
+                if(*itr-delivSize == *itr1){
+                    return false;
+                }
+            }
         }
     }
+
+    return true;
+}
+
+std::list<int> twoOpt(const std::list<int>& srcPath, int delivSize){
+    std::list<int> optModifyPath, midPath;
+
+    bool legal = false;
+    while(!legal){
+        optModifyPath = srcPath;
+
+        auto cutItr1 = optModifyPath.begin(), cutItr2 = optModifyPath.begin();
+
+        int cutPos1 = rand() % optModifyPath.size()-1;
+        int cutPos2 = rand() % (optModifyPath.size() - cutPos1 - 1) + cutPos1+2;
+
+        std::advance(cutItr1, cutPos1);
+        std::advance(cutItr2, cutPos2);
+
+        midPath.splice(midPath.begin(), optModifyPath, cutItr1, cutItr2);
+
+        midPath.reverse();
+        legal = check_legal(midPath, delivSize);
+
+        optModifyPath.splice(cutItr2, midPath);
+        optModifyPath.clear();
+    }
+
+    return optModifyPath;
 }
 
 std::vector<CourierSubPath> travelingCourier(
@@ -65,50 +94,31 @@ std::vector<CourierSubPath> travelingCourier(
         if(PathStorage[DeliveryInfo[idx]][DeliveryInfo[0]].travelTime == DBL_MAX) return{};
     }
 
-    /// Step 2: Greedy Algo || MultiStart
+    /// Step 2: Greedy Algo
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
-    if(greedyPath.empty()) return {};
 
     /// Step 3: 2/3 OPTs With Time Restriction
-    // Generate Random Seed
     srand(time(NULL));
-
-    std::multimap<double, std::list<int>> optPathList;
-
-    // Cut a random Position of greedyPath
-
-
-
-
-
-
-    auto itr = optPathList.begin();
-    while(itr != optPathList.end() || itr->totalTravelTime < saveOptPath.totalTravelTime){
-        itr++;
-    }
-    if(itr == optPathList.end()){
-        optPathList.push_back(saveOptPath);
-    }
-    else if(itr->totalTravelTime >= saveOptPath.totalTravelTime){
-        optPathLIst.insert(itr, saveOptPath);
-    }
+    //std::multimap<double, std::list<int>> optPathList;
 
 
     /// Step 4: cast list into CourierPath
     std::vector<CourierSubPath> courierPath;
-    std::vector<int> tempGreedyPath(greedyPath.begin(), greedyPath.end());
-
-    for(int i = 0; i < tempGreedyPath.size() - 1; i++){
+    auto itr = greedyPath.begin();
+    std::advance(itr, 1);
+    int lastNum = greedyPath.front();
+    for(; itr != greedyPath.end(); itr++){
         CourierSubPath tempPath;
-        tempPath.start_intersection = DeliveryInfo[tempGreedyPath[i]];
-        tempPath.end_intersection = DeliveryInfo[tempGreedyPath[i+1]];
+        tempPath.start_intersection = DeliveryInfo[lastNum];
+        tempPath.end_intersection = DeliveryInfo[*itr];
         tempPath.subpath = PathStorage[tempPath.start_intersection][tempPath.end_intersection].curPath;
         courierPath.push_back(tempPath);
+        lastNum = *itr;
     }
 
     /// Step 5: Free the Global Value
-    for(auto itr = PathStorage.begin(); itr!= PathStorage.end(); itr++){
-        itr->second.clear();
+    for(auto & i : PathStorage){
+        i.second.clear();
     }
     PathStorage.clear();
     DeliveryInfo.clear();
@@ -127,12 +137,13 @@ std::list<int> Greedy_Method(int delivSize, int depotSize){
 
     // Find the closest starting Depot to Pickup
     for(int curPickup = 0; curPickup < delivSize; curPickup++){
-        for(int curDepot = delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
-            if(minTravelTime > PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[curPickup]].travelTime){
-                minTravelTime = PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[curPickup]].travelTime;
-                startingDepot = curDepot;
-                nextIntersect = curPickup;
-            }
+
+        int closestDepot = find_closest_depot(curPickup, delivSize);
+
+        if(minTravelTime > PathStorage[DeliveryInfo[closestDepot]][DeliveryInfo[curPickup]].travelTime){
+            minTravelTime = PathStorage[DeliveryInfo[closestDepot]][DeliveryInfo[curPickup]].travelTime;
+            startingDepot = closestDepot;
+            nextIntersect = curPickup;
         }
     }
     greedyPath.push_back(startingDepot);
@@ -186,15 +197,8 @@ std::list<int> Greedy_Method(int delivSize, int depotSize){
         greedyPath.push_back(nextIntersect);
     }
 
-    int endingDepot;
-    minTravelTime = DBL_MAX;
-    for(int curDepot = delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
-        if(minTravelTime > PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[nextIntersect]].travelTime){
-            minTravelTime = PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[nextIntersect]].travelTime;
-            endingDepot = curDepot;
-        }
-    }
-    greedyPath.push_back(endingDepot);
+
+    greedyPath.push_back(find_closest_depot(nextIntersect, delivSize));
     return greedyPath;
 }
 
@@ -300,4 +304,31 @@ void MultiDest_Dijkstra_method(const float turn_penalty){
     for(int i = 0; i < indexList.size(); i++){
         MultiDest_Dijkstra(relatedIntersect, indexList[i], turn_penalty);
     }
+}
+
+
+// Useful Helper Functions
+double check_path_time(std::list<int> Path){
+    double totalTravelTime = 0;
+    auto itr = Path.begin();
+    std::advance(itr, 1);
+    int lastNum = Path.front();
+    for(; itr != Path.end(); itr++){
+        totalTravelTime += PathStorage[DeliveryInfo[lastNum]][DeliveryInfo[*itr]].travelTime;
+        lastNum = *itr;
+    }
+    return totalTravelTime;
+}
+
+
+int find_closest_depot(int checkIntersect, int delivSize){
+    double minTravelTime = DBL_MAX;
+    int endingDepot;
+    for(int curDepot = delivSize*2; curDepot < DeliveryInfo.size(); curDepot++){
+        if(minTravelTime > PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[checkIntersect]].travelTime){
+            minTravelTime = PathStorage[DeliveryInfo[curDepot]][DeliveryInfo[checkIntersect]].travelTime;
+            endingDepot = curDepot;
+        }
+    }
+    return endingDepot;
 }
