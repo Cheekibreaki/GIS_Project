@@ -52,9 +52,9 @@ std::vector<CourierSubPath> travelingCourier(
     std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
     std::cout <<"Depot Num:" <<depots.size()<<"\n";
     std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
-    for(int temp: DeliveryInfo){
+    /*for(int temp: DeliveryInfo){
         std::cout<< temp <<" ";
-    }std::cout <<"\n";
+    }std::cout <<"\n";*/
 
     /// Step 1: MultiDest Dyjestra Method
     std::cout <<"Running MultiDest....\n";
@@ -65,7 +65,16 @@ std::vector<CourierSubPath> travelingCourier(
         if(PathStorage[DeliveryInfo[idx]][DeliveryInfo[0]].travelTime == DBL_MAX) return{};
     }
 
-
+    std::cout << "PathStorage: \n\t";
+    for(auto temp : DeliveryInfo){
+        std::cout << temp <<"\t";
+    }std::cout << "\n";
+    for(auto id1 : DeliveryInfo){
+        std::cout << id1 <<": ";
+        for(auto id2 : DeliveryInfo){
+            std::cout << (int)PathStorage[id1][id2].travelTime<<"\t";
+        }std::cout << "\n";
+    }
 
     /// Step 2: Greedy Algo
     std::cout <<"Running greedyAlgo....\n";
@@ -128,6 +137,11 @@ std::vector<CourierSubPath> travelingCourier(
 
     optPath.push_front(startingDepot);
     optPath.push_back(endingDepot);
+
+    std::cout <<"OPT Path: ";
+    for(int temp : optPath){
+        std::cout << temp <<" ";
+    }std::cout << "\n";
 
     /// Step 4: cast list into CourierPath
     auto courierPath = create_courierPath(optPath);
