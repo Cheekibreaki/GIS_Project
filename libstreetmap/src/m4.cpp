@@ -7,6 +7,8 @@
 #include <set>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
+#define TIME_LIMIT 50
 
 std::map<int, std::map<int,PathInfo>> PathStorage;
 std::vector<IntersectionIdx> DeliveryInfo;
@@ -16,57 +18,19 @@ void MultiDest_Dijkstra(std::set<IntersectionIdx> relatedIntersect,
                         const IntersectionIdx intersect_id_start, const double turn_penalty);
 std::list<int> Greedy_Method(int delivSize, int depotSize);
 
+
+std::list<int> twoOpt(const std::list<int>& srcPath, int delivSize);
 double check_path_time(std::list<int> Path);
+bool check_legal(std::list<int> Path, int delivSize);
 int find_closest_depot(int checkIntersect, int delivSize);
-
-
-bool check_legal(std::list<int> Path, int delivSize){
-
-    for(auto itr = Path.begin(); itr != Path.end(); itr++) {
-        if(*itr >= delivSize){
-            for(auto itr1 = itr; itr1 != Path.end(); itr1++){
-                if(*itr-delivSize == *itr1){
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-std::list<int> twoOpt(const std::list<int>& srcPath, int delivSize){
-    std::list<int> optModifyPath, midPath;
-
-    bool legal = false;
-    while(!legal){
-        optModifyPath = srcPath;
-
-        auto cutItr1 = optModifyPath.begin(), cutItr2 = optModifyPath.begin();
-
-        int cutPos1 = rand() % optModifyPath.size()-1;
-        int cutPos2 = rand() % (optModifyPath.size() - cutPos1 - 1) + cutPos1+2;
-
-        std::advance(cutItr1, cutPos1);
-        std::advance(cutItr2, cutPos2);
-
-        midPath.splice(midPath.begin(), optModifyPath, cutItr1, cutItr2);
-
-        midPath.reverse();
-        legal = check_legal(midPath, delivSize);
-
-        optModifyPath.splice(cutItr2, midPath);
-        optModifyPath.clear();
-    }
-
-    return optModifyPath;
-}
 
 std::vector<CourierSubPath> travelingCourier(
         const std::vector<DeliveryInf>& deliveries,
         const std::vector<int>& depots,
         const float turn_penalty){
 
+    srand(time(NULL));
+    auto startTime=std::chrono::high_resolution_clock::now();
 
     /// Step 0: assemble all Intersections and Pass into MultiStart_Dij
     for(auto temp : deliveries){
@@ -98,8 +62,11 @@ std::vector<CourierSubPath> travelingCourier(
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
 
     /// Step 3: 2/3 OPTs With Time Restriction
-    srand(time(NULL));
     //std::multimap<double, std::list<int>> optPathList;
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
+    std::cout << wallClock.count() <<std::endl;
+
 
 
     /// Step 4: cast list into CourierPath
@@ -148,8 +115,6 @@ std::list<int> Greedy_Method(int delivSize, int depotSize){
     }
     greedyPath.push_back(startingDepot);
     greedyPath.push_back(nextIntersect);
-
-
 
     // nextIntersect is the first pickup choosed from closest depot
     std::set<int> unpicked;
@@ -307,7 +272,35 @@ void MultiDest_Dijkstra_method(const float turn_penalty){
 }
 
 
+
+
 // Useful Helper Functions
+std::list<int> twoOpt(const std::list<int>& srcPath, int delivSize){
+    std::list<int> optModifyPath, midPath;
+
+    bool legal = false;
+    while(!legal){
+        optModifyPath.clear();
+        optModifyPath = srcPath;
+
+        auto cutItr1 = optModifyPath.begin(), cutItr2 = optModifyPath.begin();
+
+        int cutPos1 = rand() % (optModifyPath.size()-1);
+        int cutPos2 = rand() % (optModifyPath.size() - cutPos1 - 1) + cutPos1+2;
+
+        std::advance(cutItr1, cutPos1);
+        std::advance(cutItr2, cutPos2);
+
+        midPath.splice(midPath.begin(), optModifyPath, cutItr1, cutItr2);
+
+        midPath.reverse();
+        legal = check_legal(midPath, delivSize);
+
+        optModifyPath.splice(cutItr2, midPath);
+    }
+    return optModifyPath;
+}
+
 double check_path_time(std::list<int> Path){
     double totalTravelTime = 0;
     auto itr = Path.begin();
@@ -320,6 +313,18 @@ double check_path_time(std::list<int> Path){
     return totalTravelTime;
 }
 
+bool check_legal(std::list<int> Path, int delivSize){
+    for(auto itr = Path.begin(); itr != Path.end(); itr++) {
+        if(*itr >= delivSize){
+            for(auto itr1 = itr; itr1 != Path.end(); itr1++){
+                if(*itr-delivSize == *itr1){
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
 
 int find_closest_depot(int checkIntersect, int delivSize){
     double minTravelTime = DBL_MAX;
