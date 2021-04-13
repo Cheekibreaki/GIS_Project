@@ -73,24 +73,22 @@ std::vector<CourierSubPath> travelingCourier(
 
     double cost = check_path_time(optPath);
     std::cout <<"GreedyCost: "<<cost <<"\n";
-    double T = TIME_LIMIT;
-    //bool noChange = false;
+    bool timeOut = false;
 
-    while(T > 47 /*&& !noChange*/){
+    while(!timeOut){
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto wallClock = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime);
-        T = TIME_LIMIT - wallClock.count();
-        std::cout <<"TIME LEFT:" <<T<<"\n";
-        /*auto modifyPath = twoOpt(optPath, deliveries.size());
+        double T = wallClock.count();
+        std::cout <<"TIME:" <<T<<"\n";
+        auto modifyPath = twoOpt(optPath, deliveries.size());
         double modifyCost = check_path_time(modifyPath);
         double deltaCost = modifyCost - cost;
-        if(modifyCost < cost *//*|| rand() % 2 < exp(-deltaCost/(T0.9))*//*){
+        if(modifyCost < cost /*|| rand() % 2 < exp(-deltaCost/(T0.9))*/){
             optPath = modifyPath;
             cost = modifyCost;
-        }*/
-        for(int i=0;i<10000;i++){
-            for(int j =0; j<1000; j++){}
         }
+        if(TIME_LIMIT * 0.9 < T) timeOut = true;
+        if(std::abs(deltaCost)/modifyCost < 0.5) timeOut = true;
     }
     std::cout <<"OptCost: "<<cost <<"\n";
 
