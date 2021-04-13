@@ -79,6 +79,23 @@ std::vector<CourierSubPath> travelingCourier(
     std::list<int> optPath(greedyPath);
     optPath.pop_back();
     optPath.pop_front();
+
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
+    double timeLeft = TIME_LIMIT - wallClock.count();
+
+    int num = optPath.size();
+    double kVal = 0;
+    if(num < 10){
+        kVal = 0.1;
+    }else if(num >=10 && num < 50){
+        kVal = 0.2;
+    }else if(num >=50 && num < 100){
+        kVal = 0.5;
+    }else if(num >=100){
+        kVal = 0.9;
+    }
     //std::multimap<double, std::list<int>> optPathList;
 
     double cost = check_path_time(optPath);
@@ -86,8 +103,8 @@ std::vector<CourierSubPath> travelingCourier(
     bool timeOut = false;
 
     while (!timeOut) {
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
+        currentTime = std::chrono::high_resolution_clock::now();
+        wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
         double T = wallClock.count();
         std::cout <<"Time:" <<T<<"\n";
 
@@ -98,7 +115,7 @@ std::vector<CourierSubPath> travelingCourier(
             optPath = modifyPath;
             cost = modifyCost;
         }
-        if (TIME_LIMIT * 0.9 < T) {
+        if (timeLeft * kVal < T) {
             timeOut = true;
         }
     }
