@@ -48,7 +48,7 @@ std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyP
     timeLeft *= kVal;
 
     double cost = check_path_time(optPath);
-    //std::cout << "GreedyCost: " << cost << "\n";
+    std::cout << "GreedyCost: " << cost << "\n";
     bool timeOut = false;
 
     while (!timeOut) {
@@ -67,7 +67,7 @@ std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyP
             timeOut = true;
         }
     }
-    //std::cout << "OptCost: " << cost << "\n";
+    std::cout << "OptCost: " << cost << "\n";
     return optPath;
 }
 std::vector<CourierSubPath> travelingCourier(
@@ -113,22 +113,18 @@ std::vector<CourierSubPath> travelingCourier(
     auto endTime=std::chrono::high_resolution_clock::now();
     auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (endTime - startTime);
     /// Step 3: 2/3 OPTs With Time Restriction
-    //greedyPath.pop_back();
-    //greedyPath.pop_front();
+    greedyPath.pop_back();
+    greedyPath.pop_front();
 
     // TwoOptMethod
-    //auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
+    auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
 
-    //optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
-    //optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
+    optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
+    optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
 
     /// Step 4: cast list into CourierPath
-    //auto courierPath = create_courierPath(optPath);
-    std::cout <<"Greedy Path: ";
-    for(int temp : greedyPath){
-        std::cout << temp <<" ";
-    }std::cout << "\n";
-    auto courierPath = create_courierPath(greedyPath);
+    auto courierPath = create_courierPath(optPath);
+
     /// Step 5: Free the Global Value
     free_globals();
 
@@ -225,6 +221,8 @@ void MultiDest_Dijkstra(std::set<IntersectionIdx> relatedIntersect,
     // Push The First Wave Element
     WaveFront.push(WaveElem(intersect_id_start, -1, 0));
 
+    PathStorage[intersect_id_start];
+
     while(!WaveFront.empty()){
         WaveElem currWave = WaveFront.top();
         WaveFront.pop();
@@ -244,7 +242,9 @@ void MultiDest_Dijkstra(std::set<IntersectionIdx> relatedIntersect,
                 PathInfo tempPath;
                 tempPath.travelTime = IntersectNaviInfoList[currIntersectId].bestTime;
                 tempPath.curPath = backTracing(intersect_id_start, currIntersectId, IntersectNaviInfoList);
-                PathStorage[intersect_id_start][currIntersectId] = tempPath;
+
+                PathStorage[intersect_id_start].insert(std::make_pair(currIntersectId, tempPath));
+
                 relatedIntersect.erase(itr);
             }
 
