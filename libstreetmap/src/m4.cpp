@@ -48,7 +48,7 @@ std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyP
     timeLeft *= kVal;
 
     double cost = check_path_time(optPath);
-    std::cout << "GreedyCost: " << cost << "\n";
+    //std::cout << "GreedyCost: " << cost << "\n";
     bool timeOut = false;
 
     while (!timeOut) {
@@ -67,7 +67,7 @@ std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyP
             timeOut = true;
         }
     }
-    std::cout << "OptCost: " << cost << "\n";
+    //std::cout << "OptCost: " << cost << "\n";
     return optPath;
 }
 std::vector<CourierSubPath> travelingCourier(
@@ -89,9 +89,9 @@ std::vector<CourierSubPath> travelingCourier(
         DeliveryInfo.push_back(temp);
     }
 
-    std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
-    std::cout <<"Depot Num:" <<depots.size()<<"\n";
-    std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
+//    std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
+//    std::cout <<"Depot Num:" <<depots.size()<<"\n";
+//    std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
 
     /// Step 1: MultiDest Dyjestra Method
     MultiDest_Dijkstra_method(turn_penalty);
