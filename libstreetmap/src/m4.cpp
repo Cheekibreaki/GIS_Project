@@ -89,9 +89,9 @@ std::vector<CourierSubPath> travelingCourier(
         DeliveryInfo.push_back(temp);
     }
 
-    //std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
-    //std::cout <<"Depot Num:" <<depots.size()<<"\n";
-    //std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
+    std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
+    std::cout <<"Depot Num:" <<depots.size()<<"\n";
+    std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
 
     /// Step 1: MultiDest Dyjestra Method
     MultiDest_Dijkstra_method(turn_penalty);
@@ -124,6 +124,10 @@ std::vector<CourierSubPath> travelingCourier(
 
     /// Step 4: cast list into CourierPath
     //auto courierPath = create_courierPath(optPath);
+    std::cout <<"Greedy Path: ";
+    for(int temp : greedyPath){
+        std::cout << temp <<" ";
+    }std::cout << "\n";
     auto courierPath = create_courierPath(greedyPath);
     /// Step 5: Free the Global Value
     free_globals();
