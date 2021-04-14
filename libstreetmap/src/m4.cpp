@@ -29,47 +29,7 @@ int find_closest_depot(int checkIntersect, int delivSize);
 std::vector<CourierSubPath> create_courierPath(const std::list<int>& optPath);
 void free_globals();
 
-std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyPath, int delivSize){
-    std::list<int> optPath(greedyPath);
 
-    auto startTime = std::chrono::high_resolution_clock::now();
-
-    int num = optPath.size();
-    double kVal = 0;
-    if(num < 10){
-        kVal = 0.1;
-    }else if(num >=10 && num < 50){
-        kVal = 0.2;
-    }else if(num >=50 && num < 100){
-        kVal = 0.5;
-    }else if(num >=100){
-        kVal = 0.9;
-    }
-    timeLeft *= kVal;
-
-    double cost = check_path_time(optPath);
-    std::cout << "GreedyCost: " << cost << "\n";
-    bool timeOut = false;
-
-    while (!timeOut) {
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
-        double T = wallClock.count();
-
-        auto modifyPath = twoOpt(optPath, delivSize);
-        double modifyCost = check_path_time(modifyPath);
-        double deltaCost = modifyCost - cost;
-        if (modifyCost < cost || rand()%2 < exp(-deltaCost * T)) {
-            optPath = modifyPath;
-            cost = modifyCost;
-        }
-        if (timeLeft < T) {
-            timeOut = true;
-        }
-    }
-    std::cout << "OptCost: " << cost << "\n";
-    return optPath;
-}
 std::vector<CourierSubPath> travelingCourier(
         const std::vector<DeliveryInf>& deliveries,
         const std::vector<int>& depots,
@@ -92,8 +52,12 @@ std::vector<CourierSubPath> travelingCourier(
     std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
     std::cout <<"Depot Num:" <<depots.size()<<"\n";
     std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
+    /*for(int temp: DeliveryInfo){
+        std::cout<< temp <<" ";
+    }std::cout <<"\n";*/
 
     /// Step 1: MultiDest Dyjestra Method
+    std::cout <<"Running MultiDest....\n";
     MultiDest_Dijkstra_method(turn_penalty);
 
     // Throw expection of Delivery Point cannot be Reach
@@ -101,7 +65,19 @@ std::vector<CourierSubPath> travelingCourier(
         if(PathStorage[DeliveryInfo[idx]][DeliveryInfo[0]].travelTime == DBL_MAX) return{};
     }
 
+    std::cout << "PathStorage: \n\t";
+    for(auto temp : DeliveryInfo){
+        std::cout << temp <<"\t";
+    }std::cout << "\n";
+    for(auto id1 : DeliveryInfo){
+        std::cout << id1 <<": ";
+        for(auto id2 : DeliveryInfo){
+            std::cout << (int)PathStorage[id1][id2].travelTime<<"\t";
+        }std::cout << "\n";
+    }
+
     /// Step 2: Greedy Algo
+    std::cout <<"Running greedyAlgo....\n";
     std::list<int> greedyPath = Greedy_Method(deliveries.size(), depots.size());
     if(greedyPath.empty()) return{};
     if(greedyPath.size() == 4){
@@ -110,17 +86,62 @@ std::vector<CourierSubPath> travelingCourier(
         return couierPath;
     }
 
-    auto endTime=std::chrono::high_resolution_clock::now();
-    auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (endTime - startTime);
     /// Step 3: 2/3 OPTs With Time Restriction
-    greedyPath.pop_back();
-    greedyPath.pop_front();
+    std::list<int> optPath(greedyPath);
+    optPath.pop_back();
+    optPath.pop_front();
 
-    // TwoOptMethod
-    auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
 
-    optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
-    optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
+    double timeLeft = TIME_LIMIT - wallClock.count();
+
+    int num = optPath.size();
+    double kVal = 0;
+    if(num < 10){
+        kVal = 0.1;
+    }else if(num >=10 && num < 50){
+        kVal = 0.2;
+    }else if(num >=50 && num < 100){
+        kVal = 0.5;
+    }else if(num >=100){
+        kVal = 0.9;
+    }
+    //std::multimap<double, std::list<int>> optPathList;
+
+    double cost = check_path_time(optPath);
+    std::cout << "GreedyCost: " << cost << "\n";
+    bool timeOut = false;
+
+    while (!timeOut) {
+        currentTime = std::chrono::high_resolution_clock::now();
+        wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (currentTime - startTime);
+        double T = wallClock.count();
+        //std::cout <<"Time:" <<T<<"\n";
+
+        auto modifyPath = twoOpt(optPath, deliveries.size());
+        double modifyCost = check_path_time(modifyPath);
+        double deltaCost = modifyCost - cost;
+        if (modifyCost < cost) {
+            optPath = modifyPath;
+            cost = modifyCost;
+        }
+        if (timeLeft * kVal < T) {
+            timeOut = true;
+        }
+    }
+    std::cout << "OptCost: " << cost << "\n";
+
+    int startingDepot = find_closest_depot(optPath.front(), deliveries.size());
+    int endingDepot = find_closest_depot(optPath.back(), deliveries.size());
+
+    optPath.push_front(startingDepot);
+    optPath.push_back(endingDepot);
+
+    std::cout <<"OPT Path: ";
+    for(int temp : optPath){
+        std::cout << temp <<" ";
+    }std::cout << "\n";
 
     /// Step 4: cast list into CourierPath
     auto courierPath = create_courierPath(optPath);
