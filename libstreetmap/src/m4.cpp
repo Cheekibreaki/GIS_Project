@@ -48,7 +48,7 @@ std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyP
     timeLeft *= kVal;
 
     double cost = check_path_time(optPath);
-    std::cout << "GreedyCost: " << cost << "\n";
+    //std::cout << "GreedyCost: " << cost << "\n";
     bool timeOut = false;
 
     while (!timeOut) {
@@ -67,7 +67,7 @@ std::list<int> two_optPath_method(double timeLeft, const std::list<int>& greedyP
             timeOut = true;
         }
     }
-    std::cout << "OptCost: " << cost << "\n";
+    //std::cout << "OptCost: " << cost << "\n";
     return optPath;
 }
 std::vector<CourierSubPath> travelingCourier(
@@ -89,9 +89,9 @@ std::vector<CourierSubPath> travelingCourier(
         DeliveryInfo.push_back(temp);
     }
 
-    std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
-    std::cout <<"Depot Num:" <<depots.size()<<"\n";
-    std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
+    //std::cout <<"Delivery Num:" <<deliveries.size()<<"\n";
+    //std::cout <<"Depot Num:" <<depots.size()<<"\n";
+    //std::cout <<"DEliverInfo Size " << DeliveryInfo.size()<<"\n";
 
     /// Step 1: MultiDest Dyjestra Method
     MultiDest_Dijkstra_method(turn_penalty);
@@ -113,18 +113,18 @@ std::vector<CourierSubPath> travelingCourier(
     auto endTime=std::chrono::high_resolution_clock::now();
     auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (endTime - startTime);
     /// Step 3: 2/3 OPTs With Time Restriction
-    greedyPath.pop_back();
-    greedyPath.pop_front();
+    //greedyPath.pop_back();
+    //greedyPath.pop_front();
 
     // TwoOptMethod
-    auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
+    //auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
 
-    optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
-    optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
+    //optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
+    //optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
 
     /// Step 4: cast list into CourierPath
-    auto courierPath = create_courierPath(optPath);
-
+    //auto courierPath = create_courierPath(optPath);
+    auto courierPath = create_courierPath(greedyPath);
     /// Step 5: Free the Global Value
     free_globals();
 
