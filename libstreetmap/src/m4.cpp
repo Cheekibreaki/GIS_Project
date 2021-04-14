@@ -113,17 +113,17 @@ std::vector<CourierSubPath> travelingCourier(
     auto endTime=std::chrono::high_resolution_clock::now();
     auto wallClock = std::chrono::duration_cast < std::chrono::duration < double >> (endTime - startTime);
     /// Step 3: 2/3 OPTs With Time Restriction
-    greedyPath.pop_back();
-    greedyPath.pop_front();
-
-    // TwoOptMethod
-    auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
-
-    optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
-    optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
-
-    /// Step 4: cast list into CourierPath
-    auto courierPath = create_courierPath(optPath);
+//    greedyPath.pop_back();
+//    greedyPath.pop_front();
+//
+//    // TwoOptMethod
+//    auto optPath = two_optPath_method(TIME_LIMIT - wallClock.count(), greedyPath, deliveries.size());
+//
+//    optPath.push_front(find_closest_depot(optPath.front(), deliveries.size()));
+//    optPath.push_back(find_closest_depot(optPath.back(), deliveries.size()));
+//
+//    /// Step 4: cast list into CourierPath
+    auto courierPath = create_courierPath(greedyPath);
 
     /// Step 5: Free the Global Value
     free_globals();
